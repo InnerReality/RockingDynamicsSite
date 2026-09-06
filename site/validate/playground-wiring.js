@@ -465,7 +465,7 @@
       thetaGain: 50,
       stackRadius: 10.5,
       nStacks: 12,
-      stackFreeLength: 5,
+      stackFreeLength: 8,
       fps: 50,
       onUpdate: () => {}
     });
@@ -565,7 +565,7 @@
         thetaGain: defaultGain,
         stackRadius: 10.5,
         nStacks: 12,
-        stackFreeLength: 5,
+        stackFreeLength: 8,
         fps: 50,
         onUpdate: (frame) => {
           slider.value = String(frame);
@@ -605,7 +605,7 @@
       }
       let maxAx = 0;
       for (let i = 0; i < res.u_.length; i++) maxAx = Math.max(maxAx, Math.abs(res.u_[i][0] / 386.4));
-      statusEl.textContent = `Drag to orbit, scroll to zoom. θ scale auto-set to ${defaultGain}× from the peak deflection (adjust live with the slider below the animation); springs stand on z = 0. Plots track the playback cursor. | max|θ| = ${(maxTheta * 180 / Math.PI).toFixed(3)}° at t = ${maxThetaT.toFixed(1)} s; peak aₓ = ${maxAx.toFixed(2)} g`;
+      statusEl.textContent = `Drag to orbit, scroll to zoom. θ scale auto-set to ${defaultGain}× from the peak deflection (adjust live with the slider below the animation); springs hang from the fixed ceiling at z = 8. Plots track the playback cursor. | max|θ| = ${(maxTheta * 180 / Math.PI).toFixed(3)}° at t = ${maxThetaT.toFixed(1)} s; peak aₓ = ${maxAx.toFixed(2)} g`;
       runBtn.disabled = false;
     };
     worker.onerror = (e) => {

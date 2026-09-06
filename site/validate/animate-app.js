@@ -5122,10 +5122,12 @@
     const { geom } = opts;
     const N = 40;
     const H = opts.stackFreeLength;
+    // The body flange is at z = 0. Springs hang down from a fixed ceiling
+    // at z = H, matching the inverted side-view representation in MinAccel.
     const cyls = [
-      { r: geom.d1 / 2, z0: -geom.h1 + H, z1: H, color: "rgba(217, 84, 26, 0.35)" },
-      { r: geom.d2 / 2, z0: H, z1: geom.h2 + H, color: "rgba(0, 115, 189, 0.35)" },
-      { r: geom.d3 / 2, z0: geom.h2 + H, z1: geom.h2 + geom.h3 + H, color: "rgba(120, 171, 48, 0.35)" }
+      { r: geom.d1 / 2, z0: -geom.h1, z1: 0, color: "rgba(217, 84, 26, 0.35)" },
+      { r: geom.d2 / 2, z0: 0, z1: geom.h2, color: "rgba(0, 115, 189, 0.35)" },
+      { r: geom.d3 / 2, z0: geom.h2, z1: geom.h2 + geom.h3, color: "rgba(120, 171, 48, 0.35)" }
     ];
     const ang = [];
     for (let j = 0; j < opts.nStacks; j++) ang.push(j * 2 * Math.PI / opts.nStacks);
@@ -5167,7 +5169,11 @@
           pts.push(xf([c.r * Math.cos(a), c.r * Math.sin(a), c.z1]));
         }
       }
-      for (const a of ang) pts.push(xf([opts.stackRadius * Math.cos(a), opts.stackRadius * Math.sin(a), H]));
+      for (const a of ang) {
+        const x = opts.stackRadius * Math.cos(a), y = opts.stackRadius * Math.sin(a);
+        pts.push([x, y, H]);
+        pts.push(xf([x, y, 0]));
+      }
       return pts;
     }
     let frame = 0, playing = true, speed = 1, acc = 0, last;
@@ -5229,8 +5235,10 @@
       }
       for (let j = 0; j < opts.nStacks; j++) {
         const a = ang[j];
-        const g = proj([opts.stackRadius * Math.cos(a), opts.stackRadius * Math.sin(a), 0]);
-        const p = proj(xf([opts.stackRadius * Math.cos(a), opts.stackRadius * Math.sin(a), H]));
+        // Fixed ceiling endpoint first; the lower endpoint follows the
+        // flange as the body rocks.
+        const g = proj([opts.stackRadius * Math.cos(a), opts.stackRadius * Math.sin(a), H]);
+        const p = proj(xf([opts.stackRadius * Math.cos(a), opts.stackRadius * Math.sin(a), 0]));
         const depth = (g[2] + p[2]) / 2;
         prims.push({
           depth,
@@ -5259,7 +5267,7 @@
             const lbl = proj([
               opts.stackRadius * 1.3 * Math.cos(a),
               opts.stackRadius * 1.3 * Math.sin(a),
-              0
+              -2
             ]);
             ctx.fillStyle = "#111111";
             ctx.font = "11px 'Segoe UI', sans-serif";
@@ -5270,7 +5278,7 @@
       }
       prims.sort((a, b) => b.depth - a.depth);
       for (const p of prims) p.draw();
-      const rp = proj([r[0], r[1], H]);
+      const rp = proj([r[0], r[1], 0]);
       ctx.beginPath();
       ctx.arc(rp[0], rp[1], 5, 0, 2 * Math.PI);
       ctx.fillStyle = "#dd2222";
@@ -5278,7 +5286,7 @@
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 1;
       ctx.stroke();
-      const ob = xf([0, 0, H]);
+      const ob = xf([0, 0, 0]);
       const axes = [
         [[1, 0, 0], "#cc2222"],
         [[0, 1, 0], "#22aa22"],
@@ -5664,6 +5672,6 @@
     });
     resetBtn.addEventListener("click", () => animator.resetView());
     const shownFps = data.t.length > 1 ? 1 / (data.t[1] - data.t[0]) : 50;
-    statusEl.textContent = `${data.t.length} frames @ ${shownFps.toFixed(1)} fps \u2014 drag to orbit, scroll to zoom. \u03B8 drawn with 50\xD7 exaggeration (as in the MATLAB example); springs stand on z=0. Plots track the playback cursor.`;
+    statusEl.textContent = `${data.t.length} frames @ ${shownFps.toFixed(1)} fps \u2014 drag to orbit, scroll to zoom. \u03B8 drawn with 50\xD7 exaggeration (as in the MATLAB example); springs hang from the fixed ceiling at z=5. Plots track the playback cursor.`;
   }, 30);
 })();
