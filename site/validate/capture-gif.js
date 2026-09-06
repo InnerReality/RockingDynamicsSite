@@ -2,8 +2,9 @@
   const canvas = document.querySelector("#ma-canvas, #pg-canvas");
   if (!canvas) return;
   const button = document.createElement("button");
-  button.className = "btn";
-  button.textContent = "Download GIF";
+  button.className = "btn gif-download";
+  const downloadLabel = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a.75.75 0 0 1 .75.75v7.69l2.22-2.22a.75.75 0 1 1 1.06 1.06l-3.5 3.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.22 2.22V1.75A.75.75 0 0 1 8 1zM2.75 13.5h10.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5z"/></svg><span>GIF</span>';
+  button.innerHTML = downloadLabel;
   button.title = "Capture the current simulation canvas as an animated GIF";
   const transport = document.querySelector(".transport");
   transport?.insertBefore(button, transport.querySelector("select"));
@@ -141,7 +142,7 @@
     const lastFrame = slider ? Number(slider.max) : 0;
     if (!slider || !Number.isFinite(lastFrame) || lastFrame < 1) {
       button.textContent = "Run simulation first";
-      setTimeout(() => { button.textContent = "Download GIF"; }, 1800);
+      setTimeout(() => { button.innerHTML = downloadLabel; }, 1800);
       return;
     }
     button.disabled = true;
@@ -194,6 +195,6 @@
     delete button.dataset.capturing;
     button.disabled = false;
     syncRunState();
-    button.textContent = "Download GIF";
+    button.innerHTML = downloadLabel;
   });
 })();

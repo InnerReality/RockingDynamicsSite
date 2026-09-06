@@ -98,6 +98,7 @@ ${body}
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 cpSync(resolve(root, "index.html"), resolve(dist, "index.html"));
+cpSync(resolve(root, "theme.js"), resolve(dist, "theme.js"));
 cpSync(resolve(root, "assets"), resolve(dist, "assets"), { recursive: true });
 
 // 1. Assemble the JS bundles from the solver source + wiring files
@@ -117,7 +118,7 @@ for (const [fname, wiring] of bundles) {
 }
 
 // 2. validate/ static runtime files
-for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js", "capture-gif.js"]) {
+for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js", "capture-gif.js", "simulator-common.css"]) {
   cpSync(resolve(root, `validate/${f}`), resolve(out, f));
 }
 // minaccel.html fetches minaccel-content.md at runtime

@@ -9,11 +9,30 @@
     --bg: #fafafa;
     --card: #ffffff;
     --border: #e0e0e0;
-    --fg: #202124;
+    --fg: #000000;
+    --logo: #000000;
     --muted: #5f6368;
-    --accent: #4285f4;
-    --accent-dark: #3367d6;
+    --accent: #0f766e;
+    --accent-dark: #0b5f59;
+    --hover: #f1f3f4;
+    --tab-bg: #f1f3f4;
+    --primary-fg: #ffffff;
     --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1220;
+    --card: #111c2e;
+    --border: #263750;
+    --fg: #ffffff;
+    --logo: #ffffff;
+    --muted: #c5d0df;
+    --accent: #2dd4bf;
+    --accent-dark: #14b8a6;
+    --hover: #203554;
+    --tab-bg: #1d2a3f;
+    --primary-fg: #062a28;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -39,7 +58,7 @@
     top: 0;
     z-index: 10;
   }
-  .brand h1 { font-size: 18px; font-weight: 600; margin: 0; }
+  .brand h1 { color: var(--logo); font-size: 18px; font-weight: 900; letter-spacing: -0.02em; margin: 0; text-shadow: 0 0 0.01px currentColor; }
   .brand p { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
   .transport { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .btn {
@@ -52,8 +71,8 @@
     color: var(--fg);
     cursor: pointer;
   }
-  .btn:hover { background: #f1f3f4; }
-  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn:hover { background: var(--hover); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--primary-fg); font-weight: 700; }
   .btn-primary:hover { background: var(--accent-dark); }
   .btn:disabled { opacity: 0.55; cursor: wait; }
   .transport select {
@@ -69,7 +88,7 @@
   .frame-counter {
     font-family: var(--mono);
     font-size: 12px;
-    color: var(--muted);
+    color: var(--fg);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 5px 10px;
@@ -91,6 +110,26 @@
   }
   .github-link:hover { color: var(--fg); border-color: var(--accent); }
   .github-link svg { width: 16px; height: 16px; fill: currentColor; }
+  .gif-download { display: inline-flex; align-items: center; gap: 5px; }
+  .gif-download svg { width: 15px; height: 15px; fill: currentColor; }
+  .theme-toggle {
+    min-width: 36px;
+    width: 36px;
+    height: 34px;
+    padding: 0;
+    border: 2px solid var(--accent);
+    background: var(--accent);
+    color: var(--primary-fg);
+    font-size: 19px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .theme-toggle:hover,
+  .theme-toggle:focus-visible {
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
+    color: var(--primary-fg);
+  }
 
   /* ---- three-column layout ---- */
   .layout {
@@ -171,6 +210,8 @@
     text-align: center;
   }
   .run-warning[hidden] { display: none; }
+  :root[data-theme="dark"] .run-warning,
+  :root[data-theme="dark"] .anim-warning { color: #fbbf24; }
   .anim-warning {
     font-size: 13px;
     font-weight: 600;
@@ -251,7 +292,7 @@
     padding: 6px 12px;
     border: 1px solid var(--border);
     border-radius: 4px 4px 0 0;
-    background: #f1f3f4;
+    background: var(--tab-bg);
     color: var(--muted);
     cursor: pointer;
   }
@@ -312,6 +353,7 @@
     }
   }
 </style>
+<link rel="stylesheet" href="simulator-common.css">
 <style>
 .md-content { max-width: 960px; margin: 24px auto; padding: 0 20px 40px; line-height: 1.6; }
 .md-content h2 { border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
@@ -322,6 +364,7 @@
 .md-content th, .md-content td { border: 1px solid #ddd; padding: 6px 10px; }
 .md-content img { max-width: 100%; }
 </style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="../theme.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -342,9 +385,9 @@
         <option value="4">4&times;</option>
       </select>
       <span id="ma-frame" class="frame-counter">Frame 0000</span>
-      <a class="github-link" href="https://github.com/InnerReality/RockingDynamicsSite" target="_blank" rel="noopener" title="View source on GitHub">
+      <button class="btn theme-toggle" data-theme-toggle type="button" aria-label="Switch theme" title="Switch theme"></button>
+      <a class="github-link" href="https://github.com/InnerReality/RockingDynamicsSite" target="_blank" rel="noopener" aria-label="View source on GitHub" title="View source on GitHub">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
-        GitHub
       </a>
     </div>
   </header>
@@ -532,8 +575,11 @@
 
       fetch("minaccel-content.md")
         .then(function (r) {
-          if (!r.ok) throw new Error("HTTP " + r.status);
-          return r.text();
+          if (r.ok) return r.text();
+          return fetch("../docs/minaccel-content.md").then(function (fallback) {
+            if (!fallback.ok) throw new Error("HTTP " + r.status + " / " + fallback.status);
+            return fallback.text();
+          });
         })
         .then(function (md) {
           renderMinAccelMd(md);

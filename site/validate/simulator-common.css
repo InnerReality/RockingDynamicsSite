@@ -1,0 +1,80 @@
+:root {
+  --logo: #000000;
+  --primary-fg: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  /* In dark mode, the brand reverses to white and accent buttons use dark text. */
+  --logo: #ffffff;
+  --primary-fg: #062a28;
+}
+
+.brand h1 {
+  color: var(--logo) !important;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 0.01px currentColor;
+}
+
+.btn-primary {
+  color: var(--primary-fg) !important;
+  font-weight: 700;
+}
+
+.frame-counter {
+  color: var(--fg) !important;
+}
+
+.tab {
+  color: var(--fg) !important;
+}
+
+.theme-toggle {
+  min-width: 36px;
+  width: 36px;
+  height: 34px;
+  padding: 0;
+  border: 2px solid #ffffff;
+  background: #ffffff;
+  color: var(--accent);
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.theme-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: auto;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  background: #f3f4f6;
+  border-color: #f3f4f6;
+  color: var(--accent-dark);
+}
+
+:root[data-theme="dark"] .theme-toggle {
+  background: #111c2e;
+  border-color: #111c2e;
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .theme-toggle:hover,
+:root[data-theme="dark"] .theme-toggle:focus-visible {
+  background: #1d2a3f;
+  border-color: #1d2a3f;
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .run-warning,
+:root[data-theme="dark"] .anim-warning {
+  color: #fbbf24;
+}
+
+:root[data-theme="dark"] .dirty-dot {
+  background: #a16207;
+  box-shadow: 0 0 0 2px rgba(161, 98, 7, 0.38), 0 0 6px rgba(161, 98, 7, 0.3);
+}
