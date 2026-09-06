@@ -7,6 +7,8 @@ earthquake), body parameters, and force/hysteresis plots. Pure client-side JS
 
 ## Pages
 
+- `https://innerreality.github.io/RockingDynamicsSite/`
+  — landing page with animated simulation previews.
 - `https://innerreality.github.io/RockingDynamicsSite/validate/playground.html`
   — the playground (with markdown content below the layout).
 - `https://innerreality.github.io/RockingDynamicsSite/validate/minaccel.html`
@@ -30,6 +32,7 @@ earthquake), body parameters, and force/hysteresis plots. Pure client-side JS
 - `site/build.mjs` — assembles the JS bundles, copies runtime files, converts
   `site/docs/*.md` → `site/dist/docs/*.html`, and injects the playground
   content. Requires `npm install` (marked + katex).
+- `site/dev-server.mjs` — dependency-free local server for `site/dist`.
 
 ## Build
 
@@ -37,7 +40,16 @@ earthquake), body parameters, and force/hysteresis plots. Pure client-side JS
 cd site
 npm install     # once (marked + katex)
 npm run build   # outputs to dist/validate/ + dist/docs/
+npm run dev     # builds and serves at http://localhost:3000
 ```
+
+Local simulator URLs:
+
+- `http://localhost:3000/validate/playground`
+- `http://localhost:3000/validate/minaccel`
+
+The `.html` forms also work. Keep the dev-server terminal running while using
+these pages.
 
 KaTeX math is rendered at build time; Mermaid diagrams render in the browser
 (via CDN script). The docs pages and the injected playground content support
