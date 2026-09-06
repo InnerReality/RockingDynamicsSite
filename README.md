@@ -9,22 +9,27 @@ earthquake), body parameters, and force/hysteresis plots. Pure client-side JS
 
 - `https://innerreality.github.io/RockingDynamicsSite/validate/playground.html`
   — the playground (with markdown content below the layout).
+- `https://innerreality.github.io/RockingDynamicsSite/validate/minaccel.html`
+  — MinAccel simulator: ramps the base acceleration linearly and solves until
+  |θ| reaches a target angle, reporting the minimum acceleration needed.
 - `https://innerreality.github.io/RockingDynamicsSite/docs/background.html`
   — background/theory page (links back to the playground).
 
 ## Layout
 
-- `site/validate/playground.html` — the page.
-- `site/validate/playground-app.js` — the bundle (assembled from `site/animate-app.js`
-  + `site/validate/playground-wiring.js`; see the header comment in `site/validate/playground-wiring.js`).
-- `site/validate/playground-worker.js` — Web Worker that runs the solve off the
-  main thread (assembled from `site/validate/animate-app.js` + `site/validate/worker-wiring.js`).
+- `site/validate/playground.html` — the playground page.
+- `site/validate/minaccel.html` — the MinAccel page (same layout/style).
+- `site/validate/*-app.js` / `site/validate/*-worker.js` — page bundles and Web
+  Workers, assembled from `site/validate/animate-app.js` (solver) + a wiring
+  file (`playground-wiring.js`, `worker-wiring.js`, `minaccel-worker-wiring.js`)
+  by `site/validate/assemble-bundles.mjs` (or `npm run build`).
 - `site/validate/eq-data.js` — embedded earthquake record (generated from
   `src/Examples/EQexample/Cerl_input.txt` via `site/validate/gen-eq-data.mjs`).
 - `site/docs/*.md` — markdown pages (KaTeX math + Mermaid diagrams supported).
   `site/docs/playground-content.md` is injected below the playground layout.
-- `site/build.mjs` — copies runtime files, converts `site/docs/*.md` → `site/dist/docs/*.html`,
-  and injects the playground content. Requires `npm install` (marked + katex).
+- `site/build.mjs` — assembles the JS bundles, copies runtime files, converts
+  `site/docs/*.md` → `site/dist/docs/*.html`, and injects the playground
+  content. Requires `npm install` (marked + katex).
 
 ## Build
 
@@ -48,8 +53,7 @@ GitHub Actions build + publish (see `deploy-actions.yml` — copy it to
 
 ## Updating
 
-1. Edit `site/validate/playground.html` / `site/validate/playground-wiring.js` or
-   `site/docs/*.md`.
-2. Rebuild the bundle: `cp animate-app.js playground-app.js` then replace the
-   wiring section (see the header comment in `playground-wiring.js`).
+1. Edit `site/validate/*.html`, `site/validate/*-wiring.js`, or `site/docs/*.md`.
+2. Rebuild the bundles: `node site/validate/assemble-bundles.mjs` (or
+   `npm run build`, which assembles them into `dist/`).
 3. `npm run build` and deploy.

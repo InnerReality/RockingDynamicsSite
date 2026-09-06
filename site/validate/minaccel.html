@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MinAccel Simulator</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --border: #e0e0e0;
+    --fg: #202124;
+    --muted: #5f6368;
+    --accent: #4285f4;
+    --accent-dark: #3367d6;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  /* ---- top bar (TensorFlow Playground style) ---- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .brand h1 { font-size: 18px; font-weight: 600; margin: 0; }
+  .brand p { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+  .transport { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  .btn:hover { background: #f1f3f4; }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn:disabled { opacity: 0.55; cursor: wait; }
+  .transport select {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  .frame-counter {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    background: var(--card);
+    white-space: nowrap;
+  }
+  .github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    white-space: nowrap;
+  }
+  .github-link:hover { color: var(--fg); border-color: var(--accent); }
+  .github-link svg { width: 16px; height: 16px; fill: currentColor; }
+
+  /* ---- three-column layout ---- */
+  .layout {
+    display: grid;
+    grid-template-columns: 290px minmax(0, 1fr) 360px;
+    gap: 16px;
+    align-items: start;
+    padding: 16px 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  /* ---- cards / sections ---- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .axis-block { margin-bottom: 16px; }
+  .axis-block:last-child { margin-bottom: 0; }
+  .axis-block h3 { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+  .link-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .link-ctrl input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .ctrl input:disabled, .ctrl select:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ctrl { margin-bottom: 10px; }
+  .ctrl .lbl {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .ctrl .val { font-family: var(--mono); font-size: 12px; color: var(--fg); }
+  .ctrl input[type="range"] { width: 100%; margin: 0; accent-color: var(--accent); }
+  .ctrl select, .ctrl input[type="text"], .ctrl input[type="number"] {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    background: var(--card);
+    color: var(--fg);
+  }
+  .run-btn { width: 100%; margin-top: 4px; padding: 8px 14px; font-size: 14px; }
+  .run-warning {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b45309;
+    text-align: center;
+  }
+  .run-warning[hidden] { display: none; }
+  .anim-warning {
+    font-size: 13px;
+    font-weight: 600;
+    color: #b45309;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .anim-warning[hidden] { display: none; }
+  .stack-picker {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .stack-picker select {
+    margin-left: 6px;
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--fg);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .stack-picker select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ---- center stage ---- */
+  .stage { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+  .stage canvas {
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    touch-action: none;
+  }
+  .timeline {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .timeline input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .timeline .tlabel {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .status {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    max-width: 480px;
+    text-align: center;
+    min-height: 1.2em;
+  }
+  .status.error { color: #d93025; }
+  .status.warning { color: #b45309; font-weight: 600; }
+  .legend {
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 6px 0 0;
+    line-height: 1.5;
+  }
+
+  /* ---- right sidebar: tabbed plots ---- */
+  .tabbar { display: flex; gap: 4px; margin-bottom: 10px; }
+  .tab {
+    font-family: inherit;
+    font-size: 12px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px 4px 0 0;
+    background: #f1f3f4;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .tab.active {
+    background: var(--card);
+    color: var(--fg);
+    font-weight: 600;
+    border-bottom-color: var(--card);
+  }
+  .panelrow { display: none; }
+  .panelrow.active { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .panel-note { font-size: 12px; color: var(--muted); margin: 0 0 4px; }
+  .plotbox { width: 100%; max-width: 440px; }
+  .plotbox svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  /* live excitation preview inside the options drawer (mobile only) */
+  .drawer-live { display: none; }
+  .drawer-live .plotbox { max-width: none; }
+
+  /* ---- mobile: simulation inputs become a left drawer ---- */
+  .options-toggle { display: none; }
+  .sidebar-backdrop { display: none; }
+
+  @media (max-width: 1100px) {
+    .options-toggle { display: inline-flex; align-items: center; gap: 6px; }
+    .layout { grid-template-columns: 1fr; }
+    .stage { order: 1; }
+    .sidebar.right { order: 2; }
+    .sidebar.left {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(320px, 85vw);
+      background: var(--bg);
+      z-index: 100;
+      overflow-y: auto;
+      padding: 16px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.18);
+      transform: translateX(-105%);
+      transition: transform 0.25s ease;
+    }
+    .sidebar.left.open { transform: translateX(0); }
+    .sidebar.left .drawer-live { display: block; }
+    .sidebar-backdrop.show {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 90;
+    }
+  }
+</style>
+<style>
+.md-content { max-width: 960px; margin: 24px auto; padding: 0 20px 40px; line-height: 1.6; }
+.md-content h2 { border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+.md-content code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; }
+.md-content pre { background: #f6f8fa; padding: 12px; border-radius: 6px; overflow-x: auto; }
+.md-content pre.mermaid { background: #fff; text-align: center; }
+.md-content table { border-collapse: collapse; }
+.md-content th, .md-content td { border: 1px solid #ddd; padding: 6px 10px; }
+.md-content img { max-width: 100%; }
+</style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+</head>
+<body>
+  <header class="topbar">
+    <button id="ma-options-toggle" class="btn options-toggle" title="Simulation options">&#9776; Options</button>
+    <div class="brand">
+      <h1>MinAccel Simulator</h1>
+      <p>Minimum base acceleration to rock &middot; 2D side view &middot; &phi; = 0</p>
+    </div>
+    <div class="transport">
+      <button id="ma-play" class="btn btn-primary">Play</button>
+      <button id="ma-step" class="btn">Step</button>
+      <button id="ma-reset" class="btn">Reset</button>
+      <select id="ma-speed">
+        <option value="0.25">0.25&times;</option>
+        <option value="0.5">0.5&times;</option>
+        <option value="1" selected>1&times;</option>
+        <option value="2">2&times;</option>
+        <option value="4">4&times;</option>
+      </select>
+      <span id="ma-frame" class="frame-counter">Frame 0000</span>
+      <a class="github-link" href="https://github.com/InnerReality/RockingDynamicsSite" target="_blank" rel="noopener" title="View source on GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </header>
+
+  <div id="ma-options-backdrop" class="sidebar-backdrop"></div>
+
+  <div class="layout">
+    <aside class="sidebar left" id="ma-options-drawer">
+      <section class="card">
+        <h2 class="card-title">Excitation</h2>
+        <div class="axis-block">
+          <h3>a<sub>x</sub>(t) = rate &middot; t</h3>
+          <div class="ctrl">
+            <span class="lbl">Ramp rate (g/s) <span class="val"></span></span>
+            <input id="ma-rate" type="range" min="0.1" max="5" step="0.1" value="1" />
+          </div>
+          <p class="panel-note">
+            The load is quasi-static at lower ramp rates.
+          </p>
+          <div class="ctrl">
+            <span class="lbl">Target &theta; (deg) <span class="val"></span></span>
+            <input id="ma-target" type="range" min="0.1" max="5" step="0.1" value="1" />
+          </div>
+          <p class="panel-note">
+            The base acceleration ramps up linearly (a<sub>y</sub> = 0, so the
+            tipping direction stays &phi; = 0). The solve runs until
+            |&theta;| first reaches the target angle; the acceleration at that
+            moment is the minimum needed to rock the body that far. Once the
+            target is reached the load is removed and the simulation continues
+            for 10 more seconds to show the free response.
+          </p>
+        </div>
+        <label class="link-ctrl" title="Remove the Belleville-washer forces — the body then rocks purely about the pivot">
+          <input type="checkbox" id="ma-no-bw" />
+          Disable BW force
+        </label>
+        <p class="panel-note">
+          Since it is a linear model (that works on small angle approximation),
+          disabling BW force yields results that are inaccurate at higher &theta;.
+        </p>
+        <div id="ma-no-bw-note" class="panel-note" hidden>
+          Target &theta; = 0.2&middot;atan(r&#8320;/h<sub>CM</sub>) = <span class="val">&mdash;</span>&deg;
+        </div>
+      </section>
+
+      <section class="card drawer-live">
+        <h2 class="card-title">Excitation preview</h2>
+        <div id="plot-ax-live-drawer" class="plotbox"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Body</h2>
+        <div class="ctrl">
+          <span class="lbl">Mass (lb) <span class="val"></span></span>
+          <input id="ma-mass" type="range" min="100" max="5000" step="50" value="1000" />
+        </div>
+        <div class="ctrl">
+          <span class="lbl">Pivot radius r&#8320; (in) <span class="val"></span></span>
+          <input id="ma-r0" type="range" min="12" max="30" step="0.5" value="12" />
+        </div>
+        <div class="ctrl">
+          <span class="lbl">CM height h<sub>CM</sub> (in) <span class="val"></span></span>
+          <input id="ma-hcm" type="range" min="5" max="72" step="1" value="40" />
+        </div>
+        <button id="ma-run" class="btn btn-primary run-btn">Run simulation</button>
+        <div id="ma-run-warning" class="run-warning" hidden>Running &mdash; please wait&hellip;</div>
+      </section>
+    </aside>
+
+    <main class="stage">
+      <div id="ma-anim-warning" class="anim-warning" hidden>Loading new animation&hellip;</div>
+      <canvas id="ma-canvas" width="480" height="540"></canvas>
+      <div class="timeline">
+        <span id="ma-time" class="tlabel">t = 0.00 s</span>
+        <input id="ma-slider" type="range" min="0" max="100" value="0" step="1" />
+      </div>
+      <div id="ma-status" class="status">Ready &mdash; adjust parameters and run.</div>
+      <p class="legend">
+        Side view (X-Z plane, &phi; = 0). 12 Belleville-washer stacks hang
+        from an imaginary ceiling at z = 5 and attach to the bushing flange,
+        which rests on the ground at z = 0. The body rocks about the red
+        pivot dot at (r&#8320;&middot;sgn(&theta;), z = 0). The dashed
+        vertical line at x = 0 is the reference; the body centerline shows
+        the actual deflection. &theta; is drawn at its true angle (no
+        exaggeration). The magenta arrow at the center of mass shows the
+        inertial force m&middot;a&#8330; (mass &times; base acceleration),
+        growing as the ramp increases. The simulation stops at 10 s or when
+        |&theta;| first reaches the target angle.
+      </p>
+    </main>
+
+    <aside class="sidebar right">
+      <div class="tabbar" id="ma-tabs">
+        <button id="tab-exc" class="tab active">Excitation</button>
+        <button id="tab-resp" class="tab">Result</button>
+      </div>
+      <div id="panel-exc" class="panelrow active">
+        <p class="panel-note">Live preview of the ramp input &mdash; updates as you adjust controls.</p>
+        <div id="plot-ax-live" class="plotbox"></div>
+      </div>
+      <div id="panel-resp" class="panelrow">
+        <div id="plot-ax-run" class="plotbox"></div>
+        <div id="plot-theta" class="plotbox"></div>
+        <div id="plot-force-total" class="plotbox"></div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="minaccel-app.js"></script>
+
+  <div id="minaccel-md-content" class="md-content"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script>
+    // Load minaccel-content.md (the single source of truth), substitute live
+    // slider values into the {{...}} placeholders, then render KaTeX math,
+    // marked, and mermaid.
+    (function () {
+      var contentEl = document.getElementById("minaccel-md-content");
+      var P_BW = 306; // BW preload per stack (lb) — computed by the solver
+
+      function renderMinAccelMd(mdTemplate) {
+        var W = parseFloat(document.getElementById("ma-mass").value);
+        var r0 = parseFloat(document.getElementById("ma-r0").value);
+        var h = parseFloat(document.getElementById("ma-hcm").value);
+        // When the BW force is disabled, the preload term drops out (P = 0)
+        var noBw = document.getElementById("ma-no-bw").checked;
+        var P = noBw ? 0 : P_BW;
+        var a = (1 + 12 * P / W) * r0 / h; // g
+        // Show the reduced equation a = g·r0/h when the preload term drops out
+        var eq = noBw
+          ? "a = g\\,\\frac{r_0}{h} = " + a.toFixed(2) + "\\,g"
+          : "a = g\\,\\frac{(1 + 12\\,P/W)\\,r_0}{h} = " + a.toFixed(2) + "\\,g";
+        // The "where …" paragraph: omit the P definition when BW is disabled
+        var defs = noBw
+          ? "where $W = " + W.toFixed(0) + "$ lb is the body weight, $r_0 = " + r0.toFixed(1) +
+            "$ in is the pivot radius, and $h = h_{CM} = " + h.toFixed(1) +
+            "$ in is the center-of-mass height. With the current body parameters the rocking " +
+            "onset is at $a = " + a.toFixed(2) + "\\,g$."
+          : "where $P = " + P.toFixed(0) + "$ lb is the Belleville-washer preload per stack, $W = " + W.toFixed(0) +
+            "$ lb is the body weight, $r_0 = " + r0.toFixed(1) +
+            "$ in is the pivot radius, and $h = h_{CM} = " + h.toFixed(1) +
+            "$ in is the center-of-mass height. With the current body parameters the rocking " +
+            "onset is at $a = " + a.toFixed(2) + "\\,g$. When the BW force is disabled, the preload " +
+            "term drops out ($P = 0$) and the equation reduces to $a = g\\,r_0/h$.";
+        var md = mdTemplate
+          .replaceAll("{{a}}", a.toFixed(2))
+          .replaceAll("{{eq}}", eq)
+          .replaceAll("{{defs}}", defs);
+
+        var blocks = [];
+        md = md.replace(/\`\`\`[\s\S]*?\`\`\`/g, function (m) {
+          blocks.push(m);
+          return "\u0000CODE" + (blocks.length - 1) + "\u0000";
+        });
+        md = md.replace(/\$\$([\s\S]+?)\$\$/g, function (_, m) {
+          return katex.renderToString(m.trim(), { displayMode: true, throwOnError: false });
+        });
+        md = md.replace(/\$([^$\n]+?)\$/g, function (_, m) {
+          return katex.renderToString(m.trim(), { throwOnError: false });
+        });
+        md = md.replace(/\u0000CODE(\d+)\u0000/g, function (_, i) { return blocks[+i]; });
+        marked.use({
+          renderer: {
+            code: function (codeOrToken, langArg) {
+              var text = typeof codeOrToken === "string" ? codeOrToken : codeOrToken.text;
+              var lang = typeof codeOrToken === "string" ? langArg : codeOrToken.lang;
+              if (lang === "mermaid") {
+                var esc = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                return '<pre class="mermaid">\n' + esc + "\n</pre>";
+              }
+              return false;
+            }
+          }
+        });
+        contentEl.innerHTML = marked.parse(md);
+        if (window.mermaid) {
+          mermaid.initialize({ startOnLoad: false });
+          mermaid.run();
+        }
+      }
+
+      fetch("minaccel-content.md")
+        .then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.text();
+        })
+        .then(function (md) {
+          renderMinAccelMd(md);
+          // Re-render the equation numbers as the body sliders change
+          ["ma-mass", "ma-r0", "ma-hcm", "ma-no-bw"].forEach(function (id) {
+            document.getElementById(id).addEventListener("input", renderMinAccelMd);
+          });
+          document.getElementById("ma-no-bw").addEventListener("change", renderMinAccelMd);
+        })
+        .catch(function (err) {
+          contentEl.innerHTML = '<p class="panel-note">Could not load minaccel-content.md: ' + err.message + "</p>";
+        });
+    })();
+  </script>
+</body>
+</html>

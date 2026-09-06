@@ -71,8 +71,8 @@ const MD_STYLE = `
   a { color: #2563eb; }
 `;
 
-function mdToHtml(mdPath, title) {
-  const body = marked.parse(renderMath(readFileSync(mdPath, "utf8")));
+function mdToHtml(md, title) {
+  const body = marked.parse(renderMath(md));
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -96,27 +96,63 @@ ${body}
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
-// 1. validate/ runtime files
-for (const f of ["playground.html", "playground-app.js", "playground-worker.js", "eq-data.js"]) {
-  cpSync(resolve(root, `validate/${f}`), resolve(out, f));
+// 1. Assemble the JS bundles from the solver source + wiring files
+//    (mirrors the manual recipe in the wiring headers).
+const bundles = [
+  ["playground-app.js", "playground-wiring.js"],
+  ["playground-worker.js", "worker-wiring.js"],
+  ["minaccel-worker.js", "minaccel-worker-wiring.js"],
+];
+for (const [fname, wiring] of bundles) {
+  const solver = readFileSync(resolve(root, "validate/animate-app.js"), "utf8");
+  const marker = "// validate/animate-src.ts";
+  const idx = solver.indexOf(marker);
+  if (idx < 0) throw new Error(`marker not found in animate-app.js (for ${fname})`);
+  const w = readFileSync(resolve(root, `validate/${wiring}`), "utf8");
+  writeFileSync(resolve(out, fname), solver.slice(0, idx) + w);
 }
 
+// 2. validate/ static runtime files
+for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js"]) {
+  cpSync(resolve(root, `validate/${f}`), resolve(out, f));
+}
+// minaccel.html fetches minaccel-content.md at runtime
+cpSync(resolve(docsDir, "minaccel-content.md"), resolve(out, "minaccel-content.md"));
+
 // 2. docs/*.md → dist/docs/*.html
+//    Placeholders like {{a}} in minaccel-content.md are substituted with the
+//    default body values for the static docs page (the live page substitutes
+//    the current slider values in the browser).
+const MD_DEFAULTS = {
+  P: 306, W: 1000, r0: 12, h: 40, a: 1.4,
+  eq: "a = g\\,\\frac{(1 + 12\\,P/W)\\,r_0}{h} = 1.4\\,g",
+  defs: "where $P = 306$ lb is the Belleville-washer preload per stack, $W = 1000$ lb " +
+    "is the body weight, $r_0 = 12$ in is the pivot radius, and $h = h_{CM} = 40$ in " +
+    "is the center-of-mass height. With the current body parameters the rocking onset " +
+    "is at $a = 1.4\\,g$. When the BW force is disabled, the preload term drops out " +
+    "($P = 0$) and the equation reduces to $a = g\\,r_0/h$.",
+};
+function substituteDefaults(md) {
+  let out = md;
+  for (const [k, v] of Object.entries(MD_DEFAULTS)) {
+    out = out.replaceAll(`{{${k}}}`, String(v));
+  }
+  return out;
+}
 if (existsSync(docsDir)) {
   mkdirSync(resolve(dist, "docs"), { recursive: true });
   for (const f of readdirSync(docsDir).filter((f) => f.endsWith(".md"))) {
     const name = basename(f, ".md");
     const title = name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    writeFileSync(resolve(dist, "docs", `${name}.html`), mdToHtml(resolve(docsDir, f), title));
+    const md = substituteDefaults(readFileSync(resolve(docsDir, f), "utf8"));
+    writeFileSync(resolve(dist, "docs", `${name}.html`), mdToHtml(md, title));
   }
 }
 
-// 3. docs/playground-content.md → injected below the playground layout
-const contentMd = resolve(docsDir, "playground-content.md");
-if (existsSync(contentMd)) {
-  const html = readFileSync(resolve(out, "playground.html"), "utf8");
-  const contentHtml = marked.parse(renderMath(readFileSync(contentMd, "utf8")));
-  const style = `<style>
+// 3. docs/playground-content.md → injected below the playground layout.
+//    (minaccel.html embeds its markdown directly and renders it client-side,
+//    so it is not injected here.)
+const MD_STYLE_INJECT = `<style>
 .md-content { max-width: 960px; margin: 24px auto; padding: 0 20px 40px; line-height: 1.6; }
 .md-content h2 { border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
 .md-content code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; }
@@ -126,8 +162,12 @@ if (existsSync(contentMd)) {
 .md-content th, .md-content td { border: 1px solid #ddd; padding: 6px 10px; }
 .md-content img { max-width: 100%; }
 </style>`;
+const contentMd = resolve(docsDir, "playground-content.md");
+if (existsSync(contentMd)) {
+  const html = readFileSync(resolve(out, "playground.html"), "utf8");
+  const contentHtml = marked.parse(renderMath(readFileSync(contentMd, "utf8")));
   const injected = html
-    .replace("</head>", `${style}<link rel="stylesheet" href="${KATEX_CSS}">\n</head>`)
+    .replace("</head>", `${MD_STYLE_INJECT}<link rel="stylesheet" href="${KATEX_CSS}">\n</head>`)
     .replace("</body>", `<section class="md-content">\n${contentHtml}\n</section>\n<script src="${MERMAID_JS}"></script>\n<script>mermaid.initialize({ startOnLoad: true });</script>\n</body>`);
   writeFileSync(resolve(out, "playground.html"), injected);
 }
