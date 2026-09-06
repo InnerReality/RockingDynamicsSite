@@ -44,8 +44,16 @@ function renderMath(text) {
 // by the mermaid script at runtime.
 marked.use({
   renderer: {
-    code({ text, lang }) {
-      if (lang === "mermaid") return `<pre class="mermaid">\n${text}\n</pre>`;
+    // marked >=5 passes a token object; older builds pass (code, lang, ...).
+    // Handle both, and HTML-escape the source so <br/> etc. survive in the
+    // DOM as text (mermaid reads innerHTML and entity-decodes it back).
+    code(codeOrToken, langArg) {
+      const text = typeof codeOrToken === "string" ? codeOrToken : codeOrToken.text;
+      const lang = typeof codeOrToken === "string" ? langArg : codeOrToken.lang;
+      if (lang === "mermaid") {
+        const esc = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return `<pre class="mermaid">\n${esc}\n</pre>`;
+      }
       return false; // default handling
     },
   },
