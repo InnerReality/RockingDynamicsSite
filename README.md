@@ -14,16 +14,16 @@ earthquake), body parameters, and force/hysteresis plots. Pure client-side JS
 
 ## Layout
 
-- `validate/playground.html` — the page.
-- `validate/playground-app.js` — the bundle (assembled from `animate-app.js`
-  + `playground-wiring.js`; see the header comment in `playground-wiring.js`).
-- `validate/playground-worker.js` — Web Worker that runs the solve off the
-  main thread (assembled from `animate-app.js` + `worker-wiring.js`).
-- `validate/eq-data.js` — embedded earthquake record (generated from
-  `../src/Examples/EQexample/Cerl_input.txt` via `gen-eq-data.mjs`).
-- `docs/*.md` — markdown pages (KaTeX math + Mermaid diagrams supported).
-  `docs/playground-content.md` is injected below the playground layout.
-- `build.mjs` — copies runtime files, converts `docs/*.md` → `dist/docs/*.html`,
+- `site/validate/playground.html` — the page.
+- `site/validate/playground-app.js` — the bundle (assembled from `site/animate-app.js`
+  + `site/validate/playground-wiring.js`; see the header comment in `site/validate/playground-wiring.js`).
+- `site/validate/playground-worker.js` — Web Worker that runs the solve off the
+  main thread (assembled from `site/validate/animate-app.js` + `site/validate/worker-wiring.js`).
+- `site/validate/eq-data.js` — embedded earthquake record (generated from
+  `src/Examples/EQexample/Cerl_input.txt` via `site/validate/gen-eq-data.mjs`).
+- `site/docs/*.md` — markdown pages (KaTeX math + Mermaid diagrams supported).
+  `site/docs/playground-content.md` is injected below the playground layout.
+- `site/build.mjs` — copies runtime files, converts `site/docs/*.md` → `site/dist/docs/*.html`,
   and injects the playground content. Requires `npm install` (marked + katex).
 
 ## Build
@@ -48,8 +48,8 @@ GitHub Actions build + publish (see `deploy-actions.yml` — copy it to
 
 ## Updating
 
-1. Edit `validate/playground.html` / `validate/playground-wiring.js` or
-   `docs/*.md`.
+1. Edit `site/validate/playground.html` / `site/validate/playground-wiring.js` or
+   `site/docs/*.md`.
 2. Rebuild the bundle: `cp animate-app.js playground-app.js` then replace the
    wiring section (see the header comment in `playground-wiring.js`).
 3. `npm run build` and deploy.
