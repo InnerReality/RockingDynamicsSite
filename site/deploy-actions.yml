@@ -1,0 +1,62 @@
+# GitHub Pages deploy workflow for the deploy repo
+# (InnerReality/RockingDynamicsSite).
+#
+# Copy this file into the pran repo at:
+#   .github/workflows/deploy.yml
+#
+# Prerequisites:
+#   1. Push the SOURCE of this project (site/) to pran main — not just the
+#      built dist/. The workflow needs site/ to build.
+#   2. In the pran repo: Settings -> Pages -> Source: "GitHub Actions".
+#      (The old "Deploy from a branch" mode is replaced by this workflow.)
+#
+# After that, every push to pran main rebuilds and publishes the site at
+# https://innerreality.github.io/RockingDynamicsSite/validate/playground.html
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Build site
+        working-directory: site
+        run: npm run build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

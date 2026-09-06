@@ -1,0 +1,13 @@
+{
+  "name": "rocking-dynamics-playground",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "katex": "^0.16.9",
+    "marked": "^12.0.0"
+  }
+}

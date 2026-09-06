@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rocking Dynamics Playground</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --border: #e0e0e0;
+    --fg: #202124;
+    --muted: #5f6368;
+    --accent: #4285f4;
+    --accent-dark: #3367d6;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  /* ---- top bar (TensorFlow Playground style) ---- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .brand h1 { font-size: 18px; font-weight: 600; margin: 0; }
+  .brand p { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+  .transport { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  .btn:hover { background: #f1f3f4; }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn:disabled { opacity: 0.55; cursor: wait; }
+  .transport select {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  .frame-counter {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    background: var(--card);
+    white-space: nowrap;
+  }
+  .github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    white-space: nowrap;
+  }
+  .github-link:hover { color: var(--fg); border-color: var(--accent); }
+  .github-link svg { width: 16px; height: 16px; fill: currentColor; }
+
+  /* ---- three-column layout ---- */
+  .layout {
+    display: grid;
+    grid-template-columns: 290px minmax(0, 1fr) 360px;
+    gap: 16px;
+    align-items: start;
+    padding: 16px 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  /* ---- cards / sections ---- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .axis-block { margin-bottom: 16px; }
+  .axis-block:last-child { margin-bottom: 0; }
+  .axis-block h3 { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+  .link-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .link-ctrl input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .ctrl input:disabled, .ctrl select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .ctrl { margin-bottom: 10px; }
+  .ctrl .lbl {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .ctrl .val { font-family: var(--mono); font-size: 12px; color: var(--fg); }
+  .ctrl input[type="range"] { width: 100%; margin: 0; accent-color: var(--accent); }
+  .ctrl select, .ctrl input[type="text"], .ctrl input[type="number"] {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    background: var(--card);
+    color: var(--fg);
+  }
+  .pg-preset-params .p { display: none; }
+  .pg-preset-params .p.visible { display: block; }
+  .run-btn { width: 100%; margin-top: 4px; padding: 8px 14px; font-size: 14px; }
+  .run-warning {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b45309;
+    text-align: center;
+  }
+  .run-warning[hidden] { display: none; }
+  .anim-warning {
+    font-size: 13px;
+    font-weight: 600;
+    color: #b45309;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .anim-warning[hidden] { display: none; }
+  .dirty-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fbbc04;
+    margin-left: 8px;
+    vertical-align: middle;
+    box-shadow: 0 0 0 2px rgba(251, 188, 4, 0.35);
+  }
+  .dirty-dot[hidden] { display: none; }
+  .stack-picker {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .stack-picker select {
+    margin-left: 6px;
+    padding: 4px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--fg);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .stack-picker select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ---- center stage ---- */
+  .stage { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+  .stage canvas {
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    touch-action: none;
+    cursor: grab;
+  }
+  .stage canvas:active { cursor: grabbing; }
+  .timeline {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .timeline input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .timeline .tlabel {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .view-ctrl {
+    width: 100%;
+    max-width: 480px;
+    margin: 10px 0 0;
+  }
+  .status {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    max-width: 480px;
+    text-align: center;
+    min-height: 1.2em;
+  }
+  .status.error { color: #d93025; }
+  .status.warning { color: #b45309; font-weight: 600; }
+  .legend {
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 6px 0 0;
+    line-height: 1.5;
+  }
+
+  /* ---- right sidebar: tabbed plots ---- */
+  .tabbar { display: flex; gap: 4px; margin-bottom: 10px; }
+  .tab {
+    font-family: inherit;
+    font-size: 12px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px 4px 0 0;
+    background: #f1f3f4;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .tab.active {
+    background: var(--card);
+    color: var(--fg);
+    font-weight: 600;
+    border-bottom-color: var(--card);
+  }
+  .panelrow { display: none; }
+  .panelrow.active { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .panel-note { font-size: 12px; color: var(--muted); margin: 0 0 4px; }
+  .plotbox { width: 100%; max-width: 440px; }
+  .plotbox svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  /* live excitation preview inside the options drawer (mobile only) */
+  .drawer-live { display: none; }
+  .drawer-live .plotbox { max-width: none; }
+
+  /* ---- mobile: simulation inputs become a left drawer ---- */
+  .options-toggle { display: none; }
+  .sidebar-backdrop { display: none; }
+
+  @media (max-width: 1100px) {
+    .options-toggle { display: inline-flex; align-items: center; gap: 6px; }
+    .layout { grid-template-columns: 1fr; }
+    .stage { order: 1; }
+    .sidebar.right { order: 2; }
+    .sidebar.left {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(320px, 85vw);
+      background: var(--bg);
+      z-index: 100;
+      overflow-y: auto;
+      padding: 16px;
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.18);
+      transform: translateX(-105%);
+      transition: transform 0.25s ease;
+    }
+    .sidebar.left.open { transform: translateX(0); }
+    .sidebar.left .drawer-live { display: block; }
+    .sidebar-backdrop.show {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 90;
+    }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <button id="pg-options-toggle" class="btn options-toggle" title="Simulation options">&#9776; Options</button>
+    <div class="brand">
+      <h1>Rocking Dynamics Playground</h1>
+      <p>Rigid body on 12 Belleville-washer stacks &middot; bidirectional base excitation</p>
+    </div>
+    <div class="transport">
+      <button id="pg-play" class="btn btn-primary">Play</button>
+      <button id="pg-step" class="btn">Step</button>
+      <button id="pg-reset" class="btn">Reset</button>
+      <select id="pg-speed">
+        <option value="0.25">0.25&times;</option>
+        <option value="0.5">0.5&times;</option>
+        <option value="1" selected>1&times;</option>
+        <option value="2">2&times;</option>
+        <option value="4">4&times;</option>
+      </select>
+      <span id="pg-frame" class="frame-counter">Frame 0000</span>
+      <a class="github-link" href="https://github.com/InnerReality/RockingDynamicsSite" target="_blank" rel="noopener" title="View source on GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </header>
+
+  <div id="pg-options-backdrop" class="sidebar-backdrop"></div>
+
+  <div class="layout">
+    <aside class="sidebar left" id="pg-options-drawer">
+      <section class="card">
+        <h2 class="card-title">Excitation</h2>
+
+        <label class="link-ctrl" title="Use the recorded earthquake time history instead of the excitation presets">
+          <input type="checkbox" id="pg-eq-toggle" />
+          Use earthquake input
+        </label>
+        <div id="pg-eq-controls" hidden>
+          <div class="ctrl">
+            <span class="lbl">aₓ scale (×) <span class="val"></span></span>
+            <input id="pg-eq-sx" type="range" min="0" max="10" step="0.1" value="3" />
+          </div>
+          <div class="ctrl">
+            <span class="lbl">aᵧ scale (×) <span class="val"></span></span>
+            <input id="pg-eq-sy" type="range" min="0" max="10" step="0.1" value="3" />
+          </div>
+        </div>
+
+        <div id="pg-exc-blocks">
+        <div class="axis-block">
+          <h3>a<sub>x</sub>(t)</h3>
+          <div class="ctrl">
+            <span class="lbl">Preset</span>
+            <select id="pg-ax-preset">
+              <option value="sine" selected>Sine (continuous)</option>
+              <option value="pulse">Half-sine train</option>
+              <option value="square">Square wave</option>
+            </select>
+          </div>
+          <div class="pg-preset-params" data-for="ax">
+            <div class="ctrl p common visible" data-p="amp">
+              <span class="lbl">Amplitude (g) <span class="val"></span></span>
+              <input id="pg-ax-amp" type="range" min="-5" max="5" step="0.1" value="2" />
+            </div>
+            <div class="ctrl p sine visible" data-p="freq">
+              <span class="lbl">Frequency (Hz) <span class="val"></span></span>
+              <input id="pg-ax-freq" type="range" min="0.1" max="5" step="0.1" value="1" />
+            </div>
+            <div class="ctrl p sine" data-p="phase">
+              <span class="lbl">Phase (deg) <span class="val"></span></span>
+              <input id="pg-ax-phase" type="range" min="0" max="360" step="5" value="0" />
+            </div>
+            <div class="ctrl p pulse" data-p="pulse">
+              <span class="lbl">Active period (s) <span class="val"></span></span>
+              <input id="pg-ax-act" type="range" min="0.05" max="5" step="0.05" value="0.5" />
+            </div>
+            <div class="ctrl p pulse" data-p="pulse">
+              <span class="lbl">Rest period (s) <span class="val"></span></span>
+              <input id="pg-ax-rest" type="range" min="0" max="5" step="0.05" value="0.5" />
+            </div>
+            <div class="ctrl p square" data-p="ton">
+              <span class="lbl">On period (s) <span class="val"></span></span>
+              <input id="pg-ax-ton" type="range" min="0.05" max="5" step="0.05" value="0.5" />
+            </div>
+            <div class="ctrl p square" data-p="toff">
+              <span class="lbl">Off period (s) <span class="val"></span></span>
+              <input id="pg-ax-toff" type="range" min="0.05" max="5" step="0.05" value="0.5" />
+            </div>
+            <div class="ctrl p common visible" data-p="tstart">
+              <span class="lbl">Start time (s) <span class="val"></span></span>
+              <input id="pg-ax-tstart" type="range" min="0" max="5" step="0.1" value="0" />
+            </div>
+          </div>
+        </div>
+
+        <div class="axis-block">
+          <h3>a<sub>y</sub>(t)</h3>
+          <label class="link-ctrl" title="Copy aₓ(t) values to ay(t) and lock ay(t)">
+            <input type="checkbox" id="pg-ay-link" checked />
+            Same as aₓ(t)
+          </label>
+          <div id="pg-ay-controls">
+          <div class="ctrl">
+            <span class="lbl">Preset</span>
+            <select id="pg-ay-preset">
+              <option value="sine" selected>Sine (continuous)</option>
+              <option value="pulse">Half-sine train</option>
+              <option value="square">Square wave</option>
+            </select>
+          </div>
+          <div class="pg-preset-params" data-for="ay">
+            <div class="ctrl p common visible" data-p="amp">
+              <span class="lbl">Amplitude (g) <span class="val"></span></span>
+              <input id="pg-ay-amp" type="range" min="-5" max="5" step="0.1" value="2" />
+            </div>
+            <div class="ctrl p sine visible" data-p="freq">
+              <span class="lbl">Frequency (Hz) <span class="val"></span></span>
+              <input id="pg-ay-freq" type="range" min="0.1" max="5" step="0.1" value="2" />
+            </div>
+            <div class="ctrl p sine" data-p="phase">
+              <span class="lbl">Phase (deg) <span class="val"></span></span>
+              <input id="pg-ay-phase" type="range" min="0" max="360" step="5" value="0" />
+            </div>
+            <div class="ctrl p pulse" data-p="pulse">
+              <span class="lbl">Active period (s) <span class="val"></span></span>
+              <input id="pg-ay-act" type="range" min="0.05" max="5" step="0.05" value="0.5" />
+            </div>
+            <div class="ctrl p pulse" data-p="pulse">
+              <span class="lbl">Rest period (s) <span class="val"></span></span>
+              <input id="pg-ay-rest" type="range" min="0" max="5" step="0.05" value="0.5" />
+            </div>
+            <div class="ctrl p square" data-p="ton">
+              <span class="lbl">On period (s) <span class="val"></span></span>
+              <input id="pg-ay-ton" type="range" min="0.05" max="5" step="0.05" value="0.5" />
+            </div>
+            <div class="ctrl p square" data-p="toff">
+              <span class="lbl">Off period (s) <span class="val"></span></span>
+              <input id="pg-ay-toff" type="range" min="0.05" max="5" step="0.05" value="0.5" />
+            </div>
+            <div class="ctrl p common visible" data-p="tstart">
+              <span class="lbl">Start time (s) <span class="val"></span></span>
+              <input id="pg-ay-tstart" type="range" min="0" max="5" step="0.1" value="0" />
+            </div>
+          </div>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <section class="card drawer-live">
+        <h2 class="card-title">Excitation preview</h2>
+        <div id="plot-orbit-drawer" class="plotbox"></div>
+        <div id="plot-axay-drawer" class="plotbox"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Body</h2>
+        <div class="ctrl">
+          <span class="lbl">Mass (lb) <span class="val"></span></span>
+          <input id="pg-mass" type="range" min="100" max="5000" step="50" value="1000" />
+        </div>
+        <div class="ctrl">
+          <span class="lbl">Pivot radius r&#8320; (in) <span class="val"></span></span>
+          <input id="pg-r0" type="range" min="12" max="30" step="0.5" value="12" />
+        </div>
+        <div class="ctrl">
+          <span class="lbl">CM height h<sub>CM</sub> (in) <span class="val"></span></span>
+          <input id="pg-hcm" type="range" min="5" max="100" step="1" value="40" />
+        </div>
+        <button id="pg-run" class="btn btn-primary run-btn">Run simulation<span id="pg-dirty-dot" class="dirty-dot" hidden></span></button>
+        <div id="pg-run-warning" class="run-warning" hidden>Running — please wait…</div>
+      </section>
+    </aside>
+
+    <main class="stage">
+      <div id="pg-anim-warning" class="anim-warning" hidden>Loading new animation…</div>
+      <canvas id="pg-canvas" width="480" height="680"></canvas>
+      <div class="timeline">
+        <span id="pg-time" class="tlabel">t = 0.00 s</span>
+        <input id="pg-slider" type="range" min="0" max="100" value="0" step="1" />
+      </div>
+      <div class="ctrl view-ctrl">
+        <span class="lbl">θ scale (visual ×) <span class="val"></span></span>
+        <input id="pg-theta-gain" type="range" min="1" max="100" step="1" value="50" />
+      </div>
+      <div id="pg-status" class="status">Loading&hellip;</div>
+      <p class="legend">
+        Geometry as in <code>bidirectional_example.m %% Animate</code> (cylinders
+        24/1/72 in tall; pivot radius r&#8320; follows the Body slider). The 12
+        Belleville washer stacks stand on z = 0 (ground ends marked, no ground
+        plane drawn) and attach below cylinder 2 (the cyl-1/cyl-2 interface);
+        undeformed length 5 in, so cylinder 1 hangs below the spring anchors.
+        Stacks are numbered 1&ndash;12 counterclockwise from +x, matching the
+        Delt column order in the simulation output (the force/hysteresis plots
+        show the stacks selected in the Force tab &mdash; default 1 and 7). Red dot: rocking pivot
+        indicator at the bushing attachment plane &mdash; radial position
+        r&#8320;&middot;ssign(&theta;) along the &phi; direction (slides in/out
+        through the center as &theta; changes sign).
+        &theta; is drawn with a visual exaggeration that is auto-set from the
+        peak deflection of each run (adjustable live with the θ scale slider
+        below the animation).
+      </p>
+    </main>
+
+    <aside class="sidebar right">
+      <div class="tabbar" id="pg-tabs">
+        <button id="tab-exc" class="tab active">Excitation</button>
+        <button id="tab-input" class="tab">Input (run)</button>
+        <button id="tab-disp" class="tab">Displacement</button>
+        <button id="tab-force" class="tab">Force</button>
+      </div>
+      <div id="panel-exc" class="panelrow active">
+        <p class="panel-note">Live preview of the input controls — updates as you adjust them.</p>
+        <div id="plot-ax-live" class="plotbox"></div>
+        <div id="plot-ay-live" class="plotbox"></div>
+        <div id="plot-orbit-live" class="plotbox"></div>
+      </div>
+      <div id="panel-input" class="panelrow">
+        <p class="panel-note">Excitation used by the current run (populated after running).</p>
+        <div id="plot-ax" class="plotbox"></div>
+        <div id="plot-ay" class="plotbox"></div>
+        <div id="plot-orbit" class="plotbox"></div>
+      </div>
+      <div id="panel-disp" class="panelrow">
+        <div id="plot-theta" class="plotbox"></div>
+        <div id="plot-phi" class="plotbox"></div>
+      </div>
+      <div id="panel-force" class="panelrow">
+        <div class="stack-picker">
+          <label>Stack A
+            <select id="pg-stack-a" disabled>
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+          </label>
+          <label>Stack B
+            <select id="pg-stack-b" disabled>
+              <option value="0">&mdash; none &mdash;</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7" selected>7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+          </label>
+        </div>
+        <div id="plot-force" class="plotbox"></div>
+        <div id="plot-hyst" class="plotbox"></div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="eq-data.js"></script>
+  <script src="playground-app.js"></script>
+</body>
+</html>
