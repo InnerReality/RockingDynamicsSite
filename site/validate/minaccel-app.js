@@ -15,35 +15,7 @@
 
 var DEG = 180 / Math.PI;
 
-// ---- Utility functions (from playground) ----
-function niceTicks(lo, hi, count) {
-  if (count === undefined) count = 5;
-  var span = hi - lo;
-  if (span <= 0) return [lo];
-  var raw = span / count;
-  var mag = Math.pow(10, Math.floor(Math.log10(raw)));
-  var norm = raw / mag;
-  var step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
-  var ticks = [];
-  for (var v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step)
-    ticks.push(+v.toPrecision(12));
-  return ticks;
-}
-function fmt(v) {
-  if (v === 0) return "0";
-  var a = Math.abs(v);
-  return a >= 1e4 || a < 0.01 ? v.toExponential(1) : String(+v.toFixed(3));
-}
-
-// ---- Downsample helper ----
-function ds(pts) {
-  var st = Math.max(1, Math.ceil(pts.length / 2e3));
-  var out = [];
-  for (var i = 0; i < pts.length; i += st) out.push(pts[i]);
-  var last = pts[pts.length - 1];
-  if (out[out.length - 1] !== last) out.push(last);
-  return out;
-}
+// Shared plot helpers are loaded from simulator-plot-utils.js.
 
 // ---- SVG Plot Builder ----
 function buildPlot(spec) {
@@ -220,7 +192,7 @@ function create2DBushingAnimator(canvas, data, opts) {
 
   // Animation state
   var frame = 0, playing = true, speed = 1, acc = 0, last;
-  var frameDt = 1 / (opts.fps || 50);
+  var frameDt = globalThis.simulatorFrameDt(data, opts.fps || 50);
   var raf = 0;
 
   function renderFrame(i) {

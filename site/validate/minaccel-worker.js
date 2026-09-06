@@ -1,3 +1,45 @@
+// Shared playback timing helper for the simulator bundles and MinAccel page.
+// The displayed animation data may be downsampled from the solver output, so
+// playback must follow the timestamps of the displayed samples.
+(function (root) {
+  root.simulatorFrameDt = function (data, fallbackFps) {
+    var fallback = 1 / (fallbackFps || 50);
+    if (!data || !data.t || data.t.length < 2) return fallback;
+    return Math.max(1e-6, data.t[1] - data.t[0]);
+  };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+// Shared numeric helpers used by both simulator plot implementations.
+function niceTicks(lo, hi, count) {
+  count = count === undefined ? 5 : count;
+  const span = hi - lo;
+  if (span <= 0) return [lo];
+  const raw = span / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+  const ticks = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step) {
+    ticks.push(+v.toPrecision(12));
+  }
+  return ticks;
+}
+
+function fmt(v) {
+  if (v === 0) return "0";
+  const a = Math.abs(v);
+  return a >= 1e4 || a < 0.01 ? v.toExponential(1) : String(+v.toFixed(3));
+}
+
+function ds(pts) {
+  const st = Math.max(1, Math.ceil(pts.length / 2e3));
+  const out = [];
+  for (let i = 0; i < pts.length; i += st) out.push(pts[i]);
+  const last = pts[pts.length - 1];
+  if (out[out.length - 1] !== last) out.push(last);
+  return out;
+}
+
 (() => {
   // node_modules/diff-grok/dist/src/solver-tools/solver-defs.js
   var abs = (x) => x > 0 ? x : -x;
@@ -5171,7 +5213,7 @@
       return pts;
     }
     let frame = 0, playing = true, speed = 1, acc = 0, last;
-    const frameDt = 1 / (opts.fps ?? 50);
+    const frameDt = globalThis.simulatorFrameDt(data, opts.fps ?? 50);
     let raf = 0;
     function renderFrame(i) {
       const phi = data.phi[i], theta = data.theta[i];
@@ -5378,23 +5420,7 @@
     };
   }
 
-  // svg-plot.ts
-  function niceTicks(lo, hi, count = 5) {
-    const span = hi - lo;
-    if (span <= 0) return [lo];
-    const raw = span / count;
-    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
-    const norm = raw / mag;
-    const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
-    const ticks = [];
-    for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step) ticks.push(+v.toPrecision(12));
-    return ticks;
-  }
-  function fmt(v) {
-    if (v === 0) return "0";
-    const a = Math.abs(v);
-    return a >= 1e4 || a < 0.01 ? v.toExponential(1) : String(+v.toFixed(3));
-  }
+
   function buildPlot(spec) {
     const W = spec.width ?? 430;
     const Hh = spec.height ?? 270;

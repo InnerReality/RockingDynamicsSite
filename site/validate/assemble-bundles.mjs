@@ -9,6 +9,8 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
+const timing = readFileSync(resolve(root, "simulator-timing.js"), "utf8");
+const plotUtils = readFileSync(resolve(root, "simulator-plot-utils.js"), "utf8");
 const solver = readFileSync(resolve(root, "animate-app.js"), "utf8");
 const marker = "// validate/animate-src.ts";
 const idx = solver.indexOf(marker);
@@ -22,6 +24,6 @@ const bundles = [
 ];
 for (const [out, wiring] of bundles) {
   const w = readFileSync(resolve(root, wiring), "utf8");
-  writeFileSync(resolve(root, out), head + w);
+  writeFileSync(resolve(root, out), timing + "\n" + plotUtils + "\n" + head + w);
   console.log(`assembled ${out}`);
 }

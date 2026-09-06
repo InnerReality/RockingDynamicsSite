@@ -192,14 +192,6 @@
     return eqEnabled() && EQ ? EQ_SIM_T : SIM_T;
   }
 
-  function ds(pts) {
-    const st = Math.max(1, Math.ceil(pts.length / 2e3));
-    const out = [];
-    for (let i = 0; i < pts.length; i += st) out.push(pts[i]);
-    const last = pts[pts.length - 1];
-    if (out[out.length - 1] !== last) out.push(last);
-    return out;
-  }
 
   // --- svg-plot.ts (patched) ---
   // The bundled buildPlot draws the legend on the same line as the title,
@@ -613,7 +605,7 @@
       }
       let maxAx = 0;
       for (let i = 0; i < res.u_.length; i++) maxAx = Math.max(maxAx, Math.abs(res.u_[i][0] / 386.4));
-      statusEl.textContent = `${data.t.length} frames @ 50 fps — drag to orbit, scroll to zoom. θ scale auto-set to ${defaultGain}× from the peak deflection (adjust live with the slider below the animation); springs stand on z = 0. Plots track the playback cursor. | max|θ| = ${(maxTheta * 180 / Math.PI).toFixed(3)}° at t = ${maxThetaT.toFixed(1)} s; peak aₓ = ${maxAx.toFixed(2)} g`;
+      statusEl.textContent = `Drag to orbit, scroll to zoom. θ scale auto-set to ${defaultGain}× from the peak deflection (adjust live with the slider below the animation); springs stand on z = 0. Plots track the playback cursor. | max|θ| = ${(maxTheta * 180 / Math.PI).toFixed(3)}° at t = ${maxThetaT.toFixed(1)} s; peak aₓ = ${maxAx.toFixed(2)} g`;
       runBtn.disabled = false;
     };
     worker.onerror = (e) => {

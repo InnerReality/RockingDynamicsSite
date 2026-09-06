@@ -5171,7 +5171,7 @@
       return pts;
     }
     let frame = 0, playing = true, speed = 1, acc = 0, last;
-    const frameDt = 1 / (opts.fps ?? 50);
+    const frameDt = globalThis.simulatorFrameDt(data, opts.fps ?? 50);
     let raf = 0;
     function renderFrame(i) {
       const phi = data.phi[i], theta = data.theta[i];
@@ -5378,23 +5378,7 @@
     };
   }
 
-  // svg-plot.ts
-  function niceTicks(lo, hi, count = 5) {
-    const span = hi - lo;
-    if (span <= 0) return [lo];
-    const raw = span / count;
-    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
-    const norm = raw / mag;
-    const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
-    const ticks = [];
-    for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step) ticks.push(+v.toPrecision(12));
-    return ticks;
-  }
-  function fmt(v) {
-    if (v === 0) return "0";
-    const a = Math.abs(v);
-    return a >= 1e4 || a < 0.01 ? v.toExponential(1) : String(+v.toFixed(3));
-  }
+
   function buildPlot(spec) {
     const W = spec.width ?? 430;
     const Hh = spec.height ?? 270;
@@ -5679,6 +5663,7 @@
       animator.seek(parseInt(slider.value, 10));
     });
     resetBtn.addEventListener("click", () => animator.resetView());
-    statusEl.textContent = `${data.t.length} frames @ 50 fps \u2014 drag to orbit, scroll to zoom. \u03B8 drawn with 50\xD7 exaggeration (as in the MATLAB example); springs stand on z=0. Plots track the playback cursor.`;
+    const shownFps = data.t.length > 1 ? 1 / (data.t[1] - data.t[0]) : 50;
+    statusEl.textContent = `${data.t.length} frames @ ${shownFps.toFixed(1)} fps \u2014 drag to orbit, scroll to zoom. \u03B8 drawn with 50\xD7 exaggeration (as in the MATLAB example); springs stand on z=0. Plots track the playback cursor.`;
   }, 30);
 })();

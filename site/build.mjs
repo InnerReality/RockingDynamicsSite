@@ -108,17 +108,19 @@ const bundles = [
   ["playground-worker.js", "worker-wiring.js"],
   ["minaccel-worker.js", "minaccel-worker-wiring.js"],
 ];
+const timing = readFileSync(resolve(root, "validate/simulator-timing.js"), "utf8");
+const plotUtils = readFileSync(resolve(root, "validate/simulator-plot-utils.js"), "utf8");
 for (const [fname, wiring] of bundles) {
   const solver = readFileSync(resolve(root, "validate/animate-app.js"), "utf8");
   const marker = "// validate/animate-src.ts";
   const idx = solver.indexOf(marker);
   if (idx < 0) throw new Error(`marker not found in animate-app.js (for ${fname})`);
   const w = readFileSync(resolve(root, `validate/${wiring}`), "utf8");
-  writeFileSync(resolve(out, fname), solver.slice(0, idx) + w);
+  writeFileSync(resolve(out, fname), timing + "\n" + plotUtils + "\n" + solver.slice(0, idx) + w);
 }
 
 // 2. validate/ static runtime files
-for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js", "capture-gif.js", "simulator-common.css"]) {
+for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js", "simulator-timing.js", "simulator-plot-utils.js", "capture-gif.js", "simulator-common.css"]) {
   cpSync(resolve(root, `validate/${f}`), resolve(out, f));
 }
 // minaccel.html fetches minaccel-content.md at runtime
