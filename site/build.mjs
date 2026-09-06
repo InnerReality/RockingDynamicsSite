@@ -1,5 +1,6 @@
 // Build the playground + markdown docs.
 //
+//   - index.html and assets are copied to dist/.
 //   - validate/ runtime files are copied to dist/validate/.
 //   - docs/*.md are converted to dist/docs/*.html with KaTeX (math) and
 //     Mermaid (diagrams) support.
@@ -18,6 +19,7 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 const dist = resolve(root, "dist");
 const out = resolve(dist, "validate");
 const docsDir = resolve(root, "docs");
+
 
 const KATEX_CSS = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css";
 const MERMAID_JS = "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js";
@@ -95,6 +97,8 @@ ${body}
 // --- build ---
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
+cpSync(resolve(root, "index.html"), resolve(dist, "index.html"));
+cpSync(resolve(root, "assets"), resolve(dist, "assets"), { recursive: true });
 
 // 1. Assemble the JS bundles from the solver source + wiring files
 //    (mirrors the manual recipe in the wiring headers).
@@ -113,7 +117,7 @@ for (const [fname, wiring] of bundles) {
 }
 
 // 2. validate/ static runtime files
-for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js"]) {
+for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js", "capture-gif.js"]) {
   cpSync(resolve(root, `validate/${f}`), resolve(out, f));
 }
 // minaccel.html fetches minaccel-content.md at runtime
