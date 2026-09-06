@@ -9,6 +9,44 @@
   --primary-fg: #062a28;
 }
 
+.transport {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.brand-home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  color: var(--accent);
+  text-decoration: none;
+  border: 3px solid currentColor;
+  border-radius: 6px 6px 6px 2px;
+  transform: rotate(14deg);
+  transition: background .2s, color .2s, transform .2s;
+}
+
+.brand-home:hover,
+.brand-home:focus-visible {
+  color: var(--accent-dark);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  transform: rotate(14deg) scale(1.06);
+}
+
+.brand-home span {
+  transform: rotate(-14deg);
+  font-size: 0;
+}
+
 .brand h1 {
   color: var(--logo) !important;
   font-weight: 900;
