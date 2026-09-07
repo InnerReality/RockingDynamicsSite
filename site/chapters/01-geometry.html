@@ -1,42 +1,480 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Explore the geometry and smoothstep regularization behind rocking dynamics.">
-<title>Chapter 1 — Geometry &amp; Smoothstep</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
-<link rel="stylesheet" href="../css/chapter.css">
-<script src="../theme.js" defer></script>
-</head>
-<body data-chapter="geometry">
-<div class="chapter-progress" aria-label="Reading progress"><span class="chapter-progress-bar"></span></div>
-<div class="page-layout">
-<nav class="chapter-nav">
-  <div class="chapter-brand"><a class="brand-home" href="../" aria-label="Back to Rocking Dynamics home"><span>Home</span></a><a class="nav-site-title" href="../">Rocking Dynamics</a></div>
-  <div class="chapter-tools"><a class="github-link" href="https://github.com/InnerReality/RockingDynamicsSite" target="_blank" rel="noopener" aria-label="View source on GitHub" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 .27-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a><button class="theme-toggle" data-theme-toggle type="button" aria-label="Switch theme" title="Switch theme"></button></div>
-  <ul><li><a class="active" href="./01-geometry.html">01 Geometry &amp; Smoothstep</a></li><li><a href="./02-min-accel.html">02 Minimum Acceleration</a></li><li><a href="./03-free-response.html">03 Forced Excitation</a></li></ul>
-  <div class="nav-divider"></div><a href="../validate/smoothstep.html">Standalone geometry lab ↗</a>
-</nav>
-<main class="chapter-content"><div class="chapter-inner">
-  <div class="chapter-meta">Chapter 1 · Geometry &amp; regularization</div>
-  <h1 class="chapter-title">The geometry of a rocking body</h1>
-  <p class="chapter-dek">Before solving the dynamics, define what it means for a rigid body to rock: its potential energy, its moving tipping point, and the smooth approximation that makes the equations numerically usable.</p>
-  <div class="chapter-scrolly"><div class="scrolly-prose">
-    <section class="scrolly-step is-active" data-state="geometry"><span class="step-number">01</span><div class="section-label">Two-dimensional motivation · mini-sim</div><h2>Rocking is a corner-to-corner motion</h2><p>For a rectangular body, the potential energy is</p><p class="equation">\[ V(\theta) = mg\sqrt{r_0^2+h^2}\,\sin(\bar{\theta}+|\theta|) \]</p><p>The offset <em>θ̄</em> is the angle of the center of mass when the body rests on one corner.</p><svg class="rocking-diagram" viewBox="-2.6 -9.9 10.2 11.2" role="img" aria-label="Rectangular rocking body of height 2 h_cm and base width 2 r_0, tilted by theta about one corner. The center of mass lies at angle theta-bar = arctan(h_cm / r_0) from the pivot."><line x1="-2.6" y1="0" x2="7.6" y2="0" style="stroke:var(--muted);stroke-width:1.5;vector-effect:non-scaling-stroke"/><polygon points="0,0 5.795,-1.553 3.724,-9.281 -2.071,-7.727" style="fill:var(--accent-soft);stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke"/><polygon points="0,0 2.898,-0.776 1.862,-4.640" style="fill:var(--accent-soft);opacity:0.55;stroke:none"/><polygon points="2.898,-0.776 2.686,-0.833 2.629,-1.046 2.841,-0.989" style="fill:none;stroke:var(--muted);stroke-width:1.5;vector-effect:non-scaling-stroke"/><line x1="0" y1="0" x2="2.898" y2="-0.776" style="stroke:var(--muted);stroke-width:1.5;stroke-dasharray:0.16 0.12;vector-effect:non-scaling-stroke"/><line x1="2.898" y1="-0.776" x2="1.862" y2="-4.640" style="stroke:var(--muted);stroke-width:1.5;stroke-dasharray:0.16 0.12;vector-effect:non-scaling-stroke"/><line x1="0" y1="0" x2="1.862" y2="-4.640" style="stroke:var(--orange);stroke-width:1.5;stroke-dasharray:0.16 0.12;vector-effect:non-scaling-stroke"/><path d="M 1,0 L 0.996,-0.087 L 0.985,-0.174 L 0.966,-0.259" style="fill:none;stroke:var(--orange);stroke-width:1.5;vector-effect:non-scaling-stroke"/><path d="M 1.643,-0.440 L 1.541,-0.719 L 1.393,-0.975 L 1.202,-1.202 L 0.975,-1.393 L 0.719,-1.541 L 0.633,-1.578" style="fill:none;stroke:var(--orange);stroke-width:1.5;vector-effect:non-scaling-stroke"/><circle cx="0" cy="0" r="0.17" style="fill:var(--accent)"/><circle cx="1.862" cy="-4.640" r="0.17" style="fill:var(--orange)"/><text x="0.5" y="-0.28" font-size="0.6">θ</text><text x="1.45" y="-1.42" font-size="0.6">θ̄</text><text x="2.20" y="-0.35" font-size="0.6">r₀</text><text x="2.60" y="-2.72" font-size="0.6">h</text><text x="2.15" y="-4.82" font-size="0.6">CM</text><text x="0.28" y="0.60" font-size="0.6">pivot</text><text x="5.2" y="0.60" font-size="0.6">ground</text></svg></section>
-    <section class="scrolly-step scrolly-step--sim" data-state="smooth"><span class="step-number">02</span><div class="section-label">Smoothstep · mini-sim</div><h2>Change the transition angle</h2><p>The smooth sign is controlled by the transition angle <em>θ₀</em> and a central slope <em>m</em>; the mini-sim chooses <em>m = 1.5 / θ₀</em>. The smooth potential energy replaces <em>|θ|</em> with the integral of the smooth sign from 0 to θ:</p><p class="equation">\[ V(\theta) = mg\sqrt{r_0^2+h^2}\,\sin\!\left(\bar{\theta}+\int_0^\theta \operatorname{sgn}(\theta')\,d\theta'\right) \]</p><p>The transition is marked at ±θ₀, where the sign reaches the constant ±1 branches.</p></section>
-    <section class="scrolly-step" data-state="handoff"><span class="step-number">03</span><div class="section-label">The C³ approximation</div><h2>Regularization is part of the model</h2><p>The tipping point is defined by the sign of the rocking angle:</p><p class="equation">\[ r(q) = r_0\,\operatorname{sgn}(\theta)\,(\cos\phi,\ \sin\phi,\ 0)^{\mathsf T} \]</p><p>Here <em>φ</em> is the direction of tipping in polar coordinates: it selects the point on the perimeter about which the body tips in three-dimensional rocking, while <em>θ</em> is the tilt angle. For <em>θ &lt; 0</em>, the tipping point is diametrically opposite. The identity \( r(\phi,-\theta) = r(\phi+\pi,\theta) \) lets the dynamics use one uniform description instead of separate if–then branches.</p><p>The replacement for <em>sgn</em> is constant at −1 and +1 outside a width <em>w</em>, with a C³ smooth curve between them. This matters because derivatives enter the velocity, kinetic energy, mass-matrix derivatives, and Newton iterations in an implicit ODE solver. A function such as <em>tanh</em> is not equivalent: without constant branches, pure rocking never occurs.</p></section>
-    <section class="scrolly-step" data-state="derivation"><span class="step-number">04</span><div class="section-label">Geometric derivation</div><h2>Turn the contact angle into a curve</h2><p>The smooth sign determines the horizontal position of the tipping point, while the contact angle determines the local tangent of the body:</p><p class="equation">\[ r(\theta) = r_0\,\operatorname{sgn}(\theta) \]\[ \frac{dy}{dr} = \tan\theta \]\[ \frac{dy}{d\theta} = r_0\,\operatorname{sgn}'(\theta)\,\tan\theta \]</p><p>Outside the smooth transition, <em>sgn′(θ)</em> = 0. The horizontal coordinate stays fixed at <em>r = ±r₀</em> while <em>y</em> continues to change, which is why the geometric path becomes vertical on the side walls.</p><div class="handoff-card"><div class="handoff-preview"><img src="../assets/geometrylab.png" alt="Preview of the geometry lab"></div><div class="handoff-body"><p class="handoff-label">Full experiment</p><h3>Geometry Lab</h3><p>Vary <em>θ₀</em>, the central slope <em>m</em>, and the contact angle while the smooth sign, derivative, potential energy, and tipping geometry update live.</p><div class="handoff-links"><a class="btn-primary" href="../validate/smoothstep.html">Open the geometry lab ↗</a><a class="btn-secondary" href="./02-min-accel.html">Next chapter →</a></div></div></div></section>
-  </div><aside class="scrolly-figure" aria-label="Chapter plots">
-    <div class="figure-plot is-visible" data-state="geometry"><h3>Potential energy · exact</h3><div class="mini-sim mini-sim--figure" data-mini-sim="potential-basic"><canvas aria-label="Potential energy of the rocking body as a function of the tilt angle"></canvas><div class="mini-sim-controls"><label for="potential-thetabar">Potential offset θ̄ <input id="potential-thetabar" type="range" min="0.1" max="1.2" step="0.01" value="0.6"><span data-value></span></label></div><div class="plot-legend"><span class="legend-line legend-line--exact">Exact |θ|</span></div><p class="mini-sim-result">The potential energy rises as the body tilts away from the corner, with a kink at θ = 0 where the pivot switches.</p></div></div>
-    <div class="figure-plot" data-state="smooth"><h3>Potential energy · integral of the smooth sign</h3><div class="mini-sim mini-sim--figure" data-mini-sim="potential-enhanced"><canvas aria-label="Interactive potential energy comparison with transition angle control"></canvas><div class="mini-sim-controls"><label for="potential-thetabar-2">Potential offset θ̄ <input id="potential-thetabar-2" type="range" min="0.1" max="1.2" step="0.01" value="0.6"><span data-value></span></label><label for="potential-theta0-2">Transition angle θ₀ <input id="potential-theta0-2" type="range" min="0.0192" max="1.2" step="0.005" value="0.6"><span data-value></span></label></div><div class="plot-legend"><span class="legend-line legend-line--exact">Exact |θ|</span><span class="legend-line legend-line--smooth">∫₀^θ sgn(θ′) dθ′</span><span class="legend-marker">Transition ±θ₀</span></div><p class="mini-sim-result">The integral of the smooth sign replaces |θ|; the transition markers sit where the sign reaches ±1.</p></div></div>
-    <div class="figure-plot" data-state="handoff"><h3>The C³ smooth sign and its derivative</h3><div class="mini-sim mini-sim--figure" data-mini-sim="smooth-sign"><canvas aria-label="Plot of the C3 smooth sign function"></canvas><canvas aria-label="Plot of the derivative of the C3 smooth sign function"></canvas><div class="mini-sim-controls"><label for="sign-theta0">Transition angle θ₀ <input id="sign-theta0" type="range" min="0.0192" max="1.2" step="0.005" value="0.6"><span data-value></span></label></div><div class="plot-legend"><span class="legend-line legend-line--smooth">sgn(θ)</span><span class="legend-line legend-line--deriv">sgn′(θ)</span><span class="legend-marker">Transition ±θ₀</span></div><p class="mini-sim-result">The central branch is the line mθ; outside ±θ₀ the function is constant at ±1 and its derivative vanishes.</p></div></div>
-    <div class="figure-plot" data-state="derivation"><h3>Geometric path</h3><div class="mini-sim mini-sim--figure" data-mini-sim="geometry-path"><canvas aria-label="Geometric y versus r path of the tipping point"></canvas><div class="mini-sim-controls"><label for="geometry-theta0">Transition angle θ₀ <input id="geometry-theta0" type="range" min="0.0192" max="1.2" step="0.005" value="0.6"><span data-value></span></label></div><div class="plot-legend"><span class="legend-line legend-line--smooth">Object outline</span><span class="legend-line legend-line--exact">Side walls · centreline</span><span class="legend-line legend-line--tangent">Tangent at contact</span></div><p class="mini-sim-result">The path is vertical on the side walls once the sign derivative vanishes.</p></div></div>
-  </aside></div>
-  <nav class="chapter-nav-bar"><span></span><a href="./02-min-accel.html">NEXT: MINIMUM ACCELERATION →</a></nav>
-</div></main></div>
-<script src="../chapter.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Explore the geometry and smoothstep regularization behind rocking dynamics."
+    />
+    <title>Chapter 1 — Geometry &amp; Smoothstep</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+      onload="
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: '\\[', right: '\\]', display: true },
+            { left: '\\(', right: '\\)', display: false },
+          ],
+        })
+      "
+    ></script>
+    <link rel="stylesheet" href="../css/chapter.css" />
+    <script src="../theme.js" defer></script>
+  </head>
+  <body data-chapter="geometry">
+    <div class="chapter-progress" aria-label="Reading progress">
+      <span class="chapter-progress-bar"></span>
+    </div>
+    <div class="page-layout">
+      <nav class="chapter-nav">
+        <div class="chapter-brand">
+          <a
+            class="brand-home"
+            href="../"
+            aria-label="Back to Rocking Dynamics home"
+            ><span>Home</span></a
+          ><a class="nav-site-title" href="../">Rocking Dynamics</a>
+        </div>
+        <div class="chapter-tools">
+          <a
+            class="github-link"
+            href="https://github.com/InnerReality/RockingDynamicsSite"
+            target="_blank"
+            rel="noopener"
+            aria-label="View source on GitHub"
+            title="View source on GitHub"
+            ><svg viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 .27-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+              /></svg></a
+          ><button
+            class="theme-toggle"
+            data-theme-toggle
+            type="button"
+            aria-label="Switch theme"
+            title="Switch theme"
+          ></button>
+        </div>
+        <ul>
+          <li>
+            <a class="active" href="./01-geometry.html"
+              >01 Geometry &amp; Smoothstep</a
+            >
+          </li>
+          <li><a href="./02-min-accel.html">02 Minimum Acceleration</a></li>
+          <li><a href="./03-free-response.html">03 Forced Excitation</a></li>
+        </ul>
+        <div class="nav-divider"></div>
+        <a href="../validate/smoothstep.html">Standalone geometry lab ↗</a>
+      </nav>
+      <main class="chapter-content">
+        <div class="chapter-inner">
+          <div class="chapter-meta">
+            Chapter 1 · Geometry &amp; regularization
+          </div>
+          <h1 class="chapter-title">The geometry of a rocking body</h1>
+          <p class="chapter-dek">
+            Before solving the dynamics, define what it means for a rigid body
+            to rock: its potential energy, its moving tipping point, and the
+            smooth approximation that makes the equations numerically usable.
+          </p>
+          <div class="chapter-scrolly">
+            <div class="scrolly-prose">
+              <section class="scrolly-step is-active" data-state="geometry">
+                <span class="step-number">01</span>
+                <div class="section-label">
+                  Two-dimensional motivation · mini-sim
+                </div>
+                <h2>Rocking is a corner-to-corner motion</h2>
+                <p>For a rectangular body, the potential energy is</p>
+                <p class="equation">
+                  \[ V(\theta) = mg\sqrt{r_0^2+h^2}\,\sin(\bar{\theta}+|\theta|)
+                  \]
+                </p>
+                <p>
+                  The offset <em>θ̄</em> is the angle of the center of mass when
+                  the body rests on one corner.
+                </p>
+                <svg
+                  class="rocking-diagram"
+                  viewBox="-2.6 -9.9 10.2 11.2"
+                  role="img"
+                  aria-label="Rectangular rocking body of height 2 h_cm and base width 2 r_0, tilted by theta about one corner. The center of mass lies at angle theta-bar = arctan(h_cm / r_0) from the pivot."
+                >
+                  <line
+                    x1="-2.6"
+                    y1="0"
+                    x2="7.6"
+                    y2="0"
+                    style="
+                      stroke: var(--muted);
+                      stroke-width: 1.5;
+                      vector-effect: non-scaling-stroke;
+                    "
+                  />
+                  <polygon
+                    points="0,0 5.795,-1.553 3.724,-9.281 -2.071,-7.727"
+                    style="
+                      fill: var(--accent-soft);
+                      stroke: var(--accent);
+                      stroke-width: 2;
+                      vector-effect: non-scaling-stroke;
+                    "
+                  />
+                  <polygon
+                    points="0,0 2.898,-0.776 1.862,-4.640"
+                    style="
+                      fill: var(--accent-soft);
+                      opacity: 0.55;
+                      stroke: none;
+                    "
+                  />
+                  <g transform="translate(2.755, -0.88) rotate(30)">
+                    <polygon
+                      points="0,-0.158 0.158,0 0,0.158 -0.158,0"
+                      style="
+                        fill: none;
+                        stroke: var(--orange);
+                        stroke-width: 1.5;
+                        vector-effect: non-scaling-stroke;
+                      "
+                    />
+                  </g>
+                  <line
+                    x1="0"
+                    y1="0"
+                    x2="2.898"
+                    y2="-0.776"
+                    style="
+                      stroke: var(--muted);
+                      stroke-width: 1.5;
+                      stroke-dasharray: 0.16 0.12;
+                      vector-effect: non-scaling-stroke;
+                    "
+                  />
+                  <line
+                    x1="2.898"
+                    y1="-0.776"
+                    x2="1.862"
+                    y2="-4.640"
+                    style="
+                      stroke: var(--muted);
+                      stroke-width: 1.5;
+                      stroke-dasharray: 0.16 0.12;
+                      vector-effect: non-scaling-stroke;
+                    "
+                  />
+                  <line
+                    x1="0"
+                    y1="0"
+                    x2="1.862"
+                    y2="-4.640"
+                    style="
+                      stroke: var(--orange);
+                      stroke-width: 1.5;
+                      stroke-dasharray: 0.16 0.12;
+                      vector-effect: non-scaling-stroke;
+                    "
+                  />
+                  <path
+                    d="M 1,0 L 0.996,-0.087 L 0.985,-0.174 L 0.966,-0.259"
+                    style="
+                      fill: none;
+                      stroke: var(--muted);
+                      stroke-width: 1.5;
+                      vector-effect: non-scaling-stroke;
+                    "
+                  />
+                  <path
+                    d="M 1.643,-0.440 L 1.541,-0.719 L 1.393,-0.975 L 1.202,-1.202 L 0.975,-1.393 L 0.719,-1.541 L 0.633,-1.578"
+                    style="
+                      fill: none;
+                      stroke: var(--muted);
+                      stroke-width: 1.5;
+                      vector-effect: non-scaling-stroke;
+                    "
+                  />
+                  <circle cx="0" cy="0" r="0.17" style="fill: var(--accent)" />
+                  <circle
+                    cx="1.862"
+                    cy="-4.640"
+                    r="0.17"
+                    style="fill: var(--orange)"
+                  />
+                  <text x="1" y="0.6" font-size="0.6">θ</text>
+                  <text x="1.45" y="-1.42" font-size="0.6" style="text-decoration: overline;">θ</text>
+                  <text x="2.20" y="-0.2" font-size="0.6">r₀</text>
+                  <text x="2.60" y="-2.72" font-size="0.6">h</text>
+                  <text x="2.15" y="-4.82" font-size="0.6">CM</text>
+                  <text x="-1.5" y="0.60" font-size="0.6">pivot</text>
+                  <text x="5.2" y="0.60" font-size="0.6">ground</text>
+                </svg>
+              </section>
+              <section
+                class="scrolly-step scrolly-step--sim"
+                data-state="smooth"
+              >
+                <span class="step-number">02</span>
+                <div class="section-label">Smoothstep · mini-sim</div>
+                <h2>Change the transition angle</h2>
+                <p>
+                  The smooth sign is controlled by the transition angle
+                  <em>θ₀</em> and a central slope <em>m</em>; the mini-sim
+                  chooses <em>m = 1.5 / θ₀</em>. The smooth potential energy
+                  replaces <em>|θ|</em> with the integral of the smooth sign
+                  from 0 to θ:
+                </p>
+                <p class="equation">
+                  \[ V(\theta) =
+                  mg\sqrt{r_0^2+h^2}\,\sin\!\left(\bar{\theta}+\int_0^\theta
+                  \operatorname{sgn}(\theta')\,d\theta'\right) \]
+                </p>
+                <p>
+                  The transition is marked at ±θ₀, where the sign reaches the
+                  constant ±1 branches.
+                </p>
+              </section>
+              <section class="scrolly-step" data-state="handoff">
+                <span class="step-number">03</span>
+                <div class="section-label">The C³ approximation</div>
+                <h2>Regularization is part of the model</h2>
+                <p>
+                  The tipping point is defined by the sign of the rocking angle:
+                </p>
+                <p class="equation">
+                  \[ r(q) = r_0\,\operatorname{sgn}(\theta)\,(\cos\phi,\
+                  \sin\phi,\ 0)^{\mathsf T} \]
+                </p>
+                <p>
+                  Here <em>φ</em> is the direction of tipping in polar
+                  coordinates: it selects the point on the perimeter about which
+                  the body tips in three-dimensional rocking, while
+                  <em>θ</em> is the tilt angle. For <em>θ &lt; 0</em>, the
+                  tipping point is diametrically opposite. The identity \(
+                  r(\phi,-\theta) = r(\phi+\pi,\theta) \) lets the dynamics use
+                  one uniform description instead of separate if–then branches.
+                </p>
+                <p>
+                  The replacement for <em>sgn</em> is constant at −1 and +1
+                  outside a width <em>w</em>, with a C³ smooth curve between
+                  them. This matters because derivatives enter the velocity,
+                  kinetic energy, mass-matrix derivatives, and Newton iterations
+                  in an implicit ODE solver. A function such as <em>tanh</em> is
+                  not equivalent: without constant branches, pure rocking never
+                  occurs.
+                </p>
+              </section>
+              <section class="scrolly-step" data-state="derivation">
+                <span class="step-number">04</span>
+                <div class="section-label">Geometric derivation</div>
+                <h2>Turn the contact angle into a curve</h2>
+                <p>
+                  The smooth sign determines the horizontal position of the
+                  tipping point, while the contact angle determines the local
+                  tangent of the body:
+                </p>
+                <p class="equation">
+                  \[ r(\theta) = r_0\,\operatorname{sgn}(\theta) \]\[
+                  \frac{dy}{dr} = \tan\theta \]\[ \frac{dy}{d\theta} =
+                  r_0\,\operatorname{sgn}'(\theta)\,\tan\theta \]
+                </p>
+                <p>
+                  Outside the smooth transition, <em>sgn′(θ)</em> = 0. The
+                  horizontal coordinate stays fixed at <em>r = ±r₀</em> while
+                  <em>y</em> continues to change, which is why the geometric
+                  path becomes vertical on the side walls.
+                </p>
+                <div class="handoff-card">
+                  <div class="handoff-preview">
+                    <img
+                      src="../assets/geometrylab.png"
+                      alt="Preview of the geometry lab"
+                    />
+                  </div>
+                  <div class="handoff-body">
+                    <p class="handoff-label">Full experiment</p>
+                    <h3>Geometry Lab</h3>
+                    <p>
+                      Vary <em>θ₀</em>, the central slope <em>m</em>, and the
+                      contact angle while the smooth sign, derivative, potential
+                      energy, and tipping geometry update live.
+                    </p>
+                    <div class="handoff-links">
+                      <a class="btn-primary" href="../validate/smoothstep.html"
+                        >Open the geometry lab ↗</a
+                      ><a class="btn-secondary" href="./02-min-accel.html"
+                        >Next chapter →</a
+                      >
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+            <aside class="scrolly-figure" aria-label="Chapter plots">
+              <div class="figure-plot is-visible" data-state="geometry">
+                <h3>Potential energy · exact</h3>
+                <div
+                  class="mini-sim mini-sim--figure"
+                  data-mini-sim="potential-basic"
+                >
+                  <canvas
+                    aria-label="Potential energy of the rocking body as a function of the tilt angle"
+                  ></canvas>
+                  <div class="mini-sim-controls">
+                    <label for="potential-thetabar"
+                      >Potential offset θ̄
+                      <input
+                        id="potential-thetabar"
+                        type="range"
+                        min="0.1"
+                        max="1.2"
+                        step="0.01"
+                        value="0.6" /><span data-value></span
+                    ></label>
+                  </div>
+                  <div class="plot-legend">
+                    <span class="legend-line legend-line--exact"
+                      >Exact |θ|</span
+                    >
+                  </div>
+                  <p class="mini-sim-result">
+                    The potential energy rises as the body tilts away from the
+                    corner, with a kink at θ = 0 where the pivot switches.
+                  </p>
+                </div>
+              </div>
+              <div class="figure-plot" data-state="smooth">
+                <h3>Potential energy · integral of the smooth sign</h3>
+                <div
+                  class="mini-sim mini-sim--figure"
+                  data-mini-sim="potential-enhanced"
+                >
+                  <canvas
+                    aria-label="Interactive potential energy comparison with transition angle control"
+                  ></canvas>
+                  <div class="mini-sim-controls">
+                    <label for="potential-thetabar-2"
+                      >Potential offset θ̄
+                      <input
+                        id="potential-thetabar-2"
+                        type="range"
+                        min="0.1"
+                        max="1.2"
+                        step="0.01"
+                        value="0.6" /><span data-value></span></label
+                    ><label for="potential-theta0-2"
+                      >Transition angle θ₀
+                      <input
+                        id="potential-theta0-2"
+                        type="range"
+                        min="0.0192"
+                        max="1.2"
+                        step="0.005"
+                        value="0.6" /><span data-value></span
+                    ></label>
+                  </div>
+                  <div class="plot-legend">
+                    <span class="legend-line legend-line--exact">Exact |θ|</span
+                    ><span class="legend-line legend-line--smooth"
+                      >∫₀^θ sgn(θ′) dθ′</span
+                    ><span class="legend-marker">Transition ±θ₀</span>
+                  </div>
+                  <p class="mini-sim-result">
+                    The integral of the smooth sign replaces |θ|; the transition
+                    markers sit where the sign reaches ±1.
+                  </p>
+                </div>
+              </div>
+              <div class="figure-plot" data-state="handoff">
+                <h3>The C³ smooth sign and its derivative</h3>
+                <div
+                  class="mini-sim mini-sim--figure"
+                  data-mini-sim="smooth-sign"
+                >
+                  <canvas
+                    aria-label="Plot of the C3 smooth sign function"
+                  ></canvas
+                  ><canvas
+                    aria-label="Plot of the derivative of the C3 smooth sign function"
+                  ></canvas>
+                  <div class="mini-sim-controls">
+                    <label for="sign-theta0"
+                      >Transition angle θ₀
+                      <input
+                        id="sign-theta0"
+                        type="range"
+                        min="0.0192"
+                        max="1.2"
+                        step="0.005"
+                        value="0.6" /><span data-value></span
+                    ></label>
+                  </div>
+                  <div class="plot-legend">
+                    <span class="legend-line legend-line--smooth">sgn(θ)</span
+                    ><span class="legend-line legend-line--deriv">sgn′(θ)</span
+                    ><span class="legend-marker">Transition ±θ₀</span>
+                  </div>
+                  <p class="mini-sim-result">
+                    The central branch is the line mθ; outside ±θ₀ the function
+                    is constant at ±1 and its derivative vanishes.
+                  </p>
+                </div>
+              </div>
+              <div class="figure-plot" data-state="derivation">
+                <h3>Geometric path</h3>
+                <div
+                  class="mini-sim mini-sim--figure"
+                  data-mini-sim="geometry-path"
+                >
+                  <canvas
+                    aria-label="Geometric y versus r path of the tipping point"
+                  ></canvas>
+                  <div class="mini-sim-controls">
+                    <label for="geometry-theta0"
+                      >Transition angle θ₀
+                      <input
+                        id="geometry-theta0"
+                        type="range"
+                        min="0.0192"
+                        max="1.2"
+                        step="0.005"
+                        value="0.6" /><span data-value></span
+                    ></label>
+                  </div>
+                  <div class="plot-legend">
+                    <span class="legend-line legend-line--smooth"
+                      >Object outline</span
+                    ><span class="legend-line legend-line--exact"
+                      >Side walls · centreline</span
+                    ><span class="legend-line legend-line--tangent"
+                      >Tangent at contact</span
+                    >
+                  </div>
+                  <p class="mini-sim-result">
+                    The path is vertical on the side walls once the sign
+                    derivative vanishes.
+                  </p>
+                </div>
+              </div>
+            </aside>
+          </div>
+          <nav class="chapter-nav-bar">
+            <span></span
+            ><a href="./02-min-accel.html">NEXT: MINIMUM ACCELERATION →</a>
+          </nav>
+        </div>
+      </main>
+    </div>
+    <script src="../chapter.js"></script>
+  </body>
 </html>

@@ -1,36 +1,193 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Explore forced vibration and sustained excitation in a rocking rigid body.">
-<title>Chapter 3 — Forced Excitation</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}]})"></script>
-<link rel="stylesheet" href="../css/chapter.css">
-<script src="../theme.js" defer></script>
-</head>
-<body data-chapter="forced">
-<div class="chapter-progress" aria-label="Reading progress"><span class="chapter-progress-bar"></span></div>
-<div class="page-layout">
-<nav class="chapter-nav">
-  <div class="chapter-brand"><a class="brand-home" href="../" aria-label="Back to Rocking Dynamics home"><span>Home</span></a><a class="nav-site-title" href="../">Rocking Dynamics</a></div>
-  <div class="chapter-tools"><a class="github-link" href="https://github.com/InnerReality/RockingDynamicsSite" target="_blank" rel="noopener" aria-label="View source on GitHub" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 .27-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a><button class="theme-toggle" data-theme-toggle type="button" aria-label="Switch theme" title="Switch theme"></button></div>
-  <ul><li><a href="./01-geometry.html">01 Geometry &amp; Smoothstep</a></li><li><a href="./02-min-accel.html">02 Minimum Acceleration</a></li><li><a class="active" href="./03-free-response.html">03 Forced Excitation</a></li></ul>
-  <div class="nav-divider"></div><a href="../validate/playground.html">Standalone playground ↗</a>
-</nav>
-<main class="chapter-content"><div class="chapter-inner">
-  <div class="chapter-meta">Chapter 3 · Forced vibration</div>
-  <h1 class="chapter-title">When the base keeps moving</h1>
-  <p class="chapter-dek">Forced vibration turns the one-time rocking event into a driven response. The amplitude and frequency of the base motion decide whether impacts die away or continue.</p>
-  <div class="chapter-scrolly"><div class="scrolly-prose">
-    <section class="scrolly-step is-active" data-state="geometry"><span class="step-number">01</span><div class="section-label">Return to the forcing</div><h2>Free response becomes a driven response</h2><p>Chapter 2 followed the body after the base stopped. Here the base acceleration continues, supplying energy that can replace what each corner impact removes.</p><p>The result depends on both the forcing amplitude and its frequency relative to the body’s rocking time scale.</p></section>
-    <section class="scrolly-step scrolly-step--sim" data-state="forcing"><span class="step-number">02</span><div class="section-label">Mini-sim · frequency sweep</div><h2>Frequency changes the rhythm of impacts</h2><p>Increase the forcing frequency and watch the phase between the base and the body change. Persistent rocking appears when the input can keep replenishing impact losses.</p><div class="mini-sim" data-mini-sim="forcing"><canvas aria-label="Mini forced vibration simulation"></canvas><div class="mini-sim-controls"><label for="forcing-frequency">Forcing frequency <input id="forcing-frequency" type="range" min="0.2" max="3" step="0.1" value="1.2"><span data-value></span></label><button type="button">Animate</button></div><p class="mini-sim-result">Sweep the frequency and compare the rocking rhythm with the sinusoidal input.</p></div></section>
-    <section class="scrolly-step" data-state="handoff"><span class="step-number">03</span><div class="section-label">Run the full experiment</div><h2>Explore forced and free motion together</h2><p>The playground exposes the complete excitation controls, body parameters, and force and hysteresis plots. Turn forcing off to compare the same setup with free decay.</p><div class="handoff-card"><div class="handoff-preview"><img src="../assets/playground-default-4x.gif" alt="Preview of the rocking playground forced-vibration experiment"></div><div class="handoff-body"><p class="handoff-label">Full experiment</p><h3>Rocking Playground</h3><p>Run the browser solver with bidirectional base excitation, impact dissipation, and response plots.</p><div class="handoff-links"><a class="btn-primary" href="../validate/playground.html">Open the playground ↗</a><a class="btn-secondary" href="../">Back to home</a></div></div></div></section>
-  </div><aside class="scrolly-figure" aria-label="Animated chapter figure"><canvas data-figure-canvas></canvas><p class="figure-caption"><span class="figure-state is-visible" data-state="geometry">The base supplies energy after lift-off.</span><span class="figure-state" data-state="forcing">Frequency controls the timing of the impacts.</span><span class="figure-state" data-state="handoff">The playground exposes the full driven response.</span></p></aside></div>
-  <nav class="chapter-nav-bar"><a href="./02-min-accel.html">← PREV: MINIMUM ACCELERATION</a><a href="../">BACK TO HOME</a></nav>
-</div></main></div>
-<script src="../chapter.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Explore forced vibration and sustained excitation in a rocking rigid body."
+    />
+    <title>Chapter 3 — Forced Excitation</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+      onload="
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: '\\[', right: '\\]', display: true },
+            { left: '\\(', right: '\\)', display: false },
+          ],
+        })
+      "
+    ></script>
+    <link rel="stylesheet" href="../css/chapter.css" />
+    <script src="../theme.js" defer></script>
+  </head>
+  <body data-chapter="forced">
+    <div class="chapter-progress" aria-label="Reading progress">
+      <span class="chapter-progress-bar"></span>
+    </div>
+    <div class="page-layout">
+      <nav class="chapter-nav">
+        <div class="chapter-brand">
+          <a
+            class="brand-home"
+            href="../"
+            aria-label="Back to Rocking Dynamics home"
+            ><span>Home</span></a
+          ><a class="nav-site-title" href="../">Rocking Dynamics</a>
+        </div>
+        <div class="chapter-tools">
+          <a
+            class="github-link"
+            href="https://github.com/InnerReality/RockingDynamicsSite"
+            target="_blank"
+            rel="noopener"
+            aria-label="View source on GitHub"
+            title="View source on GitHub"
+            ><svg viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 .27-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+              /></svg></a
+          ><button
+            class="theme-toggle"
+            data-theme-toggle
+            type="button"
+            aria-label="Switch theme"
+            title="Switch theme"
+          ></button>
+        </div>
+        <ul>
+          <li><a href="./01-geometry.html">01 Geometry &amp; Smoothstep</a></li>
+          <li><a href="./02-min-accel.html">02 Minimum Acceleration</a></li>
+          <li>
+            <a class="active" href="./03-free-response.html"
+              >03 Forced Excitation</a
+            >
+          </li>
+        </ul>
+        <div class="nav-divider"></div>
+        <a href="../validate/playground.html">Standalone playground ↗</a>
+      </nav>
+      <main class="chapter-content">
+        <div class="chapter-inner">
+          <div class="chapter-meta">Chapter 3 · Forced vibration</div>
+          <h1 class="chapter-title">When the base keeps moving</h1>
+          <p class="chapter-dek">
+            Forced vibration turns the one-time rocking event into a driven
+            response. The amplitude and frequency of the base motion decide
+            whether impacts die away or continue.
+          </p>
+          <div class="chapter-scrolly">
+            <div class="scrolly-prose">
+              <section class="scrolly-step is-active" data-state="geometry">
+                <span class="step-number">01</span>
+                <div class="section-label">Return to the forcing</div>
+                <h2>Free response becomes a driven response</h2>
+                <p>
+                  Chapter 2 followed the body after the base stopped. Here the
+                  base acceleration continues, supplying energy that can replace
+                  what each corner impact removes.
+                </p>
+                <p>
+                  The result depends on both the forcing amplitude and its
+                  frequency relative to the body’s rocking time scale.
+                </p>
+              </section>
+              <section
+                class="scrolly-step scrolly-step--sim"
+                data-state="forcing"
+              >
+                <span class="step-number">02</span>
+                <div class="section-label">Mini-sim · frequency sweep</div>
+                <h2>Frequency changes the rhythm of impacts</h2>
+                <p>
+                  Increase the forcing frequency and watch the phase between the
+                  base and the body change. Persistent rocking appears when the
+                  input can keep replenishing impact losses.
+                </p>
+                <div class="mini-sim" data-mini-sim="forcing">
+                  <canvas
+                    aria-label="Mini forced vibration simulation"
+                  ></canvas>
+                  <div class="mini-sim-controls">
+                    <label for="forcing-frequency"
+                      >Forcing frequency
+                      <input
+                        id="forcing-frequency"
+                        type="range"
+                        min="0.2"
+                        max="3"
+                        step="0.1"
+                        value="1.2" /><span data-value></span></label
+                    ><button type="button">Animate</button>
+                  </div>
+                  <p class="mini-sim-result">
+                    Sweep the frequency and compare the rocking rhythm with the
+                    sinusoidal input.
+                  </p>
+                </div>
+              </section>
+              <section class="scrolly-step" data-state="handoff">
+                <span class="step-number">03</span>
+                <div class="section-label">Run the full experiment</div>
+                <h2>Explore forced and free motion together</h2>
+                <p>
+                  The playground exposes the complete excitation controls, body
+                  parameters, and force and hysteresis plots. Turn forcing off
+                  to compare the same setup with free decay.
+                </p>
+                <div class="handoff-card">
+                  <div class="handoff-preview">
+                    <img
+                      src="../assets/playground-default-4x.gif"
+                      alt="Preview of the rocking playground forced-vibration experiment"
+                    />
+                  </div>
+                  <div class="handoff-body">
+                    <p class="handoff-label">Full experiment</p>
+                    <h3>Rocking Playground</h3>
+                    <p>
+                      Run the browser solver with bidirectional base excitation,
+                      impact dissipation, and response plots.
+                    </p>
+                    <div class="handoff-links">
+                      <a class="btn-primary" href="../validate/playground.html"
+                        >Open the playground ↗</a
+                      ><a class="btn-secondary" href="../">Back to home</a>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+            <aside class="scrolly-figure" aria-label="Animated chapter figure">
+              <canvas data-figure-canvas></canvas>
+              <p class="figure-caption">
+                <span class="figure-state is-visible" data-state="geometry"
+                  >The base supplies energy after lift-off.</span
+                ><span class="figure-state" data-state="forcing"
+                  >Frequency controls the timing of the impacts.</span
+                ><span class="figure-state" data-state="handoff"
+                  >The playground exposes the full driven response.</span
+                >
+              </p>
+            </aside>
+          </div>
+          <nav class="chapter-nav-bar">
+            <a href="./02-min-accel.html">← PREV: MINIMUM ACCELERATION</a
+            ><a href="../">BACK TO HOME</a>
+          </nav>
+        </div>
+      </main>
+    </div>
+    <script src="../chapter.js"></script>
+  </body>
 </html>
