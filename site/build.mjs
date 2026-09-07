@@ -102,6 +102,8 @@ cpSync(resolve(root, "theme.js"), resolve(dist, "theme.js"));
 cpSync(resolve(root, "assets"), resolve(dist, "assets"), { recursive: true });
 cpSync(resolve(root, "robots.txt"), resolve(dist, "robots.txt"));
 cpSync(resolve(root, "sitemap.xml"), resolve(dist, "sitemap.xml"));
+cpSync(resolve(root, "css"), resolve(dist, "css"), { recursive: true });
+cpSync(resolve(root, "chapters"), resolve(dist, "chapters"), { recursive: true });
 
 // 1. Assemble the JS bundles from the solver source + wiring files
 //    (mirrors the manual recipe in the wiring headers).
