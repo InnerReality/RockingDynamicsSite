@@ -516,5 +516,27 @@
     attributes: true,
     attributeFilter: ["data-theme"],
   });
+
+  // Hook for the GIF capture script: drive the contact angle directly so the
+  // capture loop does not depend on the slider's input event listener.
+  window.smoothstepSetContact = (theta) => {
+    els.contact.value = String(theta);
+    render();
+  };
+
+  // Mobile options drawer: the parameter cards slide in from the left.
+  const optionsToggle = $("smooth-options-toggle");
+  const optionsBackdrop = $("smooth-options-backdrop");
+  const optionsDrawer = $("smooth-options-drawer");
+  function setOptionsOpen(open) {
+    if (!optionsDrawer || !optionsBackdrop) return;
+    optionsDrawer.classList.toggle("open", open);
+    optionsBackdrop.classList.toggle("show", open);
+  }
+  optionsToggle.addEventListener("click", () => {
+    setOptionsOpen(!optionsDrawer.classList.contains("open"));
+  });
+  optionsBackdrop.addEventListener("click", () => setOptionsOpen(false));
+
   render();
 })();

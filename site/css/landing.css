@@ -47,8 +47,8 @@ a {
 }
 
 .site-header {
-  position: absolute;
-  z-index: 2;
+  position: sticky;
+  z-index: 20;
   top: 0;
   left: 0;
   width: 100%;
@@ -56,6 +56,9 @@ a {
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem clamp(1.25rem, 5vw, 4rem);
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(15, 118, 110, 0.08);
 }
 .brand {
   display: inline-flex;
@@ -66,6 +69,9 @@ a {
   font-size: 18px;
   font-weight: 900;
   letter-spacing: -0.02em;
+}
+.brand:hover {
+  color: var(--accent);
 }
 .brand-home {
   display: inline-flex;
@@ -381,7 +387,7 @@ footer a {
 
 @media (max-width: 760px) {
   .site-header {
-    position: absolute;
+    position: sticky;
   }
   .hero {
     min-height: auto;

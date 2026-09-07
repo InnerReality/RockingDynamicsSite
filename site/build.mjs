@@ -161,6 +161,7 @@ for (const f of [
   "simulator-common.css",
   "smoothstep.html",
   "smoothstep.js",
+  "smoothstep-gif.js",
 ]) {
   cpSync(resolve(root, `validate/${f}`), resolve(out, f));
 }

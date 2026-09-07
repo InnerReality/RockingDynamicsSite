@@ -107,6 +107,41 @@
         text-decoration: none;
         cursor: pointer;
       }
+      .btn {
+        font-family: inherit;
+        font-size: 13px;
+        padding: 6px 14px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: var(--card);
+        color: var(--fg);
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: var(--hover);
+      }
+      .btn:disabled {
+        opacity: 0.55;
+        cursor: wait;
+      }
+      .gif-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .gif-download svg {
+        width: 15px;
+        height: 15px;
+        fill: currentColor;
+      }
+
+      /* ---- mobile: parameters become a left drawer ---- */
+      .options-toggle {
+        display: none;
+      }
+      .sidebar-backdrop {
+        display: none;
+      }
       .layout {
         display: grid;
         grid-template-columns:
@@ -289,6 +324,35 @@
           margin-left: 0;
           width: 100%;
         }
+        .options-toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .sidebar.left {
+          position: fixed;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          width: min(320px, 85vw);
+          background: var(--bg);
+          z-index: 100;
+          overflow-y: auto;
+          padding: 16px;
+          box-shadow: 2px 0 12px rgba(0, 0, 0, 0.18);
+          transform: translateX(-105%);
+          transition: transform 0.25s ease;
+        }
+        .sidebar.left.open {
+          transform: translateX(0);
+        }
+        .sidebar-backdrop.show {
+          display: block;
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.35);
+          z-index: 90;
+        }
       }
     </style>
     <link rel="stylesheet" href="simulator-common.css" />
@@ -296,6 +360,13 @@
   </head>
   <body>
     <header class="topbar">
+      <button
+        id="smooth-options-toggle"
+        class="btn options-toggle"
+        title="Simulation options"
+      >
+        &#9776; Options
+      </button>
       <div class="brand">
         <a
           class="brand-home"
@@ -309,6 +380,14 @@
         </div>
       </div>
       <div class="transport">
+        <button
+          id="smooth-gif"
+          class="btn gif-download"
+          title="Animate the contact angle from -90° to +90° and back, then download as GIF"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a.75.75 0 0 1 .75.75v7.69l2.22-2.22a.75.75 0 1 1 1.06 1.06l-3.5 3.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.22 2.22V1.75A.75.75 0 0 1 8 1zM2.75 13.5h10.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1 0-1.5z"/></svg
+          ><span>GIF</span>
+        </button>
         <button
           class="theme-toggle"
           data-theme-toggle
@@ -332,8 +411,11 @@
         </a>
       </div>
     </header>
+
+    <div id="smooth-options-backdrop" class="sidebar-backdrop"></div>
+
     <main class="layout">
-      <aside>
+      <aside class="sidebar left" id="smooth-options-drawer">
         <section class="card">
           <h2>Parameters</h2>
           <div class="control">
@@ -461,5 +543,6 @@
       </section>
     </main>
     <script src="smoothstep.js"></script>
+    <script src="smoothstep-gif.js"></script>
   </body>
 </html>
