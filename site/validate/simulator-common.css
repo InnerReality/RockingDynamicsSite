@@ -14,6 +14,32 @@
   justify-content: flex-end;
 }
 
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  white-space: nowrap;
+}
+
+.github-link:hover,
+.github-link:focus-visible {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+.github-link svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -78,6 +104,7 @@
   font-size: 19px;
   font-weight: 900;
   line-height: 1;
+  cursor: pointer;
 }
 
 .theme-icon {

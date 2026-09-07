@@ -100,6 +100,8 @@ mkdirSync(out, { recursive: true });
 cpSync(resolve(root, "index.html"), resolve(dist, "index.html"));
 cpSync(resolve(root, "theme.js"), resolve(dist, "theme.js"));
 cpSync(resolve(root, "assets"), resolve(dist, "assets"), { recursive: true });
+cpSync(resolve(root, "robots.txt"), resolve(dist, "robots.txt"));
+cpSync(resolve(root, "sitemap.xml"), resolve(dist, "sitemap.xml"));
 
 // 1. Assemble the JS bundles from the solver source + wiring files
 //    (mirrors the manual recipe in the wiring headers).
@@ -120,7 +122,7 @@ for (const [fname, wiring] of bundles) {
 }
 
 // 2. validate/ static runtime files
-for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js", "simulator-timing.js", "simulator-plot-utils.js", "capture-gif.js", "simulator-common.css"]) {
+for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js", "simulator-timing.js", "simulator-plot-utils.js", "capture-gif.js", "simulator-common.css", "smoothstep.html", "smoothstep.js"]) {
   cpSync(resolve(root, `validate/${f}`), resolve(out, f));
 }
 // minaccel.html fetches minaccel-content.md at runtime
@@ -156,7 +158,7 @@ if (existsSync(docsDir)) {
   }
 }
 
-// 3. docs/playground-content.md → injected below the playground layout.
+// 3. Inject Markdown content into interactive pages.
 //    (minaccel.html embeds its markdown directly and renders it client-side,
 //    so it is not injected here.)
 const MD_STYLE_INJECT = `<style>
@@ -169,6 +171,21 @@ const MD_STYLE_INJECT = `<style>
 .md-content th, .md-content td { border: 1px solid #ddd; padding: 6px 10px; }
 .md-content img { max-width: 100%; }
 </style>`;
+const smoothstepMd = resolve(docsDir, "smoothstep-derivation.md");
+if (existsSync(smoothstepMd)) {
+  const html = readFileSync(resolve(out, "smoothstep.html"), "utf8");
+  const contentHtml = marked.parse(renderMath(readFileSync(smoothstepMd, "utf8")));
+  const smoothstepStyle = `<style>
+.smoothstep-md { max-width: 960px; margin: 24px auto; padding: 0 20px 40px; line-height: 1.6; }
+.smoothstep-md h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.smoothstep-md .katex-display { overflow-x: auto; overflow-y: hidden; }
+</style>`;
+  const injected = html
+    .replace("</head>", `${smoothstepStyle}<link rel="stylesheet" href="${KATEX_CSS}">\n</head>`)
+    .replace("</body>", `<section class="smoothstep-md">\n${contentHtml}\n</section>\n</body>`);
+  writeFileSync(resolve(out, "smoothstep.html"), injected);
+}
+
 const contentMd = resolve(docsDir, "playground-content.md");
 if (existsSync(contentMd)) {
   const html = readFileSync(resolve(out, "playground.html"), "utf8");
