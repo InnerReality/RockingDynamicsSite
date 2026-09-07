@@ -923,3 +923,4 @@ applyEqState();
 showStaticBushing();
 drawInputPreview();
 runSimulation();
+})();
