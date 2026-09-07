@@ -8,7 +8,13 @@
 //
 // Requires: npm install (marked + katex are devDependencies).
 import {
-  cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync,
+  cpSync,
+  rmSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  readdirSync,
+  existsSync,
 } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve, basename } from "node:path";
@@ -20,9 +26,10 @@ const dist = resolve(root, "dist");
 const out = resolve(dist, "validate");
 const docsDir = resolve(root, "docs");
 
-
-const KATEX_CSS = "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css";
-const MERMAID_JS = "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js";
+const KATEX_CSS =
+  "https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css";
+const MERMAID_JS =
+  "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js";
 
 // --- markdown → html with KaTeX + Mermaid ---
 
@@ -35,9 +42,11 @@ function renderMath(text) {
     return `\u0000CODE${blocks.length - 1}\u0000`;
   });
   text = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, m) =>
-    katex.renderToString(m.trim(), { displayMode: true, throwOnError: false }));
+    katex.renderToString(m.trim(), { displayMode: true, throwOnError: false }),
+  );
   text = text.replace(/\$([^$\n]+?)\$/g, (_, m) =>
-    katex.renderToString(m.trim(), { throwOnError: false }));
+    katex.renderToString(m.trim(), { throwOnError: false }),
+  );
   text = text.replace(/\u0000CODE(\d+)\u0000/g, (_, i) => blocks[+i]);
   return text;
 }
@@ -50,10 +59,14 @@ marked.use({
     // Handle both, and HTML-escape the source so <br/> etc. survive in the
     // DOM as text (mermaid reads innerHTML and entity-decodes it back).
     code(codeOrToken, langArg) {
-      const text = typeof codeOrToken === "string" ? codeOrToken : codeOrToken.text;
+      const text =
+        typeof codeOrToken === "string" ? codeOrToken : codeOrToken.text;
       const lang = typeof codeOrToken === "string" ? langArg : codeOrToken.lang;
       if (lang === "mermaid") {
-        const esc = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const esc = text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
         return `<pre class="mermaid">\n${esc}\n</pre>`;
       }
       return false; // default handling
@@ -103,7 +116,9 @@ cpSync(resolve(root, "assets"), resolve(dist, "assets"), { recursive: true });
 cpSync(resolve(root, "robots.txt"), resolve(dist, "robots.txt"));
 cpSync(resolve(root, "sitemap.xml"), resolve(dist, "sitemap.xml"));
 cpSync(resolve(root, "css"), resolve(dist, "css"), { recursive: true });
-cpSync(resolve(root, "chapters"), resolve(dist, "chapters"), { recursive: true });
+cpSync(resolve(root, "chapters"), resolve(dist, "chapters"), {
+  recursive: true,
+});
 cpSync(resolve(root, "chapter.js"), resolve(dist, "chapter.js"));
 
 // 1. Assemble the JS bundles from the solver source + wiring files
@@ -113,32 +128,61 @@ const bundles = [
   ["playground-worker.js", "worker-wiring.js"],
   ["minaccel-worker.js", "minaccel-worker-wiring.js"],
 ];
-const timing = readFileSync(resolve(root, "validate/simulator-timing.js"), "utf8");
-const plotUtils = readFileSync(resolve(root, "validate/simulator-plot-utils.js"), "utf8");
+const timing = readFileSync(
+  resolve(root, "validate/simulator-timing.js"),
+  "utf8",
+);
+const plotUtils = readFileSync(
+  resolve(root, "validate/simulator-plot-utils.js"),
+  "utf8",
+);
 for (const [fname, wiring] of bundles) {
   const solver = readFileSync(resolve(root, "validate/animate-app.js"), "utf8");
   const marker = "// validate/animate-src.ts";
   const idx = solver.indexOf(marker);
-  if (idx < 0) throw new Error(`marker not found in animate-app.js (for ${fname})`);
+  if (idx < 0)
+    throw new Error(`marker not found in animate-app.js (for ${fname})`);
   const w = readFileSync(resolve(root, `validate/${wiring}`), "utf8");
-  writeFileSync(resolve(out, fname), timing + "\n" + plotUtils + "\n" + solver.slice(0, idx) + w);
+  writeFileSync(
+    resolve(out, fname),
+    timing + "\n" + plotUtils + "\n" + solver.slice(0, idx) + w,
+  );
 }
 
 // 2. validate/ static runtime files
-for (const f of ["playground.html", "eq-data.js", "minaccel.html", "minaccel-app.js", "simulator-timing.js", "simulator-plot-utils.js", "capture-gif.js", "simulator-common.css", "smoothstep.html", "smoothstep.js"]) {
+for (const f of [
+  "playground.html",
+  "eq-data.js",
+  "minaccel.html",
+  "minaccel-app.js",
+  "simulator-timing.js",
+  "simulator-plot-utils.js",
+  "capture-gif.js",
+  "simulator-common.css",
+  "smoothstep.html",
+  "smoothstep.js",
+]) {
   cpSync(resolve(root, `validate/${f}`), resolve(out, f));
 }
 // minaccel.html fetches minaccel-content.md at runtime
-cpSync(resolve(docsDir, "minaccel-content.md"), resolve(out, "minaccel-content.md"));
+cpSync(
+  resolve(docsDir, "minaccel-content.md"),
+  resolve(out, "minaccel-content.md"),
+);
 
 // 2. docs/*.md → dist/docs/*.html
 //    Placeholders like {{a}} in minaccel-content.md are substituted with the
 //    default body values for the static docs page (the live page substitutes
 //    the current slider values in the browser).
 const MD_DEFAULTS = {
-  P: 306, W: 1000, r0: 12, h: 40, a: 1.4,
+  P: 306,
+  W: 1000,
+  r0: 12,
+  h: 40,
+  a: 1.4,
   eq: "a = g\\,\\frac{(1 + 12\\,P/W)\\,r_0}{h} = 1.4\\,g",
-  defs: "where $P = 306$ lb is the Belleville-washer preload per stack, $W = 1000$ lb " +
+  defs:
+    "where $P = 306$ lb is the Belleville-washer preload per stack, $W = 1000$ lb " +
     "is the body weight, $r_0 = 12$ in is the pivot radius, and $h = h_{CM} = 40$ in " +
     "is the center-of-mass height. With the current body parameters the rocking onset " +
     "is at $a = 1.4\\,g$. When the BW force is disabled, the preload term drops out " +
@@ -155,7 +199,9 @@ if (existsSync(docsDir)) {
   mkdirSync(resolve(dist, "docs"), { recursive: true });
   for (const f of readdirSync(docsDir).filter((f) => f.endsWith(".md"))) {
     const name = basename(f, ".md");
-    const title = name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const title = name
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
     const md = substituteDefaults(readFileSync(resolve(docsDir, f), "utf8"));
     writeFileSync(resolve(dist, "docs", `${name}.html`), mdToHtml(md, title));
   }
@@ -177,15 +223,23 @@ const MD_STYLE_INJECT = `<style>
 const smoothstepMd = resolve(docsDir, "smoothstep-derivation.md");
 if (existsSync(smoothstepMd)) {
   const html = readFileSync(resolve(out, "smoothstep.html"), "utf8");
-  const contentHtml = marked.parse(renderMath(readFileSync(smoothstepMd, "utf8")));
+  const contentHtml = marked.parse(
+    renderMath(readFileSync(smoothstepMd, "utf8")),
+  );
   const smoothstepStyle = `<style>
 .smoothstep-md { max-width: 960px; margin: 24px auto; padding: 0 20px 40px; line-height: 1.6; }
 .smoothstep-md h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
 .smoothstep-md .katex-display { overflow-x: auto; overflow-y: hidden; }
 </style>`;
   const injected = html
-    .replace("</head>", `${smoothstepStyle}<link rel="stylesheet" href="${KATEX_CSS}">\n</head>`)
-    .replace("</body>", `<section class="smoothstep-md">\n${contentHtml}\n</section>\n</body>`);
+    .replace(
+      "</head>",
+      `${smoothstepStyle}<link rel="stylesheet" href="${KATEX_CSS}">\n</head>`,
+    )
+    .replace(
+      "</body>",
+      `<section class="smoothstep-md">\n${contentHtml}\n</section>\n</body>`,
+    );
   writeFileSync(resolve(out, "smoothstep.html"), injected);
 }
 
@@ -194,8 +248,14 @@ if (existsSync(contentMd)) {
   const html = readFileSync(resolve(out, "playground.html"), "utf8");
   const contentHtml = marked.parse(renderMath(readFileSync(contentMd, "utf8")));
   const injected = html
-    .replace("</head>", `${MD_STYLE_INJECT}<link rel="stylesheet" href="${KATEX_CSS}">\n</head>`)
-    .replace("</body>", `<section class="md-content">\n${contentHtml}\n</section>\n<script src="${MERMAID_JS}"></script>\n<script>mermaid.initialize({ startOnLoad: true });</script>\n</body>`);
+    .replace(
+      "</head>",
+      `${MD_STYLE_INJECT}<link rel="stylesheet" href="${KATEX_CSS}">\n</head>`,
+    )
+    .replace(
+      "</body>",
+      `<section class="md-content">\n${contentHtml}\n</section>\n<script src="${MERMAID_JS}"></script>\n<script>mermaid.initialize({ startOnLoad: true });</script>\n</body>`,
+    );
   writeFileSync(resolve(out, "playground.html"), injected);
 }
 

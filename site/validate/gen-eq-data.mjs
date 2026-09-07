@@ -32,7 +32,11 @@ for (let i = 14 + skip; i < lines.length; i++) {
 }
 
 const n = Math.min(long.length, Math.floor(MAX_T / DT));
-const fmt = (arr) => arr.slice(0, n).map((v) => v.toPrecision(6)).join(",");
+const fmt = (arr) =>
+  arr
+    .slice(0, n)
+    .map((v) => v.toPrecision(6))
+    .join(",");
 
 const js = `// Generated from src/Examples/EQexample/Cerl_input.txt (CERL format).
 // dt = 1/512 s; first ${SKIP_T} s trimmed; ${n} samples (~${(n * DT).toFixed(1)} s) embedded.
@@ -46,4 +50,6 @@ window.EQ_DATA = {
 `;
 
 writeFileSync(out, js);
-console.log(`Wrote ${out} (${n} samples, ~${(n * DT).toFixed(1)} s, first ${SKIP_T} s trimmed)`);
+console.log(
+  `Wrote ${out} (${n} samples, ~${(n * DT).toFixed(1)} s, first ${SKIP_T} s trimmed)`,
+);

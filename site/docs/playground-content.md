@@ -6,12 +6,12 @@ body rocking in 3D while the plots track the response.
 
 ## Excitation presets
 
-| Preset | Description | Parameters |
-|---|---|---|
+| Preset            | Description                         | Parameters                              |
+| ----------------- | ----------------------------------- | --------------------------------------- |
 | Sine (continuous) | Steady sinusoidal base acceleration | amplitude, frequency, phase, start time |
-| Half-sine train | Repeated half-sine pulses with rest | amplitude, active, rest, start time |
-| Square wave | On/off square excitation | amplitude, on, off, start time |
-| Earthquake | Recorded time history (CERL) | aₓ scale, aᵧ scale |
+| Half-sine train   | Repeated half-sine pulses with rest | amplitude, active, rest, start time     |
+| Square wave       | On/off square excitation            | amplitude, on, off, start time          |
+| Earthquake        | Recorded time history (CERL)        | aₓ scale, aᵧ scale                      |
 
 ## Body parameters
 

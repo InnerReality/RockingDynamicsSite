@@ -5,7 +5,11 @@
 
   function preferredTheme() {
     const saved = localStorage.getItem(key);
-    return saved === "light" || saved === "dark" ? saved : (system.matches ? "dark" : "light");
+    return saved === "light" || saved === "dark"
+      ? saved
+      : system.matches
+        ? "dark"
+        : "light";
   }
 
   function apply(theme) {

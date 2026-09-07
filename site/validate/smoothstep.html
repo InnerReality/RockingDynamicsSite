@@ -1,127 +1,465 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Smoothstep Simulator · Rocking Dynamics</title>
-<style>
-  :root { --bg:#fafafa; --card:#fff; --border:#e0e0e0; --fg:#000; --logo:#000; --muted:#5f6368; --accent:#0f766e; --accent-dark:#0b5f59; --hover:#f1f3f4; --primary-fg:#fff; --orange:#c2410c; --mono:"SFMono-Regular",Consolas,monospace; color-scheme:light; }
-  :root[data-theme="dark"] { --bg:#0b1220; --card:#111c2e; --border:#263750; --fg:#fff; --logo:#fff; --muted:#c5d0df; --accent:#2dd4bf; --accent-dark:#14b8a6; --hover:#203554; --primary-fg:#062a28; --orange:#fb923c; color-scheme:dark; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 "Helvetica Neue",Arial,sans-serif; }
-  .topbar { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:10px 20px; background:var(--card); border-bottom:1px solid var(--border); }
-  .brand { display:flex; align-items:center; gap:9px; }
-  .brand-home { display:inline-flex; width:28px; height:28px; align-items:center; justify-content:center; color:var(--accent); border:3px solid currentColor; border-radius:6px 6px 6px 2px; transform:rotate(14deg); text-decoration:none; }
-  .brand-home span { font-size:0; }
-  .brand h1 { margin:0; color:var(--logo); font-size:18px; font-weight:900; letter-spacing:-.02em; }
-  .brand p { margin:2px 0 0; color:var(--muted); font-size:12px; }
-  .transport { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-left:auto; }
-  .theme-toggle, .github-link { font:inherit; border:1px solid var(--border); border-radius:4px; background:var(--card); color:var(--fg); text-decoration:none; cursor:pointer; }
-  .layout { display:grid; grid-template-columns:minmax(230px,300px) minmax(360px,1.25fr) minmax(280px,.85fr); gap:16px; max-width:1420px; margin:0 auto; padding:16px 20px 36px; align-items:start; }
-  .card { margin-bottom:16px; padding:16px; background:var(--card); border:1px solid var(--border); border-radius:6px; }
-  .card h2 { margin:0 0 14px; padding-bottom:9px; border-bottom:1px solid var(--border); font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
-  .control { margin:0 0 16px; }
-  .control:last-child { margin-bottom:0; }
-  .control label { display:flex; justify-content:space-between; gap:8px; margin-bottom:4px; color:var(--muted); font-size:12px; }
-  .value { color:var(--fg); font-family:var(--mono); }
-  input[type=range] { width:100%; accent-color:var(--accent); }
-  .formula-note { margin:14px 0 0; color:var(--muted); font-size:12px; }
-  .formula-note.error { color:var(--orange); font-weight:600; }
-  .formula { margin:0 0 12px; padding:10px; overflow:auto; background:var(--hover); border-radius:4px; font:12px/1.7 var(--mono); }
-  .plots { display:contents; }
-  .plot-card { min-width:0; }
-  .plot-card h2 { margin:0 0 8px; font-size:15px; }
-  .plot-card p { min-height:2.9em; margin:0 0 8px; color:var(--muted); font-size:12px; }
-  canvas { display:block; width:100%; height:auto; background:var(--card); border:1px solid var(--border); border-radius:4px; }
-  .geometry { grid-column:2; grid-row:1; }
-  .geometry canvas { max-height:720px; }
-  .analysis-plots { grid-column:3; grid-row:1; display:grid; grid-template-rows:1fr 1fr; gap:16px; }
-  .legend { margin:10px 0 0; color:var(--muted); font-size:12px; }
-  .plot-legend { display:flex; flex-wrap:wrap; gap:10px 16px; margin:10px 0 0; color:var(--muted); font-size:12px; }
-  .plot-legend span { display:inline-flex; align-items:center; gap:6px; }
-  .plot-legend i { display:inline-block; width:22px; border-top:3px solid var(--accent); }
-  .plot-legend i.dashed { border-top:2px dashed var(--orange); }
-  .plot-legend i.tangent { border-top:3px solid var(--orange); }
-  .derivation { margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
-  .derivation h3 { margin:0 0 8px; font-size:14px; }
-  .derivation p { margin:8px 0; color:var(--muted); font-size:12px; }
-  .derivation .formula { color:var(--fg); }
-  @media (max-width:1000px) { .layout { grid-template-columns:minmax(230px,300px) minmax(0,1fr); } .geometry { grid-column:2; grid-row:auto; } .analysis-plots { grid-column:2; grid-row:auto; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:auto; } }
-  @media (max-width:800px) { .layout { grid-template-columns:1fr; } .geometry, .analysis-plots { grid-column:auto; grid-row:auto; } .analysis-plots { grid-template-columns:1fr; grid-template-rows:auto; } .transport { margin-left:0; width:100%; } }
-</style>
-<link rel="stylesheet" href="simulator-common.css">
-<script src="../theme.js" defer></script>
-</head>
-<body>
-<header class="topbar">
-  <div class="brand">
-    <a class="brand-home" href="../" aria-label="Back to Rocking Dynamics home"><span>Home</span></a>
-    <div><h1>Smoothstep</h1><p>Regularized sign function and tipping geometry</p></div>
-  </div>
-  <div class="transport">
-    <button class="theme-toggle" data-theme-toggle type="button" aria-label="Switch theme" title="Switch theme"></button>
-    <a class="github-link" href="https://github.com/InnerReality/RockingDynamicsSite" target="_blank" rel="noopener" aria-label="View source on GitHub" title="View source on GitHub">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
-    </a>
-  </div>
-</header>
-<main class="layout">
-  <aside>
-    <section class="card">
-      <h2>Parameters</h2>
-      <div class="control">
-        <label for="smooth-theta0"><span>Transition angle θ₀</span><span class="value" id="smooth-theta0-value"></span></label>
-        <input id="smooth-theta0" type="range" min="0.02" max="1.50" step="0.001" value="0.60">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smoothstep Simulator · Rocking Dynamics</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --card: #fff;
+        --border: #e0e0e0;
+        --fg: #000;
+        --logo: #000;
+        --muted: #5f6368;
+        --accent: #0f766e;
+        --accent-dark: #0b5f59;
+        --hover: #f1f3f4;
+        --primary-fg: #fff;
+        --orange: #c2410c;
+        --mono: "SFMono-Regular", Consolas, monospace;
+        color-scheme: light;
+      }
+      :root[data-theme="dark"] {
+        --bg: #0b1220;
+        --card: #111c2e;
+        --border: #263750;
+        --fg: #fff;
+        --logo: #fff;
+        --muted: #c5d0df;
+        --accent: #2dd4bf;
+        --accent-dark: #14b8a6;
+        --hover: #203554;
+        --primary-fg: #062a28;
+        --orange: #fb923c;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          14px/1.45 "Helvetica Neue",
+          Arial,
+          sans-serif;
+      }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 10px 20px;
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .brand-home {
+        display: inline-flex;
+        width: 28px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        border: 3px solid currentColor;
+        border-radius: 6px 6px 6px 2px;
+        transform: rotate(14deg);
+        text-decoration: none;
+      }
+      .brand-home span {
+        font-size: 0;
+      }
+      .brand h1 {
+        margin: 0;
+        color: var(--logo);
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .brand p {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .transport {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-left: auto;
+      }
+      .theme-toggle,
+      .github-link {
+        font: inherit;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: var(--card);
+        color: var(--fg);
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns:
+          minmax(230px, 300px) minmax(360px, 1.25fr)
+          minmax(280px, 0.85fr);
+        gap: 16px;
+        max-width: 1420px;
+        margin: 0 auto;
+        padding: 16px 20px 36px;
+        align-items: start;
+      }
+      .card {
+        margin-bottom: 16px;
+        padding: 16px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+      }
+      .card h2 {
+        margin: 0 0 14px;
+        padding-bottom: 9px;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+      .control {
+        margin: 0 0 16px;
+      }
+      .control:last-child {
+        margin-bottom: 0;
+      }
+      .control label {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .value {
+        color: var(--fg);
+        font-family: var(--mono);
+      }
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+      .formula-note {
+        margin: 14px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .formula-note.error {
+        color: var(--orange);
+        font-weight: 600;
+      }
+      .formula {
+        margin: 0 0 12px;
+        padding: 10px;
+        overflow: auto;
+        background: var(--hover);
+        border-radius: 4px;
+        font: 12px/1.7 var(--mono);
+      }
+      .plots {
+        display: contents;
+      }
+      .plot-card {
+        min-width: 0;
+      }
+      .plot-card h2 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+      .plot-card p {
+        min-height: 2.9em;
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+      }
+      .geometry {
+        grid-column: 2;
+        grid-row: 1;
+      }
+      .geometry canvas {
+        max-height: 720px;
+      }
+      .analysis-plots {
+        grid-column: 3;
+        grid-row: 1;
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        gap: 16px;
+      }
+      .legend {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .plot-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 16px;
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .plot-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .plot-legend i {
+        display: inline-block;
+        width: 22px;
+        border-top: 3px solid var(--accent);
+      }
+      .plot-legend i.dashed {
+        border-top: 2px dashed var(--orange);
+      }
+      .plot-legend i.tangent {
+        border-top: 3px solid var(--orange);
+      }
+      .derivation {
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+      }
+      .derivation h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+      .derivation p {
+        margin: 8px 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .derivation .formula {
+        color: var(--fg);
+      }
+      @media (max-width: 1000px) {
+        .layout {
+          grid-template-columns: minmax(230px, 300px) minmax(0, 1fr);
+        }
+        .geometry {
+          grid-column: 2;
+          grid-row: auto;
+        }
+        .analysis-plots {
+          grid-column: 2;
+          grid-row: auto;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-rows: auto;
+        }
+      }
+      @media (max-width: 800px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .geometry,
+        .analysis-plots {
+          grid-column: auto;
+          grid-row: auto;
+        }
+        .analysis-plots {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto;
+        }
+        .transport {
+          margin-left: 0;
+          width: 100%;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="simulator-common.css" />
+    <script src="../theme.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <a
+          class="brand-home"
+          href="../"
+          aria-label="Back to Rocking Dynamics home"
+          ><span>Home</span></a
+        >
+        <div>
+          <h1>Smoothstep</h1>
+          <p>Regularized sign function and tipping geometry</p>
+        </div>
       </div>
-      <div class="control">
-        <label for="smooth-m"><span>Central slope m</span><span class="value" id="smooth-m-value"></span></label>
-        <input id="smooth-m" type="range" min="0.8" max="120" step="0.1" value="2.5">
+      <div class="transport">
+        <button
+          class="theme-toggle"
+          data-theme-toggle
+          type="button"
+          aria-label="Switch theme"
+          title="Switch theme"
+        ></button>
+        <a
+          class="github-link"
+          href="https://github.com/InnerReality/RockingDynamicsSite"
+          target="_blank"
+          rel="noopener"
+          aria-label="View source on GitHub"
+          title="View source on GitHub"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+            />
+          </svg>
+        </a>
       </div>
-      <p id="smooth-validity" class="formula-note"></p>
-      <p class="formula">x₀ = 1/m − w/2<br>w = 2(θ₀ − 1/m)<br>1/m &lt; θ₀ &lt; 2/m</p>
+    </header>
+    <main class="layout">
+      <aside>
+        <section class="card">
+          <h2>Parameters</h2>
+          <div class="control">
+            <label for="smooth-theta0"
+              ><span>Transition angle θ₀</span
+              ><span class="value" id="smooth-theta0-value"></span
+            ></label>
+            <input
+              id="smooth-theta0"
+              type="range"
+              min="0.02"
+              max="1.50"
+              step="0.001"
+              value="0.60"
+            />
+          </div>
+          <div class="control">
+            <label for="smooth-m"
+              ><span>Central slope m</span
+              ><span class="value" id="smooth-m-value"></span
+            ></label>
+            <input
+              id="smooth-m"
+              type="range"
+              min="0.8"
+              max="120"
+              step="0.1"
+              value="2.5"
+            />
+          </div>
+          <p id="smooth-validity" class="formula-note"></p>
+          <p class="formula">
+            x₀ = 1/m − w/2<br />w = 2(θ₀ − 1/m)<br />1/m &lt; θ₀ &lt; 2/m
+          </p>
 
-      <div class="control">
-        <label for="smooth-hcm"><span>h<sub>CM</sub>/r ratio</span><span class="value" id="smooth-hcm-value"></span></label>
-        <input id="smooth-hcm" type="range" min="0.20" max="3.00" step="0.01" value="1.00">
-      </div>
-      <p class="formula-note">The contact slider is limited to ±90°. The orange tangent shows the local slope tan(θ); after θ₀ the sides continue vertically. The dashed centreline passes through the object centre.</p>
-    </section>
-    <section class="card">
-      <h2>Geometric interpretation</h2>
-      <p class="formula">r(θ) = r₀ sgn(θ)<br>dy/dr = tan(θ)<br>dy/dθ = r₀ sgn′(θ) tan(θ)</p>
-      <p class="formula-note">The plotted curve is mirrored about the origin. Once sgn′ becomes zero, r stays at ±r₀ and the geometric path becomes vertical.</p>
-    </section>
-  </aside>
-  <section class="plots" aria-label="Smoothstep plots">
-    <article class="card plot-card geometry">
-      <h2>y versus r · tipping geometry</h2>
-      <div class="control">
-        <label for="smooth-contact"><span>Contact angle θ</span><span class="value" id="smooth-contact-value"></span></label>
-        <input id="smooth-contact" type="range" min="-1.5707" max="1.5707" step="0.001" value="0">
-      </div>
-      <canvas id="geometry-plot" aria-label="Geometric y versus r plot"></canvas>
-      <div class="plot-legend" aria-label="Tipping geometry legend">
-        <span><i></i>Closed object outline</span>
-        <span><i class="dashed"></i>Side walls, top connection, and centreline</span>
-        <span><i class="tangent"></i>Horizontal tangent at contact</span>
-      </div>
-      <p class="legend">Axes: horizontal <strong>r</strong>, vertical <strong>y</strong>. The x-axis is the level y = 0; the selected tangent is shown at (y(θ), r(θ)).</p>
-
-    </article>
-    <div class="analysis-plots">
-      <article class="card plot-card">
-        <h2>Smooth sign</h2>
-        <p>The C³ transition from the central line mθ to the plateaus ±1.</p>
-        <canvas id="sign-plot" aria-label="Plot of smooth sign function"></canvas>
-      </article>
-      <article class="card plot-card">
-        <h2>Smooth sign derivative</h2>
-        <p>The derivative used by the geometric integral and by the rocking dynamics.</p>
-        <canvas id="derivative-plot" aria-label="Plot of smooth sign derivative"></canvas>
-      </article>
-    </div>
-  </section>
-</main>
-<script src="smoothstep.js"></script>
-</body>
+          <div class="control">
+            <label for="smooth-hcm"
+              ><span>h<sub>CM</sub>/r ratio</span
+              ><span class="value" id="smooth-hcm-value"></span
+            ></label>
+            <input
+              id="smooth-hcm"
+              type="range"
+              min="0.20"
+              max="3.00"
+              step="0.01"
+              value="1.00"
+            />
+          </div>
+          <p class="formula-note">
+            The contact slider is limited to ±90°. The orange tangent shows the
+            local slope tan(θ); after θ₀ the sides continue vertically. The
+            dashed centreline passes through the object centre.
+          </p>
+        </section>
+        <section class="card">
+          <h2>Geometric interpretation</h2>
+          <p class="formula">
+            r(θ) = r₀ sgn(θ)<br />dy/dr = tan(θ)<br />dy/dθ = r₀ sgn′(θ) tan(θ)
+          </p>
+          <p class="formula-note">
+            The plotted curve is mirrored about the origin. Once sgn′ becomes
+            zero, r stays at ±r₀ and the geometric path becomes vertical.
+          </p>
+        </section>
+      </aside>
+      <section class="plots" aria-label="Smoothstep plots">
+        <article class="card plot-card geometry">
+          <h2>y versus r · tipping geometry</h2>
+          <div class="control">
+            <label for="smooth-contact"
+              ><span>Contact angle θ</span
+              ><span class="value" id="smooth-contact-value"></span
+            ></label>
+            <input
+              id="smooth-contact"
+              type="range"
+              min="-1.5707"
+              max="1.5707"
+              step="0.001"
+              value="0"
+            />
+          </div>
+          <canvas
+            id="geometry-plot"
+            aria-label="Geometric y versus r plot"
+          ></canvas>
+          <div class="plot-legend" aria-label="Tipping geometry legend">
+            <span><i></i>Closed object outline</span>
+            <span
+              ><i class="dashed"></i>Side walls, top connection, and
+              centreline</span
+            >
+            <span><i class="tangent"></i>Horizontal tangent at contact</span>
+          </div>
+          <p class="legend">
+            Axes: horizontal <strong>r</strong>, vertical <strong>y</strong>.
+            The x-axis is the level y = 0; the selected tangent is shown at
+            (y(θ), r(θ)).
+          </p>
+        </article>
+        <div class="analysis-plots">
+          <article class="card plot-card">
+            <h2>Smooth sign</h2>
+            <p>
+              The C³ transition from the central line mθ to the plateaus ±1.
+            </p>
+            <canvas
+              id="sign-plot"
+              aria-label="Plot of smooth sign function"
+            ></canvas>
+          </article>
+          <article class="card plot-card">
+            <h2>Smooth sign derivative</h2>
+            <p>
+              The derivative used by the geometric integral and by the rocking
+              dynamics.
+            </p>
+            <canvas
+              id="derivative-plot"
+              aria-label="Plot of smooth sign derivative"
+            ></canvas>
+          </article>
+        </div>
+      </section>
+    </main>
+    <script src="smoothstep.js"></script>
+  </body>
 </html>

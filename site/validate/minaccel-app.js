@@ -21,67 +21,184 @@ var DEG = 180 / Math.PI;
 function buildPlot(spec) {
   var W = spec.width || 430;
   var Hh = spec.height || 270;
-  var hasLegend = spec.series.some(function (s2) { return s2.label; });
-  var L = 72, R = 12, T = hasLegend ? 56 : 38, B = hasLegend ? 50 : 44;
-  var xs = spec.series.flatMap(function (s2) { return s2.pts.map(function (p) { return p[0]; }); });
-  var ys = spec.series.flatMap(function (s2) { return s2.pts.map(function (p) { return p[1]; }); });
-  var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
-  var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+  var hasLegend = spec.series.some(function (s2) {
+    return s2.label;
+  });
+  var L = 72,
+    R = 12,
+    T = hasLegend ? 56 : 38,
+    B = hasLegend ? 50 : 44;
+  var xs = spec.series.flatMap(function (s2) {
+    return s2.pts.map(function (p) {
+      return p[0];
+    });
+  });
+  var ys = spec.series.flatMap(function (s2) {
+    return s2.pts.map(function (p) {
+      return p[1];
+    });
+  });
+  var x0 = Math.min.apply(null, xs),
+    x1 = Math.max.apply(null, xs);
+  var y0 = Math.min.apply(null, ys),
+    y1 = Math.max.apply(null, ys);
   x0 -= (x1 - x0) * 0.02 || 0.5;
   x1 += (x1 - x0) * 0.02 || 0.5;
   y0 -= (y1 - y0) * 0.05 || 0.5;
   y1 += (y1 - y0) * 0.05 || 0.5;
   if (spec.equal) {
-    var sxq = W - L - R, syq = Hh - T - B;
+    var sxq = W - L - R,
+      syq = Hh - T - B;
     var rq = Math.max((x1 - x0) / sxq, (y1 - y0) / syq);
-    var cxq = (x0 + x1) / 2, cyq = (y0 + y1) / 2;
-    x0 = cxq - rq * sxq / 2;
-    x1 = cxq + rq * sxq / 2;
-    y0 = cyq - rq * syq / 2;
-    y1 = cyq + rq * syq / 2;
+    var cxq = (x0 + x1) / 2,
+      cyq = (y0 + y1) / 2;
+    x0 = cxq - (rq * sxq) / 2;
+    x1 = cxq + (rq * sxq) / 2;
+    y0 = cyq - (rq * syq) / 2;
+    y1 = cyq + (rq * syq) / 2;
   }
-  var px = function (v) { return L + (v - x0) / (x1 - x0) * (W - L - R); };
-  var py = function (v) { return Hh - B - (v - y0) / (y1 - y0) * (Hh - T - B); };
-  var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + Hh + '" font-family="Segoe UI, sans-serif">';
+  var px = function (v) {
+    return L + ((v - x0) / (x1 - x0)) * (W - L - R);
+  };
+  var py = function (v) {
+    return Hh - B - ((v - y0) / (y1 - y0)) * (Hh - T - B);
+  };
+  var s =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' +
+    W +
+    " " +
+    Hh +
+    '" font-family="Segoe UI, sans-serif">';
   s += '<rect width="' + W + '" height="' + Hh + '" fill="white"/>';
-  s += '<text x="' + L + '" y="' + (hasLegend ? 24 : T - 14) + '" font-size="17" font-weight="600" fill="#111">' + spec.title + '</text>';
-  var labeled = spec.series.filter(function (ser) { return ser.label; });
+  s +=
+    '<text x="' +
+    L +
+    '" y="' +
+    (hasLegend ? 24 : T - 14) +
+    '" font-size="17" font-weight="600" fill="#111">' +
+    spec.title +
+    "</text>";
+  var labeled = spec.series.filter(function (ser) {
+    return ser.label;
+  });
   if (labeled.length > 0) {
-    var entryW = labeled.map(function (ser) { return 14 + 4 + ser.label.length * 6.2; });
-    var total = entryW.reduce(function (a, b) { return a + b + 10; }, 0) - 10;
+    var entryW = labeled.map(function (ser) {
+      return 14 + 4 + ser.label.length * 6.2;
+    });
+    var total =
+      entryW.reduce(function (a, b) {
+        return a + b + 10;
+      }, 0) - 10;
     var lx = W - R - total;
     labeled.forEach(function (ser, k) {
-      s += '<line x1="' + lx + '" y1="' + (T - 14) + '" x2="' + (lx + 14) + '" y2="' + (T - 14) + '" stroke="' + ser.color + '" stroke-width="2"/>';
-      s += '<text x="' + (lx + 18) + '" y="' + (T - 14) + '" font-size="13" fill="#111">' + ser.label + '</text>';
+      s +=
+        '<line x1="' +
+        lx +
+        '" y1="' +
+        (T - 14) +
+        '" x2="' +
+        (lx + 14) +
+        '" y2="' +
+        (T - 14) +
+        '" stroke="' +
+        ser.color +
+        '" stroke-width="2"/>';
+      s +=
+        '<text x="' +
+        (lx + 18) +
+        '" y="' +
+        (T - 14) +
+        '" font-size="13" fill="#111">' +
+        ser.label +
+        "</text>";
       lx += entryW[k] + 10;
     });
   }
   var v, i;
   for (i = 0; i < niceTicks(x0, x1).length; i++) {
     v = niceTicks(x0, x1)[i];
-    s += '<line x1="' + px(v) + '" y1="' + T + '" x2="' + px(v) + '" y2="' + (Hh - B) + '" stroke="#e5e7eb"/>';
-    s += '<text x="' + px(v) + '" y="' + (Hh - B + 18) + '" font-size="13" text-anchor="middle" fill="#374151">' + fmt(v) + '</text>';
+    s +=
+      '<line x1="' +
+      px(v) +
+      '" y1="' +
+      T +
+      '" x2="' +
+      px(v) +
+      '" y2="' +
+      (Hh - B) +
+      '" stroke="#e5e7eb"/>';
+    s +=
+      '<text x="' +
+      px(v) +
+      '" y="' +
+      (Hh - B + 18) +
+      '" font-size="13" text-anchor="middle" fill="#374151">' +
+      fmt(v) +
+      "</text>";
   }
   for (i = 0; i < niceTicks(y0, y1).length; i++) {
     v = niceTicks(y0, y1)[i];
-    s += '<line x1="' + L + '" y1="' + py(v) + '" x2="' + (W - R) + '" y2="' + py(v) + '" stroke="#e5e7eb"/>';
-    s += '<text x="' + (L - 6) + '" y="' + (py(v) + 4) + '" font-size="13" text-anchor="end" fill="#374151">' + fmt(v) + '</text>';
+    s +=
+      '<line x1="' +
+      L +
+      '" y1="' +
+      py(v) +
+      '" x2="' +
+      (W - R) +
+      '" y2="' +
+      py(v) +
+      '" stroke="#e5e7eb"/>';
+    s +=
+      '<text x="' +
+      (L - 6) +
+      '" y="' +
+      (py(v) + 4) +
+      '" font-size="13" text-anchor="end" fill="#374151">' +
+      fmt(v) +
+      "</text>";
   }
-  s += '<rect x="' + L + '" y="' + T + '" width="' + (W - L - R) + '" height="' + (Hh - T - B) + '" fill="none" stroke="#9ca3af"/>';
+  s +=
+    '<rect x="' +
+    L +
+    '" y="' +
+    T +
+    '" width="' +
+    (W - L - R) +
+    '" height="' +
+    (Hh - T - B) +
+    '" fill="none" stroke="#9ca3af"/>';
   for (var si = 0; si < spec.series.length; si++) {
     var ser = spec.series[si];
     var d = "";
     for (var j = 0; j < ser.pts.length; j++)
-      d += px(ser.pts[j][0]).toFixed(2) + "," + py(ser.pts[j][1]).toFixed(2) + " ";
-    s += '<polyline points="' + d + '" fill="none" stroke="' + ser.color + '" stroke-width="1.3"/>';
+      d +=
+        px(ser.pts[j][0]).toFixed(2) + "," + py(ser.pts[j][1]).toFixed(2) + " ";
+    s +=
+      '<polyline points="' +
+      d +
+      '" fill="none" stroke="' +
+      ser.color +
+      '" stroke-width="1.3"/>';
   }
   if (spec.cursors) {
     for (var ci = 0; ci < spec.cursors.length; ci++) {
       var c = spec.cursors[ci];
       var col = c.color || "#dc2626";
-      s += '<circle id="' + c.id + '" cx="0" cy="0" r="4" fill="' + col + '" stroke="#fff" stroke-width="1.2" visibility="hidden"/>';
+      s +=
+        '<circle id="' +
+        c.id +
+        '" cx="0" cy="0" r="4" fill="' +
+        col +
+        '" stroke="#fff" stroke-width="1.2" visibility="hidden"/>';
       if (c.label) {
-        s += '<text id="' + c.id + '-lbl" x="0" y="0" font-size="15" font-weight="600" fill="' + col + '" visibility="hidden">' + c.label + '</text>';
+        s +=
+          '<text id="' +
+          c.id +
+          '-lbl" x="0" y="0" font-size="15" font-weight="600" fill="' +
+          col +
+          '" visibility="hidden">' +
+          c.label +
+          "</text>";
       }
     }
   }
@@ -89,15 +206,41 @@ function buildPlot(spec) {
     for (var mi = 0; mi < spec.markers.length; mi++) {
       var m = spec.markers[mi];
       var mcol = m.color || "#111";
-      s += '<circle id="' + m.id + '" cx="0" cy="0" r="4" fill="' + mcol + '" stroke="#fff" stroke-width="1.2" visibility="hidden"/>';
+      s +=
+        '<circle id="' +
+        m.id +
+        '" cx="0" cy="0" r="4" fill="' +
+        mcol +
+        '" stroke="#fff" stroke-width="1.2" visibility="hidden"/>';
       if (m.label) {
-        s += '<text id="' + m.id + '-lbl" x="0" y="0" font-size="15" font-weight="600" fill="' + mcol + '" visibility="hidden">' + m.label + '</text>';
+        s +=
+          '<text id="' +
+          m.id +
+          '-lbl" x="0" y="0" font-size="15" font-weight="600" fill="' +
+          mcol +
+          '" visibility="hidden">' +
+          m.label +
+          "</text>";
       }
     }
   }
-  s += '<text x="' + ((L + W - R) / 2) + '" y="' + (Hh - 8) + '" font-size="14" text-anchor="middle" fill="#111">' + spec.xlabel + '</text>';
-  s += '<text x="30" y="' + ((T + Hh - B) / 2) + '" font-size="14" text-anchor="middle" fill="#111" transform="rotate(-90 30 ' + ((T + Hh - B) / 2) + ')">' + spec.ylabel + '</text>';
-  s += '</svg>';
+  s +=
+    '<text x="' +
+    (L + W - R) / 2 +
+    '" y="' +
+    (Hh - 8) +
+    '" font-size="14" text-anchor="middle" fill="#111">' +
+    spec.xlabel +
+    "</text>";
+  s +=
+    '<text x="30" y="' +
+    (T + Hh - B) / 2 +
+    '" font-size="14" text-anchor="middle" fill="#111" transform="rotate(-90 30 ' +
+    (T + Hh - B) / 2 +
+    ')">' +
+    spec.ylabel +
+    "</text>";
+  s += "</svg>";
 
   function setDot(id, x, y, label) {
     var dot = document.getElementById(id);
@@ -127,21 +270,27 @@ function buildPlot(spec) {
         var n = pts.length;
         if (n === 0) continue;
         var tc = Math.max(pts[0][0], Math.min(pts[n - 1][0], t));
-        var lo = 0, hi = n - 1;
+        var lo = 0,
+          hi = n - 1;
         while (hi - lo > 1) {
-          var mid = lo + hi >> 1;
-          if (pts[mid][0] <= tc) lo = mid; else hi = mid;
+          var mid = (lo + hi) >> 1;
+          if (pts[mid][0] <= tc) lo = mid;
+          else hi = mid;
         }
-        var xa = pts[lo][0], ya = pts[lo][1];
-        var xb = pts[hi][0], yb = pts[hi][1];
+        var xa = pts[lo][0],
+          ya = pts[lo][1];
+        var xb = pts[hi][0],
+          yb = pts[hi][1];
         var f = (tc - xa) / (xb - xa || 1);
         setDot(cr.id, tc, ya + f * (yb - ya), cr.label);
       }
     },
     setMarker: function (id, x, y) {
-      var mk = (spec.markers || []).find(function (m) { return m.id === id; });
+      var mk = (spec.markers || []).find(function (m) {
+        return m.id === id;
+      });
       setDot(id, x, y, mk ? mk.label : undefined);
-    }
+    },
   };
 }
 
@@ -156,47 +305,55 @@ function buildPlot(spec) {
 // ============================================================
 function create2DBushingAnimator(canvas, data, opts) {
   var ctx = canvas.getContext("2d");
-  var W = canvas.width, Hh = canvas.height;
+  var W = canvas.width,
+    Hh = canvas.height;
   var geom = opts.geom;
   var nStacks = opts.nStacks;
   var r1 = opts.stackRadius;
   var H = opts.stackFreeLength; // 5 in — imaginary ceiling height
   var r0 = geom.r0;
-  var d2 = geom.d2, h2 = geom.h2; // flange diameter/height (rests on ground)
-  var d3 = geom.d3, h3 = geom.h3; // upper body diameter/height
-  var zTop = h2 + h3;             // top of the body
+  var d2 = geom.d2,
+    h2 = geom.h2; // flange diameter/height (rests on ground)
+  var d3 = geom.d3,
+    h3 = geom.h3; // upper body diameter/height
+  var zTop = h2 + h3; // top of the body
 
   // Coordinate mapping: world (x,z) -> screen
   var scale = 5.2; // px per inch
-  var cx = 0;      // world center x
-  var cz = 36;     // world center z
+  var cx = 0; // world center x
+  var cz = 36; // world center z
 
   function w2s(wx, wz) {
-    return [
-      W / 2 + (wx - cx) * scale,
-      Hh / 2 - (wz - cz) * scale
-    ];
+    return [W / 2 + (wx - cx) * scale, Hh / 2 - (wz - cz) * scale];
   }
 
   // Rotate (px,pz) about the pivot (ox,oz) by angle, matching the getRot()
   // convention: x' = ct*x + st*z, z' = -st*x + ct*z (relative to the pivot).
   function rot2d(px, pz, ox, oz, angle) {
-    var dx = px - ox, dz = pz - oz;
-    var c = Math.cos(angle), sn = Math.sin(angle);
+    var dx = px - ox,
+      dz = pz - oz;
+    var c = Math.cos(angle),
+      sn = Math.sin(angle);
     return [ox + dx * c + dz * sn, oz - dx * sn + dz * c];
   }
 
   // Stack angles
   var stackAngles = [];
-  for (var j = 0; j < nStacks; j++) stackAngles.push(j * 2 * Math.PI / nStacks);
+  for (var j = 0; j < nStacks; j++)
+    stackAngles.push((j * 2 * Math.PI) / nStacks);
 
   // Animation state
-  var frame = 0, playing = true, speed = 1, acc = 0, last;
+  var frame = 0,
+    playing = true,
+    speed = 1,
+    acc = 0,
+    last;
   var frameDt = globalThis.simulatorFrameDt(data, opts.fps || 50);
   var raf = 0;
 
   function renderFrame(i) {
-    var phi = data.phi[i], theta = data.theta[i];
+    var phi = data.phi[i],
+      theta = data.theta[i];
     var thetaGain = opts.thetaGain || 1;
     var visTheta = theta * thetaGain;
     var s = Math.sign(theta);
@@ -260,8 +417,12 @@ function create2DBushingAnimator(canvas, data, opts) {
     // --- Stacks ---
     // Sort by sin(angle) descending: most-positive = behind body first
     var sortedStacks = stackAngles
-      .map(function (a, idx) { return { angle: a, idx: idx, depth: Math.sin(a) }; })
-      .sort(function (a, b) { return b.depth - a.depth; });
+      .map(function (a, idx) {
+        return { angle: a, idx: idx, depth: Math.sin(a) };
+      })
+      .sort(function (a, b) {
+        return b.depth - a.depth;
+      });
 
     // Helper: draw a single stack — an inverted spring hanging from the
     // ceiling at z = H (fixed in world) down to the flange attachment at
@@ -278,10 +439,12 @@ function create2DBushingAnimator(canvas, data, opts) {
       // Flange end (rotates with the body)
       var fp = rot2d(x, 0, pivotX, pivotZ, visTheta);
       var bot = w2s(fp[0], fp[1]);
-      var dx = bot[0] - top[0], dy = bot[1] - top[1];
+      var dx = bot[0] - top[0],
+        dy = bot[1] - top[1];
       var len = Math.hypot(dx, dy) || 1;
       var coils = 8;
-      var nx = -dy / len, ny = dx / len;
+      var nx = -dy / len,
+        ny = dx / len;
 
       // Spring zigzag — starts at the ceiling (z = H), down to the flange
       ctx.beginPath();
@@ -289,7 +452,10 @@ function create2DBushingAnimator(canvas, data, opts) {
       for (var k = 1; k <= coils; k++) {
         var fr = k / (coils + 1);
         var sg = k % 2 === 1 ? 1 : -1;
-        ctx.lineTo(top[0] + dx * fr + nx * amp * sg, top[1] + dy * fr + ny * amp * sg);
+        ctx.lineTo(
+          top[0] + dx * fr + nx * amp * sg,
+          top[1] + dy * fr + ny * amp * sg,
+        );
       }
       ctx.lineTo(bot[0], bot[1]);
       ctx.strokeStyle = "rgba(85, 85, 85, " + opa.toFixed(2) + ")";
@@ -338,9 +504,23 @@ function create2DBushingAnimator(canvas, data, opts) {
     }
 
     // Flange (rests on the ground at z = 0)
-    drawRect(-d2 / 2, d2 / 2, 0, h2, "rgba(0, 115, 189, 0.30)", "rgba(0, 115, 189, 0.65)");
+    drawRect(
+      -d2 / 2,
+      d2 / 2,
+      0,
+      h2,
+      "rgba(0, 115, 189, 0.30)",
+      "rgba(0, 115, 189, 0.65)",
+    );
     // Upper body
-    drawRect(-d3 / 2, d3 / 2, h2, zTop, "rgba(120, 171, 48, 0.30)", "rgba(120, 171, 48, 0.65)");
+    drawRect(
+      -d3 / 2,
+      d3 / 2,
+      h2,
+      zTop,
+      "rgba(120, 171, 48, 0.30)",
+      "rgba(120, 171, 48, 0.65)",
+    );
 
     // Body centerline (rotates with the body) — shows the actual deflection
     var bc0 = w2r(0, 0);
@@ -379,10 +559,13 @@ function create2DBushingAnimator(canvas, data, opts) {
     // at the center of mass. Once the target is reached the load is removed
     // (aₓ = 0) and the arrow disappears. The label shows aₓ (g).
     var cmP = w2r(0, opts.hCM);
-    var axNow = (opts.tDrop !== null && data.t[i] >= opts.tDrop) ? 0 : opts.rate * data.t[i];
+    var axNow =
+      opts.tDrop !== null && data.t[i] >= opts.tDrop
+        ? 0
+        : opts.rate * data.t[i];
     var F = opts.mass * axNow; // lb
     var pxPerKlb = 20; // arrow scale: 20 px per 1000 lb
-    var aLen = Math.min(F / 1000 * pxPerKlb, 220);
+    var aLen = Math.min((F / 1000) * pxPerKlb, 220);
     var tailX = cmP[0] - aLen; // tail to the left of the CM
     var fcol = "#c2185b";
     ctx.strokeStyle = fcol;
@@ -409,15 +592,26 @@ function create2DBushingAnimator(canvas, data, opts) {
     ctx.fillStyle = "#111111";
     ctx.font = "12px 'Segoe UI', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("a\u2093 = " + axNow.toFixed(2) + " g", (cmP[0] + tailX) / 2, cmP[1] - 10);
+    ctx.fillText(
+      "a\u2093 = " + axNow.toFixed(2) + " g",
+      (cmP[0] + tailX) / 2,
+      cmP[1] - 10,
+    );
 
     // --- Info text ---
     ctx.fillStyle = "#111111";
     ctx.font = "13px 'Segoe UI', sans-serif";
     ctx.textAlign = "left";
     ctx.fillText(
-      "t = " + data.t[i].toFixed(2) + " s   (\u03C6 = " + (phi / Math.PI * 180).toFixed(1) + "\u00B0,  \u03B8 = " + (theta / Math.PI * 180).toFixed(3) + "\u00B0)",
-      12, 20
+      "t = " +
+        data.t[i].toFixed(2) +
+        " s   (\u03C6 = " +
+        ((phi / Math.PI) * 180).toFixed(1) +
+        "\u00B0,  \u03B8 = " +
+        ((theta / Math.PI) * 180).toFixed(3) +
+        "\u00B0)",
+      12,
+      20,
     );
 
     // --- Geometry readout ---
@@ -425,14 +619,21 @@ function create2DBushingAnimator(canvas, data, opts) {
     ctx.font = "11px 'Segoe UI', sans-serif";
     ctx.textAlign = "left";
     ctx.fillText(
-      "r\u2080 = " + r0.toFixed(1) + " in   d\u2083 = " + d3 + " in   h\u2083 = " + h3 + " in",
-      12, Hh - 12
+      "r\u2080 = " +
+        r0.toFixed(1) +
+        " in   d\u2083 = " +
+        d3 +
+        " in   h\u2083 = " +
+        h3 +
+        " in",
+      12,
+      Hh - 12,
     );
   }
 
   function tick(now) {
     if (last !== undefined && playing) {
-      acc += (now - last) / 1e3 * speed;
+      acc += ((now - last) / 1e3) * speed;
       while (acc >= frameDt) {
         acc -= frameDt;
         frame = (frame + 1) % data.t.length;
@@ -447,14 +648,32 @@ function create2DBushingAnimator(canvas, data, opts) {
   raf = requestAnimationFrame(tick);
 
   return {
-    play: function () { playing = true; },
-    pause: function () { playing = false; },
-    toggle: function () { playing = !playing; return playing; },
-    seek: function (i) { frame = Math.max(0, Math.min(data.t.length - 1, i)); acc = 0; },
-    setSpeed: function (v) { speed = v; },
-    get isPlaying() { return playing; },
-    get frame() { return frame; },
-    destroy: function () { cancelAnimationFrame(raf); }
+    play: function () {
+      playing = true;
+    },
+    pause: function () {
+      playing = false;
+    },
+    toggle: function () {
+      playing = !playing;
+      return playing;
+    },
+    seek: function (i) {
+      frame = Math.max(0, Math.min(data.t.length - 1, i));
+      acc = 0;
+    },
+    setSpeed: function (v) {
+      speed = v;
+    },
+    get isPlaying() {
+      return playing;
+    },
+    get frame() {
+      return frame;
+    },
+    destroy: function () {
+      cancelAnimationFrame(raf);
+    },
   };
 }
 
@@ -484,10 +703,14 @@ function refreshReadout(input) {
   var dec = input.step.indexOf(".") >= 0 ? input.step.split(".")[1].length : 0;
   val.textContent = Number(input.value).toFixed(dec);
 }
-document.querySelectorAll('.ctrl input[type="range"]').forEach(function (input) {
-  input.addEventListener("input", function () { refreshReadout(input); });
-  refreshReadout(input);
-});
+document
+  .querySelectorAll('.ctrl input[type="range"]')
+  .forEach(function (input) {
+    input.addEventListener("input", function () {
+      refreshReadout(input);
+    });
+    refreshReadout(input);
+  });
 
 // ============================================================
 // Helper: read numeric value from DOM element by id
@@ -507,7 +730,8 @@ var workerRunId = 0;
 var res = null;
 var data = null;
 var stride = 10;
-var T = null, theta = null;
+var T = null,
+  theta = null;
 var plotHandles = {};
 var lastRun = null; // { rate, targetDeg } of the most recent completed run
 var computedTargetDeg = 1; // 0.2·atan(r0/hCM) when BW force is disabled
@@ -520,7 +744,8 @@ function updateNoBw() {
   var targetEl = document.getElementById("ma-target");
   var note = document.getElementById("ma-no-bw-note");
   if (noBw) {
-    computedTargetDeg = 0.2 * Math.atan(numVal("ma-r0") / numVal("ma-hcm")) * 180 / Math.PI;
+    computedTargetDeg =
+      (0.2 * Math.atan(numVal("ma-r0") / numVal("ma-hcm")) * 180) / Math.PI;
     targetEl.disabled = true;
     var val = targetEl.parentElement.querySelector(".val");
     if (val) val.textContent = computedTargetDeg.toFixed(2);
@@ -553,7 +778,7 @@ function drawInputPreview() {
   var pts = [];
   for (var i = 0; i < n; i++) {
     var t = i * 1e-3;
-    var a = (dropT !== null && t >= dropT) ? 0 : rate * t;
+    var a = dropT !== null && t >= dropT ? 0 : rate * t;
     pts.push([t, a]);
   }
   // Markers from the last run are only meaningful while the ramp rate matches
@@ -564,9 +789,10 @@ function drawInputPreview() {
     title: "Base accel a\u2093(t)",
     xlabel: "Time (s)",
     ylabel: "a\u2093 (g)",
-    width: 320, height: 200,
+    width: 320,
+    height: 200,
     markers: markers,
-    series: [{ pts: ds(pts), color: "#0072BD" }]
+    series: [{ pts: ds(pts), color: "#0072BD" }],
   });
   document.getElementById("plot-ax-live").innerHTML = plot.svg;
   var drawer = document.getElementById("plot-ax-live-drawer");
@@ -584,22 +810,41 @@ function buildRunInputPlot() {
   var el = document.getElementById("plot-ax-run");
   if (!el) return;
   var markers = [];
-  if (res.activation) markers.push({ id: "mk-run-act", color: "#2e7d32", label: "onset " + res.activation.accel.toFixed(2) + " g" });
-  if (res.crossing) markers.push({ id: "mk-run-cross", color: "#dc2626", label: "target" });
-  if (res.tDrop !== null) markers.push({ id: "mk-run-drop", color: "#7b1fa2", label: "load off" });
+  if (res.activation)
+    markers.push({
+      id: "mk-run-act",
+      color: "#2e7d32",
+      label: "onset " + res.activation.accel.toFixed(2) + " g",
+    });
+  if (res.crossing)
+    markers.push({ id: "mk-run-cross", color: "#dc2626", label: "target" });
+  if (res.tDrop !== null)
+    markers.push({ id: "mk-run-drop", color: "#7b1fa2", label: "load off" });
   var plot = buildPlot({
     title: "Base accel a\u2093(t) \u2014 run",
     xlabel: "Time (s)",
     ylabel: "a\u2093 (g)",
-    width: 320, height: 200,
+    width: 320,
+    height: 200,
     cursors: [{ id: "cur-ax-run", seriesIndex: 0 }],
     markers: markers,
-    series: [{ pts: ds(T.map(function (t, i) { return [t, res.u_[i][0] / 386.4]; })), color: "#0072BD" }]
+    series: [
+      {
+        pts: ds(
+          T.map(function (t, i) {
+            return [t, res.u_[i][0] / 386.4];
+          }),
+        ),
+        color: "#0072BD",
+      },
+    ],
   });
   el.innerHTML = plot.svg;
   plotHandles.axRunPlot = plot;
-  if (res.activation) plot.setMarker("mk-run-act", res.activation.t, res.activation.accel);
-  if (res.crossing) plot.setMarker("mk-run-cross", res.crossing.t, res.crossing.accel);
+  if (res.activation)
+    plot.setMarker("mk-run-act", res.activation.t, res.activation.accel);
+  if (res.crossing)
+    plot.setMarker("mk-run-cross", res.crossing.t, res.crossing.accel);
   if (res.tDrop !== null) plot.setMarker("mk-run-drop", res.tDrop, 0);
 }
 
@@ -609,40 +854,77 @@ function buildRunInputPlot() {
 function buildPlots() {
   var DEGlocal = 180 / Math.PI;
   var thetaMarkers = [];
-  if (res && res.activation) thetaMarkers.push({ id: "mk-act-theta", color: "#2e7d32", label: "onset" });
-  if (res && res.crossing) thetaMarkers.push({ id: "mk-cross-theta", color: "#dc2626", label: "target" });
+  if (res && res.activation)
+    thetaMarkers.push({ id: "mk-act-theta", color: "#2e7d32", label: "onset" });
+  if (res && res.crossing)
+    thetaMarkers.push({
+      id: "mk-cross-theta",
+      color: "#dc2626",
+      label: "target",
+    });
   var thetaPlot = buildPlot({
     title: "Rotation \u03B8(t)",
     xlabel: "Time (s)",
     ylabel: "\u03B8 (deg)",
-    width: 320, height: 200,
+    width: 320,
+    height: 200,
     cursors: [{ id: "cur-theta", seriesIndex: 0 }],
     markers: thetaMarkers,
-    series: [{ pts: ds(T.map(function (t, i) { return [t, theta[i] * DEGlocal]; })), color: "#0072BD" }]
+    series: [
+      {
+        pts: ds(
+          T.map(function (t, i) {
+            return [t, theta[i] * DEGlocal];
+          }),
+        ),
+        color: "#0072BD",
+      },
+    ],
   });
   var fTotal = res.fBWtotal.map(function (r) {
-    return r.reduce(function (a, b) { return a + b; }, 0);
+    return r.reduce(function (a, b) {
+      return a + b;
+    }, 0);
   });
   var forcePlot = buildPlot({
     title: "Total stack force \u03A3F(t)",
     xlabel: "Time (s)",
     ylabel: "Force (lb)",
-    width: 320, height: 200,
+    width: 320,
+    height: 200,
     cursors: [{ id: "cur-force", seriesIndex: 0 }],
-    series: [{ pts: ds(T.map(function (t, i) { return [t, fTotal[i]]; })), color: "#D95319" }]
+    series: [
+      {
+        pts: ds(
+          T.map(function (t, i) {
+            return [t, fTotal[i]];
+          }),
+        ),
+        color: "#D95319",
+      },
+    ],
   });
   document.getElementById("plot-theta").innerHTML = thetaPlot.svg;
   plotHandles.thetaPlot = thetaPlot;
   if (res && res.activation) {
-    thetaPlot.setMarker("mk-act-theta", res.activation.t, res.activation.theta * DEGlocal);
+    thetaPlot.setMarker(
+      "mk-act-theta",
+      res.activation.t,
+      res.activation.theta * DEGlocal,
+    );
   }
   if (res && res.crossing) {
-    thetaPlot.setMarker("mk-cross-theta", res.crossing.t, res.crossing.theta * DEGlocal);
+    thetaPlot.setMarker(
+      "mk-cross-theta",
+      res.crossing.t,
+      res.crossing.theta * DEGlocal,
+    );
   }
   // Total stack force plot is meaningless when the BW force is disabled
   var forceEl = document.getElementById("plot-force-total");
   if (lastRun && lastRun.disableBW) {
-    forceEl.innerHTML = '<p class="panel-note">BW force disabled \u2014 no stack forces.</p>';
+    forceEl.innerHTML =
+      '<p class="panel-note">BW force disabled \u2014 no stack forces.</p>';
     plotHandles.forcePlot = null;
   } else {
     forceEl.innerHTML = forcePlot.svg;
@@ -672,7 +954,7 @@ function runSimulation() {
     maxT: 10,
     segLen: 2,
     freeT: 10,
-    disableBW: noBw
+    disableBW: noBw,
   };
 
   var worker = new Worker("minaccel-worker.js");
@@ -694,15 +976,29 @@ function runSimulation() {
     }
 
     res = msg.res;
-    lastRun = { rate: params.rate, targetDeg: params.targetDeg, disableBW: params.disableBW };
+    lastRun = {
+      rate: params.rate,
+      targetDeg: params.targetDeg,
+      disableBW: params.disableBW,
+    };
     stride = 10;
     data = {
-      t: res.T.filter(function (_, i) { return i % stride === 0; }),
-      phi: res.Phi.filter(function (_, i) { return i % stride === 0; }),
-      theta: res.X.map(function (r) { return r[0]; }).filter(function (_, i) { return i % stride === 0; })
+      t: res.T.filter(function (_, i) {
+        return i % stride === 0;
+      }),
+      phi: res.Phi.filter(function (_, i) {
+        return i % stride === 0;
+      }),
+      theta: res.X.map(function (r) {
+        return r[0];
+      }).filter(function (_, i) {
+        return i % stride === 0;
+      }),
     };
     T = res.T;
-    theta = res.X.map(function (r) { return r[0]; });
+    theta = res.X.map(function (r) {
+      return r[0];
+    });
 
     buildPlots();
     drawInputPreview();
@@ -726,11 +1022,14 @@ function runSimulation() {
       onUpdate: function (frame) {
         slider.value = String(frame);
         timeEl.textContent = "t = " + data.t[frame].toFixed(2) + " s";
-        frameEl.textContent = "Frame " + String(frame + 1).padStart(4, "0") + " / " + data.t.length;
-        if (plotHandles.axRunPlot) plotHandles.axRunPlot.setCursor(data.t[frame]);
+        frameEl.textContent =
+          "Frame " + String(frame + 1).padStart(4, "0") + " / " + data.t.length;
+        if (plotHandles.axRunPlot)
+          plotHandles.axRunPlot.setCursor(data.t[frame]);
         plotHandles.thetaPlot.setCursor(data.t[frame]);
-        if (plotHandles.forcePlot) plotHandles.forcePlot.setCursor(data.t[frame]);
-      }
+        if (plotHandles.forcePlot)
+          plotHandles.forcePlot.setCursor(data.t[frame]);
+      },
     };
 
     animator = create2DBushingAnimator(canvas, data, animOpts);
@@ -745,9 +1044,16 @@ function runSimulation() {
 
     if (res.reached && res.crossing) {
       var msg =
-        "\u03B8 reached " + (res.crossing.theta * 180 / Math.PI).toFixed(2) + "\u00B0 at t = " +
-        res.crossing.t.toFixed(2) + " s (a\u2093 = " + res.crossing.accel.toFixed(2) + " g)" +
-        " \u00B7 rocking onset at a\u2093 = " + res.activation.accel.toFixed(2) + " g";
+        "\u03B8 reached " +
+        ((res.crossing.theta * 180) / Math.PI).toFixed(2) +
+        "\u00B0 at t = " +
+        res.crossing.t.toFixed(2) +
+        " s (a\u2093 = " +
+        res.crossing.accel.toFixed(2) +
+        " g)" +
+        " \u00B7 rocking onset at a\u2093 = " +
+        res.activation.accel.toFixed(2) +
+        " g";
       if (res.tDrop !== null) {
         msg += " \u00B7 load removed, free response for " + res.freeT + " s";
       }
@@ -755,8 +1061,11 @@ function runSimulation() {
     } else {
       statusEl.classList.add("warning");
       statusEl.textContent =
-        "Target \u03B8 = " + params.targetDeg.toFixed(1) + "\u00B0 not reached within " +
-        res.maxT.toFixed(0) + " s \u2014 increase the ramp rate or lower the target.";
+        "Target \u03B8 = " +
+        params.targetDeg.toFixed(1) +
+        "\u00B0 not reached within " +
+        res.maxT.toFixed(0) +
+        " s \u2014 increase the ramp rate or lower the target.";
     }
     runBtn.disabled = false;
   };
@@ -781,15 +1090,23 @@ function renderSlider() {
   if (!animator || !data) return;
   slider.value = String(animator.frame);
   timeEl.textContent = "t = " + data.t[animator.frame].toFixed(2) + " s";
-  frameEl.textContent = "Frame " + String(animator.frame + 1).padStart(4, "0") + " / " + data.t.length;
+  frameEl.textContent =
+    "Frame " +
+    String(animator.frame + 1).padStart(4, "0") +
+    " / " +
+    data.t.length;
 }
 
 // ============================================================
 // Tab activation
 // ============================================================
 function activateTab(btnId) {
-  document.querySelectorAll("#ma-tabs .tab").forEach(function (b) { b.classList.remove("active"); });
-  document.querySelectorAll(".sidebar.right .panelrow").forEach(function (p) { p.classList.remove("active"); });
+  document.querySelectorAll("#ma-tabs .tab").forEach(function (b) {
+    b.classList.remove("active");
+  });
+  document.querySelectorAll(".sidebar.right .panelrow").forEach(function (p) {
+    p.classList.remove("active");
+  });
   document.getElementById(btnId).classList.add("active");
   document.getElementById("panel-" + btnId.slice(4)).classList.add("active");
 }
@@ -838,7 +1155,9 @@ function setOptionsOpen(open) {
 optionsToggle.addEventListener("click", function () {
   setOptionsOpen(!optionsDrawer.classList.contains("open"));
 });
-optionsBackdrop.addEventListener("click", function () { setOptionsOpen(false); });
+optionsBackdrop.addEventListener("click", function () {
+  setOptionsOpen(false);
+});
 
 // ============================================================
 // Excitation control changes -> live preview
@@ -873,7 +1192,9 @@ noBwEl.addEventListener("change", function () {
 // Tab click handlers
 // ============================================================
 ["tab-exc", "tab-resp"].forEach(function (btnId) {
-  document.getElementById(btnId).addEventListener("click", function () { activateTab(btnId); });
+  document.getElementById(btnId).addEventListener("click", function () {
+    activateTab(btnId);
+  });
 });
 
 // ============================================================

@@ -19,12 +19,15 @@ const types = {
 
 createServer(async (request, response) => {
   try {
-    const pathname = decodeURIComponent(new URL(request.url, `http://${request.headers.host}`).pathname);
+    const pathname = decodeURIComponent(
+      new URL(request.url, `http://${request.headers.host}`).pathname,
+    );
     const aliases = {
       "/validate/playground": "/validate/playground.html",
       "/validate/minaccel": "/validate/minaccel.html",
     };
-    const requested = aliases[pathname] || (pathname === "/" ? "/index.html" : pathname);
+    const requested =
+      aliases[pathname] || (pathname === "/" ? "/index.html" : pathname);
     const file = normalize(resolve(root, `.${requested}`));
     if (!file.startsWith(root) || !existsSync(file)) {
       console.warn(`404 ${pathname} → ${file}`);
@@ -34,7 +37,9 @@ createServer(async (request, response) => {
     }
 
     const content = await readFile(file);
-    response.writeHead(200, { "Content-Type": types[extname(file)] || "application/octet-stream" });
+    response.writeHead(200, {
+      "Content-Type": types[extname(file)] || "application/octet-stream",
+    });
     response.end(content);
   } catch {
     response.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });

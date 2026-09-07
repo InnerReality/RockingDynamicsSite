@@ -58,7 +58,10 @@
   border: 3px solid currentColor;
   border-radius: 6px 6px 6px 2px;
   transform: rotate(14deg);
-  transition: background .2s, color .2s, transform .2s;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.2s;
 }
 
 .brand-home:hover,
@@ -141,5 +144,7 @@
 
 :root[data-theme="dark"] .dirty-dot {
   background: #a16207;
-  box-shadow: 0 0 0 2px rgba(161, 98, 7, 0.38), 0 0 6px rgba(161, 98, 7, 0.3);
+  box-shadow:
+    0 0 0 2px rgba(161, 98, 7, 0.38),
+    0 0 6px rgba(161, 98, 7, 0.3);
 }

@@ -42,15 +42,15 @@ function ds(pts) {
 
 (() => {
   // node_modules/diff-grok/dist/src/solver-tools/solver-defs.js
-  var abs = (x) => x > 0 ? x : -x;
-  var max = (x, y) => x > y ? x : y;
+  var abs = (x) => (x > 0 ? x : -x);
+  var max = (x, y) => (x > y ? x : y);
   var SAFETY = 0.9;
   var REDUCE_COEF = 0.25;
   var GROW_COEF = 4;
   var ERR_CONTR = 189e-6;
   var TINY = 1e-20;
   var ERROR_MSG;
-  (function(ERROR_MSG4) {
+  (function (ERROR_MSG4) {
     ERROR_MSG4["MRT_FAILS"] = "The modified Rosenbrock triple method fails";
     ERROR_MSG4["ROS3PRW_FAILS"] = "The ROS3PRw method fails";
     ERROR_MSG4["ROS34PRW_FAILS"] = "The ROS34PRw method fails";
@@ -63,7 +63,7 @@ function ds(pts) {
     ERROR_MSG4["CVODE_FAILS"] = "The CVODE method fails";
   })(ERROR_MSG || (ERROR_MSG = {}));
   var DEFAULT_OPTIONS;
-  (function(DEFAULT_OPTIONS2) {
+  (function (DEFAULT_OPTIONS2) {
     DEFAULT_OPTIONS2["SCRIPTING"] = "{maxIterations: 1}";
     DEFAULT_OPTIONS2["NO_CHECKS"] = "{ }";
   })(DEFAULT_OPTIONS || (DEFAULT_OPTIONS = {}));
@@ -276,8 +276,7 @@ function ds(pts) {
     const dim = odes.initial.length;
     const tArr = new Float64Array(rowCount);
     const yArrs = Array(dim);
-    for (let i = 0; i < dim; ++i)
-      yArrs[i] = new Float64Array(rowCount);
+    for (let i = 0; i < dim; ++i) yArrs[i] = new Float64Array(rowCount);
     let timeDataframe = t0 + hDataframe;
     let t = t0;
     let tPrev = t0;
@@ -301,12 +300,10 @@ function ds(pts) {
     const k6 = new Float64Array(dim);
     const k7 = new Float64Array(dim);
     tArr[0] = t0;
-    for (let i = 0; i < dim; ++i)
-      yArrs[i][0] = y[i];
+    for (let i = 0; i < dim; ++i) yArrs[i][0] = y[i];
     while (flag) {
       f(t, y, dydt);
-      if (callback)
-        callback.onIterationStart();
+      if (callback) callback.onIterationStart();
       for (let i = 0; i < dim; ++i)
         yScale[i] = abs(y[i]) + h * abs(dydt[i]) + TINY;
       if (t + h > t1) {
@@ -315,8 +312,7 @@ function ds(pts) {
       }
       while (true) {
         f(t, y, k1);
-        for (let i = 0; i < dim; ++i)
-          yTemp[i] = y[i] + h * A214 * k1[i];
+        for (let i = 0; i < dim; ++i) yTemp[i] = y[i] + h * A214 * k1[i];
         f(t + C24 * h, yTemp, k2);
         for (let i = 0; i < dim; ++i)
           yTemp[i] = y[i] + h * (A314 * k1[i] + A324 * k2[i]);
@@ -325,16 +321,39 @@ function ds(pts) {
           yTemp[i] = y[i] + h * (A414 * k1[i] + A424 * k2[i] + A434 * k3[i]);
         f(t + C44 * h, yTemp, k4);
         for (let i = 0; i < dim; ++i)
-          yTemp[i] = y[i] + h * (A514 * k1[i] + A52 * k2[i] + A534 * k3[i] + A544 * k4[i]);
+          yTemp[i] =
+            y[i] +
+            h * (A514 * k1[i] + A52 * k2[i] + A534 * k3[i] + A544 * k4[i]);
         f(t + C5 * h, yTemp, k5);
         for (let i = 0; i < dim; ++i)
-          yTemp[i] = y[i] + h * (A614 * k1[i] + A62 * k2[i] + A634 * k3[i] + A644 * k4[i] + A654 * k5[i]);
+          yTemp[i] =
+            y[i] +
+            h *
+              (A614 * k1[i] +
+                A62 * k2[i] +
+                A634 * k3[i] +
+                A644 * k4[i] +
+                A654 * k5[i]);
         f(t + h, yTemp, k6);
         for (let i = 0; i < dim; ++i)
-          yTemp[i] = y[i] + h * (B14 * k1[i] + B34 * k3[i] + B44 * k4[i] + B54 * k5[i] + B6 * k6[i]);
+          yTemp[i] =
+            y[i] +
+            h *
+              (B14 * k1[i] +
+                B34 * k3[i] +
+                B44 * k4[i] +
+                B54 * k5[i] +
+                B6 * k6[i]);
         f(t + h, yTemp, k7);
         for (let i = 0; i < dim; ++i)
-          yErr[i] = h * (E12 * k1[i] + E33 * k3[i] + E42 * k4[i] + E52 * k5[i] + E62 * k6[i] + E7 * k7[i]);
+          yErr[i] =
+            h *
+            (E12 * k1[i] +
+              E33 * k3[i] +
+              E42 * k4[i] +
+              E52 * k5[i] +
+              E62 * k6[i] +
+              E7 * k7[i]);
         errmax = 0;
         for (let i = 0; i < dim; ++i)
           errmax = max(errmax, abs(yErr[i] / yScale[i]));
@@ -343,18 +362,13 @@ function ds(pts) {
           hTemp = SAFETY * h * errmax ** PSHRNK2;
           h = max(hTemp, REDUCE_COEF * h);
           tNew = t + h;
-          if (tNew == t)
-            throw new Error(ERROR_MSG.RKDP_FAILS);
+          if (tNew == t) throw new Error(ERROR_MSG.RKDP_FAILS);
         } else {
-          if (errmax > ERR_CONTR)
-            hNext = SAFETY * h * errmax ** PSGROW2;
-          else
-            hNext = GROW_COEF * h;
-          if (hNext > hMax)
-            hNext = hMax;
+          if (errmax > ERR_CONTR) hNext = SAFETY * h * errmax ** PSGROW2;
+          else hNext = GROW_COEF * h;
+          if (hNext > hMax) hNext = hMax;
           t = t + h;
-          for (let i = 0; i < dim; ++i)
-            y[i] = yTemp[i];
+          for (let i = 0; i < dim; ++i) y[i] = yTemp[i];
           break;
         }
       }
@@ -369,18 +383,14 @@ function ds(pts) {
       }
       h = hNext;
       tPrev = t;
-      for (let i = 0; i < dim; ++i)
-        yPrev[i] = y[i];
+      for (let i = 0; i < dim; ++i) yPrev[i] = y[i];
     }
-    if (callback)
-      callback.onComputationsCompleted();
+    if (callback) callback.onComputationsCompleted();
     tArr[rowCount - 1] = t1;
-    for (let i = 0; i < dim; ++i)
-      yArrs[i][rowCount - 1] = y[i];
+    for (let i = 0; i < dim; ++i) yArrs[i][rowCount - 1] = y[i];
     const solution = Array(dim + 1);
     solution[0] = tArr;
-    for (let i = 0; i < dim; ++i)
-      solution[i + 1] = yArrs[i];
+    for (let i = 0; i < dim; ++i) solution[i + 1] = yArrs[i];
     return solution;
   }
 
@@ -407,49 +417,19 @@ function ds(pts) {
   var MXNCF = 10;
   var RATIO = 5;
   var sm1 = [
-    0,
-    0.5,
-    0.575,
-    0.55,
-    0.45,
-    0.35,
-    0.25,
-    0.2,
-    0.15,
-    0.1,
-    0.075,
-    0.05,
-    0.025
+    0, 0.5, 0.575, 0.55, 0.45, 0.35, 0.25, 0.2, 0.15, 0.1, 0.075, 0.05, 0.025,
   ];
   var cm1 = [
-    0,
-    2,
-    5.999999999999998,
-    4,
-    1.578034682080988,
-    0.44444444444444464,
-    0.09712509625876042,
-    0.017636684303350973,
-    0.002666977809498494,
-    337605911606744e-18,
-    3571428571428593e-20,
-    31001984126984254e-22,
-    21543369643350993e-23
+    0, 2, 5.999999999999998, 4, 1.578034682080988, 0.44444444444444464,
+    0.09712509625876042, 0.017636684303350973, 0.002666977809498494,
+    337605911606744e-18, 3571428571428593e-20, 31001984126984254e-22,
+    21543369643350993e-23,
   ];
   var cm2 = [
-    0,
-    2,
-    1.5,
-    0.6666666666666667,
-    0.20833333333333348,
-    0.04999999999999998,
-    0.09712509625876042,
-    0.017636684303350973,
-    0.002666977809498494,
-    337605911606744e-18,
-    3571428571428593e-20,
-    31001984126984254e-22,
-    21543369643350993e-23
+    0, 2, 1.5, 0.6666666666666667, 0.20833333333333348, 0.04999999999999998,
+    0.09712509625876042, 0.017636684303350973, 0.002666977809498494,
+    337605911606744e-18, 3571428571428593e-20, 31001984126984254e-22,
+    21543369643350993e-23,
   ];
   var LsodaCommon = class {
     // Solution history (2D: yh[j][i], 1-indexed)
@@ -521,15 +501,12 @@ function ds(pts) {
 
   // node_modules/diff-grok/dist/src/solver-tools/lsoda/blas.js
   function daxpy(n, da, dx, incx, dy, incy) {
-    if (n < 0 || da === 0)
-      return;
+    if (n < 0 || da === 0) return;
     if (incx !== incy || incx < 1) {
       let ix = 1;
       let iy = 1;
-      if (incx < 0)
-        ix = (-n + 1) * incx + 1;
-      if (incy < 0)
-        iy = (-n + 1) * incy + 1;
+      if (incx < 0) ix = (-n + 1) * incx + 1;
+      if (incy < 0) iy = (-n + 1) * incy + 1;
       for (let i = 1; i <= n; i++) {
         dy[iy] = dy[iy] + da * dx[ix];
         ix += incx;
@@ -540,10 +517,8 @@ function ds(pts) {
     if (incx === 1) {
       const m = n % 4;
       if (m !== 0) {
-        for (let i = 1; i <= m; i++)
-          dy[i] = dy[i] + da * dx[i];
-        if (n < 4)
-          return;
+        for (let i = 1; i <= m; i++) dy[i] = dy[i] + da * dx[i];
+        if (n < 4) return;
       }
       for (let i = m + 1; i <= n; i += 4) {
         dy[i] = dy[i] + da * dx[i];
@@ -553,20 +528,16 @@ function ds(pts) {
       }
       return;
     }
-    for (let i = 1; i <= n * incx; i += incx)
-      dy[i] = da * dx[i] + dy[i];
+    for (let i = 1; i <= n * incx; i += incx) dy[i] = da * dx[i] + dy[i];
   }
   function ddot(n, dx, incx, dy, incy) {
     let dotprod = 0;
-    if (n <= 0)
-      return dotprod;
+    if (n <= 0) return dotprod;
     if (incx !== incy || incx < 1) {
       let ix = 1;
       let iy = 1;
-      if (incx < 0)
-        ix = (-n + 1) * incx + 1;
-      if (incy < 0)
-        iy = (-n + 1) * incy + 1;
+      if (incx < 0) ix = (-n + 1) * incx + 1;
+      if (incy < 0) iy = (-n + 1) * incy + 1;
       for (let i = 1; i <= n; i++) {
         dotprod += dx[ix] * dy[iy];
         ix += incx;
@@ -575,28 +546,22 @@ function ds(pts) {
       return dotprod;
     }
     if (incx === 1) {
-      for (let i = 1; i <= n; i++)
-        dotprod += dx[i] * dy[i];
+      for (let i = 1; i <= n; i++) dotprod += dx[i] * dy[i];
       return dotprod;
     }
-    for (let i = 1; i <= n * incx; i += incx)
-      dotprod += dx[i] * dy[i];
+    for (let i = 1; i <= n * incx; i += incx) dotprod += dx[i] * dy[i];
     return dotprod;
   }
   function dscal(n, da, dx, incx) {
-    if (n <= 0)
-      return;
+    if (n <= 0) return;
     if (incx !== 1) {
-      for (let i = 1; i <= n * incx; i += incx)
-        dx[i] = da * dx[i];
+      for (let i = 1; i <= n * incx; i += incx) dx[i] = da * dx[i];
       return;
     }
     const m = n % 5;
     if (m !== 0) {
-      for (let i = 1; i <= m; i++)
-        dx[i] = da * dx[i];
-      if (n < 5)
-        return;
+      for (let i = 1; i <= m; i++) dx[i] = da * dx[i];
+      if (n < 5) return;
     }
     for (let i = m + 1; i <= n; i += 5) {
       dx[i] = da * dx[i];
@@ -608,11 +573,9 @@ function ds(pts) {
   }
   function idamax(n, dx, incx) {
     let xindex = 0;
-    if (n <= 0)
-      return xindex;
+    if (n <= 0) return xindex;
     xindex = 1;
-    if (n <= 1 || incx <= 0)
-      return xindex;
+    if (n <= 1 || incx <= 0) return xindex;
     if (incx !== 1) {
       let dmax2 = Math.abs(dx[1]);
       let ii = 2;
@@ -662,8 +625,7 @@ function ds(pts) {
       }
     }
     ipvt[n] = n;
-    if (a[n][n] === 0)
-      info = n;
+    if (a[n][n] === 0) info = n;
     return info;
   }
   function dgesl(a, n, ipvt, b, job) {
@@ -700,8 +662,7 @@ function ds(pts) {
   }
   function vmnorm(n, v, w) {
     let vm = 0;
-    for (let i = 1; i <= n; i++)
-      vm = Math.max(vm, Math.abs(v[i]) * w[i]);
+    for (let i = 1; i <= n; i++) vm = Math.max(vm, Math.abs(v[i]) * w[i]);
     return vm;
   }
   function fnorm(n, a, w) {
@@ -709,8 +670,7 @@ function ds(pts) {
     for (let i = 1; i <= n; i++) {
       let sum = 0;
       const ap1 = a[i];
-      for (let j = 1; j <= n; j++)
-        sum += Math.abs(ap1[j]) / w[j];
+      for (let j = 1; j <= n; j++) sum += Math.abs(ap1[j]) / w[j];
       an = Math.max(an, sum * w[i]);
     }
     return an;
@@ -726,30 +686,26 @@ function ds(pts) {
     }
     const tp = c.tn - c.hu - 100 * ETA * (c.tn + c.hu);
     if ((t - tp) * (t - c.tn) > 0) {
-      console.error(`intdy -- t = ${t} illegal. t not in interval tcur - hu to tcur`);
+      console.error(
+        `intdy -- t = ${t} illegal. t not in interval tcur - hu to tcur`,
+      );
       return -2;
     }
     const s = (t - c.tn) / c.h;
     let ic = 1;
-    for (let jj = c.nq + 1 - k; jj <= c.nq; jj++)
-      ic *= jj;
+    for (let jj = c.nq + 1 - k; jj <= c.nq; jj++) ic *= jj;
     let cc = ic;
-    for (let i = 1; i <= neq; i++)
-      dky[i] = cc * c.yh[c.nq + 1][i];
+    for (let i = 1; i <= neq; i++) dky[i] = cc * c.yh[c.nq + 1][i];
     for (let j = c.nq - 1; j >= k; j--) {
       const jp1 = j + 1;
       ic = 1;
-      for (let jj = jp1 - k; jj <= j; jj++)
-        ic *= jj;
+      for (let jj = jp1 - k; jj <= j; jj++) ic *= jj;
       cc = ic;
-      for (let i = 1; i <= neq; i++)
-        dky[i] = cc * c.yh[jp1][i] + s * dky[i];
+      for (let i = 1; i <= neq; i++) dky[i] = cc * c.yh[jp1][i] + s * dky[i];
     }
-    if (k === 0)
-      return 0;
+    if (k === 0) return 0;
     const r = Math.pow(c.h, -k);
-    for (let i = 1; i <= neq; i++)
-      dky[i] *= r;
+    for (let i = 1; i <= neq; i++) dky[i] *= r;
     return 0;
   }
 
@@ -773,26 +729,23 @@ function ds(pts) {
         const fnqm1 = nqm1;
         const nqp1 = nq + 1;
         pc[nq] = 0;
-        for (let i = nq; i >= 2; i--)
-          pc[i] = pc[i - 1] + fnqm1 * pc[i];
+        for (let i = nq; i >= 2; i--) pc[i] = pc[i - 1] + fnqm1 * pc[i];
         pc[1] = fnqm1 * pc[1];
         let pint = pc[1];
         let xpin = pc[1] / 2;
         let tsign = 1;
         for (let i = 2; i <= nq; i++) {
           tsign = -tsign;
-          pint += tsign * pc[i] / i;
-          xpin += tsign * pc[i] / (i + 1);
+          pint += (tsign * pc[i]) / i;
+          xpin += (tsign * pc[i]) / (i + 1);
         }
         c.elco[nq][1] = pint * rq1fac2;
         c.elco[nq][2] = 1;
-        for (let i = 2; i <= nq; i++)
-          c.elco[nq][i + 1] = rq1fac2 * pc[i] / i;
+        for (let i = 2; i <= nq; i++) c.elco[nq][i + 1] = (rq1fac2 * pc[i]) / i;
         const agamq = rqfac * xpin;
         const ragq = 1 / agamq;
         c.tesco[nq][2] = ragq;
-        if (nq < 12)
-          c.tesco[nqp1][1] = ragq * rqfac / nqp1;
+        if (nq < 12) c.tesco[nqp1][1] = (ragq * rqfac) / nqp1;
         c.tesco[nqm1][3] = ragq;
       }
       return;
@@ -803,11 +756,9 @@ function ds(pts) {
       const fnq = nq;
       const nqp1 = nq + 1;
       pc[nqp1] = 0;
-      for (let i = nq + 1; i >= 2; i--)
-        pc[i] = pc[i - 1] + fnq * pc[i];
+      for (let i = nq + 1; i >= 2; i--) pc[i] = pc[i - 1] + fnq * pc[i];
       pc[1] *= fnq;
-      for (let i = 1; i <= nqp1; i++)
-        c.elco[nq][i] = pc[i] / pc[2];
+      for (let i = 1; i <= nqp1; i++) c.elco[nq][i] = pc[i] / pc[2];
       c.elco[nq][2] = 1;
       c.tesco[nq][1] = rq1fac;
       c.tesco[nq][2] = nqp1 / c.elco[nq][1];
@@ -834,8 +785,7 @@ function ds(pts) {
     let r = 1;
     for (let j = 2; j <= c.nq + 1; j++) {
       r *= rh;
-      for (let i = 1; i <= neq; i++)
-        c.yh[j][i] *= r;
+      for (let i = 1; i <= neq; i++) c.yh[j][i] *= r;
     }
     c.h *= rh;
     c.rc *= rh;
@@ -854,25 +804,21 @@ function ds(pts) {
     }
     let fac = vmnorm(neq, c.savf, c.ewt);
     let r0 = 1e3 * Math.abs(c.h) * ETA * neq * fac;
-    if (r0 === 0)
-      r0 = 1;
+    if (r0 === 0) r0 = 1;
     for (let j = 1; j <= neq; j++) {
       const yj = y[j];
       const r = Math.max(SQRTETA * Math.abs(yj), r0 / c.ewt[j]);
       y[j] += r;
       fac = -hl0 / r;
       ctx.func(c.tn, y.subarray(1), c.acor.subarray(1), ctx.data);
-      for (let i = 1; i <= neq; i++)
-        c.wm[i][j] = (c.acor[i] - c.savf[i]) * fac;
+      for (let i = 1; i <= neq; i++) c.wm[i][j] = (c.acor[i] - c.savf[i]) * fac;
       y[j] = yj;
     }
     c.nfe += neq;
     c.pdnorm = fnorm(neq, c.wm, c.ewt) / Math.abs(hl0);
-    for (let i = 1; i <= neq; i++)
-      c.wm[i][i] += 1;
+    for (let i = 1; i <= neq; i++) c.wm[i][i] += 1;
     const ier = dgefa(c.wm, neq, c.ipvt);
-    if (ier !== 0)
-      return 0;
+    if (ier !== 0) return 0;
     return 1;
   }
 
@@ -880,8 +826,7 @@ function ds(pts) {
   function solsy(ctx, y) {
     const c = ctx.common;
     const neq = ctx.neq;
-    if (c.miter !== 2)
-      throw new Error("[solsy] miter != 2 not implemented");
+    if (c.miter !== 2) throw new Error("[solsy] miter != 2 not implemented");
     dgesl(c.wm, neq, c.ipvt, y, 0);
     return 1;
   }
@@ -896,12 +841,10 @@ function ds(pts) {
     c.tn = told;
     for (let j = c.nq; j >= 1; j--) {
       for (let i1 = j; i1 <= c.nq; i1++) {
-        for (let i = 1; i <= neq; i++)
-          c.yh[i1][i] -= c.yh[i1 + 1][i];
+        for (let i = 1; i <= neq; i++) c.yh[i1][i] -= c.yh[i1 + 1][i];
       }
     }
-    if (Math.abs(c.h) <= hmin * 1.00001 || c.ncf === MXNCF)
-      return 2;
+    if (Math.abs(c.h) <= hmin * 1.00001 || c.ncf === MXNCF) return 2;
     c.ipup = c.miter;
     return 1;
   }
@@ -913,8 +856,7 @@ function ds(pts) {
     cs.m = 0;
     let rate = 0;
     cs.del = 0;
-    for (let i = 1; i <= neq; i++)
-      y[i] = c.yh[1][i];
+    for (let i = 1; i <= neq; i++) y[i] = c.yh[1][i];
     ctx.func(c.tn, y.subarray(1), c.savf.subarray(1), ctx.data);
     c.nfe++;
     while (true) {
@@ -926,11 +868,9 @@ function ds(pts) {
           c.rc = 1;
           c.nslp = c.nst;
           c.crate = 0.7;
-          if (!ierpj)
-            return corfailure(ctx, told);
+          if (!ierpj) return corfailure(ctx, told);
         }
-        for (let i = 1; i <= neq; i++)
-          c.acor[i] = 0;
+        for (let i = 1; i <= neq; i++) c.acor[i] = 0;
       }
       if (c.miter === 0) {
         for (let i = 1; i <= neq; i++) {
@@ -952,35 +892,31 @@ function ds(pts) {
           y[i] = c.yh[1][i] + c.el[1] * c.acor[i];
         }
       }
-      if (cs.del <= 100 * pnorm * ETA)
-        break;
+      if (cs.del <= 100 * pnorm * ETA) break;
       if (cs.m !== 0 || c.meth !== 1) {
         if (cs.m !== 0) {
           let rm = 1024;
-          if (cs.del <= 1024 * cs.delp)
-            rm = cs.del / cs.delp;
+          if (cs.del <= 1024 * cs.delp) rm = cs.del / cs.delp;
           rate = Math.max(rate, rm);
           c.crate = Math.max(0.2 * c.crate, rm);
         }
         const conit = 0.5 / (c.nq + 2);
-        const dcon = cs.del * Math.min(1, 1.5 * c.crate) / (c.tesco[c.nq][2] * conit);
+        const dcon =
+          (cs.del * Math.min(1, 1.5 * c.crate)) / (c.tesco[c.nq][2] * conit);
         if (dcon <= 1) {
           c.pdest = Math.max(c.pdest, rate / Math.abs(c.h * c.el[1]));
-          if (c.pdest !== 0)
-            c.pdlast = c.pdest;
+          if (c.pdest !== 0) c.pdlast = c.pdest;
           break;
         }
       }
       cs.m++;
-      if (cs.m === MAXCOR || cs.m >= 2 && cs.del > 2 * cs.delp) {
-        if (c.miter === 0 || c.jcur === 1)
-          return corfailure(ctx, told);
+      if (cs.m === MAXCOR || (cs.m >= 2 && cs.del > 2 * cs.delp)) {
+        if (c.miter === 0 || c.jcur === 1) return corfailure(ctx, told);
         c.ipup = c.miter;
         cs.m = 0;
         rate = 0;
         cs.del = 0;
-        for (let i = 1; i <= neq; i++)
-          y[i] = c.yh[1][i];
+        for (let i = 1; i <= neq; i++) y[i] = c.yh[1][i];
         ctx.func(c.tn, y.subarray(1), c.savf.subarray(1), ctx.data);
         c.nfe++;
       } else {
@@ -1006,11 +942,9 @@ function ds(pts) {
     }
     if (c.meth === 1) {
       const pdh = Math.max(Math.abs(c.h) * c.pdlast, 1e-6);
-      if (c.nq + 1 < maxord + 1)
-        rhup = Math.min(rhup, sm1[c.nq + 1] / pdh);
+      if (c.nq + 1 < maxord + 1) rhup = Math.min(rhup, sm1[c.nq + 1] / pdh);
       rhsm = Math.min(rhsm, sm1[c.nq] / pdh);
-      if (c.nq > 1)
-        rhdn = Math.min(rhdn, sm1[c.nq - 1] / pdh);
+      if (c.nq > 1) rhdn = Math.min(rhdn, sm1[c.nq - 1] / pdh);
       c.pdest = 0;
     }
     let newq;
@@ -1021,22 +955,19 @@ function ds(pts) {
       } else {
         newq = c.nq - 1;
         out.rh = rhdn;
-        if (kflag < 0 && out.rh > 1)
-          out.rh = 1;
+        if (kflag < 0 && out.rh > 1) out.rh = 1;
       }
     } else {
       if (rhup <= rhdn) {
         newq = c.nq - 1;
         out.rh = rhdn;
-        if (kflag < 0 && out.rh > 1)
-          out.rh = 1;
+        if (kflag < 0 && out.rh > 1) out.rh = 1;
       } else {
         out.rh = rhup;
         if (out.rh >= 1.1) {
           const r = c.el[c.nq + 1] / (c.nq + 1);
           c.nq = c.nq + 1;
-          for (let i = 1; i <= neq; i++)
-            c.yh[c.nq + 1][i] = c.acor[i] * r;
+          for (let i = 1; i <= neq; i++) c.yh[c.nq + 1][i] = c.acor[i] * r;
           return 2;
         } else {
           c.ialth = 3;
@@ -1058,10 +989,8 @@ function ds(pts) {
         return 0;
       }
     }
-    if (kflag <= -2)
-      out.rh = Math.min(out.rh, 0.2);
-    if (newq === c.nq)
-      return 1;
+    if (kflag <= -2) out.rh = Math.min(out.rh, 0.2);
+    if (newq === c.nq) return 1;
     c.nq = newq;
     return 2;
   }
@@ -1073,13 +1002,11 @@ function ds(pts) {
     const mxordn = ctx.opt.mxordn;
     const mxords = ctx.opt.mxords;
     if (c.meth === 1) {
-      if (c.nq > 5)
-        return;
+      if (c.nq > 5) return;
       let rh22;
       let nqm2;
       if (dsm <= 100 * pnorm * ETA || c.pdest === 0) {
-        if (c.irflag === 0)
-          return;
+        if (c.irflag === 0) return;
         rh22 = 2;
         nqm2 = Math.min(c.nq, mxords);
       } else {
@@ -1087,8 +1014,7 @@ function ds(pts) {
         let rh12 = 1 / (1.2 * Math.pow(dsm, exsm2) + 12e-7);
         let rh1it2 = 2 * rh12;
         const pdh2 = c.pdlast * Math.abs(c.h);
-        if (pdh2 * rh12 > 1e-5)
-          rh1it2 = sm1[c.nq] / pdh2;
+        if (pdh2 * rh12 > 1e-5) rh1it2 = sm1[c.nq] / pdh2;
         rh12 = Math.min(rh12, rh1it2);
         if (c.nq > mxords) {
           nqm2 = mxords;
@@ -1102,8 +1028,7 @@ function ds(pts) {
           rh22 = 1 / (1.2 * Math.pow(dm2, exsm2) + 12e-7);
           nqm2 = c.nq;
         }
-        if (rh22 < RATIO * rh12)
-          return;
+        if (rh22 < RATIO * rh12) return;
       }
       out.rh = rh22;
       c.icount = 20;
@@ -1133,16 +1058,13 @@ function ds(pts) {
     }
     let rh1it = 2 * rh1;
     const pdh = c.pdnorm * Math.abs(c.h);
-    if (pdh * rh1 > 1e-5)
-      rh1it = sm1[nqm1] / pdh;
+    if (pdh * rh1 > 1e-5) rh1it = sm1[nqm1] / pdh;
     rh1 = Math.min(rh1, rh1it);
     const rh2 = 1 / (1.2 * Math.pow(dsm, exsm) + 12e-7);
-    if (rh1 * RATIO < 5 * rh2)
-      return;
+    if (rh1 * RATIO < 5 * rh2) return;
     const alpha = Math.max(1e-3, rh1);
     dm1 *= Math.pow(alpha, exm1);
-    if (dm1 <= 1e3 * ETA * pnorm)
-      return;
+    if (dm1 <= 1e3 * ETA * pnorm) return;
     out.rh = rh1;
     c.icount = 20;
     c.meth = 1;
@@ -1163,19 +1085,16 @@ function ds(pts) {
     c.ncf = 0;
     let delp = 0;
     let maxord = mxordn;
-    if (c.meth === 2)
-      maxord = mxords;
+    if (c.meth === 2) maxord = mxords;
     function endstoda() {
       const r = 1 / c.tesco[c.nqu][2];
-      for (let i = 1; i <= neq; i++)
-        c.acor[i] *= r;
+      for (let i = 1; i <= neq; i++) c.acor[i] *= r;
       c.hold = c.h;
     }
     function resetcoeff() {
       const el0 = c.el[1];
-      for (let i = 1; i <= c.nq + 1; i++)
-        c.el[i] = c.elco[c.nq][i];
-      c.rc = c.rc * c.el[1] / el0;
+      for (let i = 1; i <= c.nq + 1; i++) c.el[i] = c.elco[c.nq][i];
+      c.rc = (c.rc * c.el[1]) / el0;
     }
     if (jstart === 0) {
       c.nq = 1;
@@ -1196,8 +1115,7 @@ function ds(pts) {
     }
     if (jstart === -1) {
       c.ipup = c.miter;
-      if (c.ialth === 1)
-        c.ialth = 2;
+      if (c.ialth === 1) c.ialth = 2;
       if (c.meth !== c.mused) {
         cfode(ctx, c.meth);
         c.ialth = c.nq + 1;
@@ -1224,15 +1142,12 @@ function ds(pts) {
     outer: while (true) {
       c.jcur = 0;
       inner: while (true) {
-        if (Math.abs(c.rc - 1) > CCMAX)
-          c.ipup = c.miter;
-        if (c.nst >= c.nslp + MSBP)
-          c.ipup = c.miter;
+        if (Math.abs(c.rc - 1) > CCMAX) c.ipup = c.miter;
+        if (c.nst >= c.nslp + MSBP) c.ipup = c.miter;
         c.tn += c.h;
         for (let j = c.nq; j >= 1; j--) {
           for (let i1 = j; i1 <= c.nq; i1++) {
-            for (let i = 1; i <= neq; i++)
-              c.yh[i1][i] += c.yh[i1 + 1][i];
+            for (let i = 1; i <= neq; i++) c.yh[i1][i] += c.yh[i1 + 1][i];
           }
         }
         const pnorm = vmnorm(neq, c.yh[1], c.ewt);
@@ -1241,8 +1156,7 @@ function ds(pts) {
         cs.m = 0;
         const corflag = correction(ctx, y, pnorm, cs, told);
         delp = cs.delp;
-        if (corflag === 0)
-          break inner;
+        if (corflag === 0) break inner;
         if (corflag === 1) {
           rh = Math.max(0.25, hmin / Math.abs(c.h));
           scaleh(ctx, rh);
@@ -1255,10 +1169,8 @@ function ds(pts) {
           return kflag;
         }
       }
-      if (cs.m === 0)
-        dsm = cs.del / c.tesco[c.nq][2];
-      if (cs.m > 0)
-        dsm = vmnorm(neq, c.acor, c.ewt) / c.tesco[c.nq][2];
+      if (cs.m === 0) dsm = cs.del / c.tesco[c.nq][2];
+      if (cs.m > 0) dsm = vmnorm(neq, c.acor, c.ewt) / c.tesco[c.nq][2];
       if (dsm <= 1) {
         kflag = 0;
         c.nst++;
@@ -1267,8 +1179,7 @@ function ds(pts) {
         c.mused = c.meth;
         for (let j = 1; j <= c.nq + 1; j++) {
           const r = c.el[j];
-          for (let i = 1; i <= neq; i++)
-            c.yh[j][i] += r * c.acor[i];
+          for (let i = 1; i <= neq; i++) c.yh[j][i] += r * c.acor[i];
         }
         c.icount--;
         if (c.icount < 0) {
@@ -1293,7 +1204,14 @@ function ds(pts) {
             rhup = 1 / (1.4 * Math.pow(dup, exup) + 14e-7);
           }
           osResult.rh = 0;
-          const orderflag = orderswitch(ctx, rhup, dsm, osResult, kflag, maxord);
+          const orderflag = orderswitch(
+            ctx,
+            rhup,
+            dsm,
+            osResult,
+            kflag,
+            maxord,
+          );
           if (orderflag === 0) {
             endstoda();
             break outer;
@@ -1318,8 +1236,7 @@ function ds(pts) {
           endstoda();
           break outer;
         }
-        for (let i = 1; i <= neq; i++)
-          c.yh[maxord + 1][i] = c.acor[i];
+        for (let i = 1; i <= neq; i++) c.yh[maxord + 1][i] = c.acor[i];
         endstoda();
         break outer;
       } else {
@@ -1327,8 +1244,7 @@ function ds(pts) {
         c.tn = told;
         for (let j = c.nq; j >= 1; j--) {
           for (let i1 = j; i1 <= c.nq; i1++) {
-            for (let i = 1; i <= neq; i++)
-              c.yh[i1][i] -= c.yh[i1 + 1][i];
+            for (let i = 1; i <= neq; i++) c.yh[i1][i] -= c.yh[i1 + 1][i];
           }
         }
         c.rmax = 2;
@@ -1342,8 +1258,7 @@ function ds(pts) {
           osResult.rh = 0;
           const orderflag = orderswitch(ctx, 0, dsm, osResult, kflag, maxord);
           if (orderflag === 1 || orderflag === 0) {
-            if (orderflag === 0)
-              osResult.rh = Math.min(osResult.rh, 0.2);
+            if (orderflag === 0) osResult.rh = Math.min(osResult.rh, 0.2);
             osResult.rh = Math.max(osResult.rh, hmin / Math.abs(c.h));
             scaleh(ctx, osResult.rh);
           }
@@ -1363,16 +1278,13 @@ function ds(pts) {
             rh = 0.1;
             rh = Math.max(hmin / Math.abs(c.h), rh);
             c.h *= rh;
-            for (let i = 1; i <= neq; i++)
-              y[i] = c.yh[1][i];
+            for (let i = 1; i <= neq; i++) y[i] = c.yh[1][i];
             ctx.func(c.tn, y.subarray(1), c.savf.subarray(1), ctx.data);
             c.nfe++;
-            for (let i = 1; i <= neq; i++)
-              c.yh[2][i] = c.h * c.savf[i];
+            for (let i = 1; i <= neq; i++) c.yh[2][i] = c.h * c.savf[i];
             c.ipup = c.miter;
             c.ialth = 5;
-            if (c.nq === 1)
-              continue outer;
+            if (c.nq === 1) continue outer;
             c.nq = 1;
             resetcoeff();
             continue outer;
@@ -1415,13 +1327,14 @@ function ds(pts) {
      * Uses a linear scan over snapshots for efficiency.
      */
     solveAtTimes(tArray) {
-      if (tArray.length === 0)
-        return [];
+      if (tArray.length === 0) return [];
       const snaps = this.snaps;
       const tFirst = tArray[0];
       const tLast = tArray[tArray.length - 1];
       if (tFirst < this.tMin - 1e-14 * Math.abs(this.tMin))
-        throw new Error(`[DenseOutput] t=${tFirst} is before tMin=${this.tMin}`);
+        throw new Error(
+          `[DenseOutput] t=${tFirst} is before tMin=${this.tMin}`,
+        );
       if (tLast > this.tMax + 1e-14 * Math.abs(this.tMax))
         throw new Error(`[DenseOutput] t=${tLast} is after tMax=${this.tMax}`);
       const dky = new Float64Array(this.neq);
@@ -1431,11 +1344,13 @@ function ds(pts) {
       let si = 0;
       for (let qi = 0; qi < tArray.length; qi++) {
         const t = tArray[qi];
-        while (si < snaps.length - 1 && t > snaps[si].tn + 1e-14 * Math.abs(snaps[si].tn))
+        while (
+          si < snaps.length - 1 &&
+          t > snaps[si].tn + 1e-14 * Math.abs(snaps[si].tn)
+        )
           si++;
         this.horner(snaps[si], t, dky);
-        for (let i = 0; i < this.neq; ++i)
-          result[i][qi] = dky[i];
+        for (let i = 0; i < this.neq; ++i) result[i][qi] = dky[i];
       }
       return result;
     }
@@ -1443,12 +1358,10 @@ function ds(pts) {
      * Evaluate the solution on a uniform grid from tStart to tEnd with given step.
      */
     solveOnGrid(tStart, tEnd, step) {
-      if (step <= 0)
-        throw new Error("[DenseOutput] step must be positive");
+      if (step <= 0) throw new Error("[DenseOutput] step must be positive");
       const n = Math.floor((tEnd - tStart) / step) + 1;
       const tArr = new Float64Array(n);
-      for (let i = 0; i < n - 1; i++)
-        tArr[i] = tStart + i * step;
+      for (let i = 0; i < n - 1; i++) tArr[i] = tStart + i * step;
       tArr[n - 1] = tEnd;
       const t = tArr;
       const y = this.solveAtTimes(t);
@@ -1457,18 +1370,14 @@ function ds(pts) {
     /** Find the snapshot whose interval contains t via binary search. */
     findSnap(t) {
       const snaps = this.snaps;
-      if (t <= snaps[0].tn)
-        return snaps[0];
-      if (t >= snaps[snaps.length - 1].tn)
-        return snaps[snaps.length - 1];
+      if (t <= snaps[0].tn) return snaps[0];
+      if (t >= snaps[snaps.length - 1].tn) return snaps[snaps.length - 1];
       let lo = 0;
       let hi = snaps.length - 1;
       while (lo < hi) {
-        const mid = lo + hi >>> 1;
-        if (snaps[mid].tn < t)
-          lo = mid + 1;
-        else
-          hi = mid;
+        const mid = (lo + hi) >>> 1;
+        if (snaps[mid].tn < t) lo = mid + 1;
+        else hi = mid;
       }
       return snaps[lo];
     }
@@ -1479,8 +1388,7 @@ function ds(pts) {
       const s = (t - snap.tn) / h;
       for (let i = 0; i < neq; i++) {
         let val = yh[nq][i];
-        for (let j = nq - 1; j >= 0; j--)
-          val = yh[j][i] + s * val;
+        for (let j = nq - 1; j >= 0; j--) val = yh[j][i] + s * val;
         dky[i] = val;
       }
       return dky;
@@ -1493,8 +1401,7 @@ function ds(pts) {
     const yh = new Array(nq + 1);
     for (let j = 0; j <= nq; j++) {
       const row = new Float64Array(neq);
-      for (let i = 0; i < neq; i++)
-        row[i] = c.yh[j + 1][i + 1];
+      for (let i = 0; i < neq; i++) row[i] = c.yh[j + 1][i + 1];
       yh[j] = row;
     }
     return { tn: c.tn, h: c.h, hu: c.hu, nq, yh };
@@ -1506,14 +1413,12 @@ function ds(pts) {
     const atol = ctx.opt.atol;
     for (let i = 1; i <= neq; i++)
       c.ewt[i] = rtol[i] * Math.abs(ycur[i]) + atol[i];
-    for (let i = 1; i <= neq; i++)
-      c.ewt[i] = 1 / c.ewt[i];
+    for (let i = 1; i <= neq; i++) c.ewt[i] = 1 / c.ewt[i];
   }
   function checkOpt(ctx, opt) {
     const mxstp0 = 500;
     const mord = [0, 12, 5];
-    if (ctx.state === 0)
-      ctx.state = 1;
+    if (ctx.state === 0) ctx.state = 1;
     if (ctx.state === 1) {
       opt.h0 = 0;
       opt.mxordn = mord[1];
@@ -1535,8 +1440,7 @@ function ds(pts) {
         }
       }
     }
-    if (opt.itask === 0)
-      opt.itask = 1;
+    if (opt.itask === 0) opt.itask = 1;
     if (opt.itask < 1 || opt.itask > 5) {
       ctx.error = `[lsoda] illegal itask = ${opt.itask}`;
       return false;
@@ -1549,8 +1453,7 @@ function ds(pts) {
       ctx.error = "[lsoda] mxstep < 0";
       return false;
     }
-    if (opt.mxstep === 0)
-      opt.mxstep = mxstp0;
+    if (opt.mxstep === 0) opt.mxstep = mxstp0;
     if (opt.mxhnil < 0) {
       ctx.error = "[lsoda] mxhnil < 0";
       return false;
@@ -1560,15 +1463,13 @@ function ds(pts) {
         ctx.error = `[lsoda] mxordn = ${opt.mxordn} is less than 0`;
         return false;
       }
-      if (opt.mxordn === 0)
-        opt.mxordn = 100;
+      if (opt.mxordn === 0) opt.mxordn = 100;
       opt.mxordn = Math.min(opt.mxordn, mord[1]);
       if (opt.mxords < 0) {
         ctx.error = `[lsoda] mxords = ${opt.mxords} is less than 0`;
         return false;
       }
-      if (opt.mxords === 0)
-        opt.mxords = 100;
+      if (opt.mxords === 0) opt.mxords = 100;
       opt.mxords = Math.min(opt.mxords, mord[2]);
     }
     if (opt.hmax < 0) {
@@ -1576,8 +1477,7 @@ function ds(pts) {
       return false;
     }
     opt.hmxi = 0;
-    if (opt.hmax > 0)
-      opt.hmxi = 1 / opt.hmax;
+    if (opt.hmax > 0) opt.hmxi = 1 / opt.hmax;
     if (opt.hmin < 0) {
       ctx.error = "[lsoda] hmin < 0.";
       return false;
@@ -1589,28 +1489,23 @@ function ds(pts) {
     const nyh = ctx.neq;
     const lenyh = 1 + Math.max(ctx.opt.mxordn, ctx.opt.mxords);
     c.yh = new Array(lenyh + 1);
-    for (let i = 0; i <= lenyh; i++)
-      c.yh[i] = new Float64Array(nyh + 1);
+    for (let i = 0; i <= lenyh; i++) c.yh[i] = new Float64Array(nyh + 1);
     c.wm = new Array(nyh + 1);
-    for (let i = 0; i <= nyh; i++)
-      c.wm[i] = new Float64Array(nyh + 1);
+    for (let i = 0; i <= nyh; i++) c.wm[i] = new Float64Array(nyh + 1);
     c.ewt = new Float64Array(nyh + 1);
     c.savf = new Float64Array(nyh + 1);
     c.acor = new Float64Array(nyh + 1);
     c.ipvt = new Int32Array(nyh + 1);
     c.elco = new Array(13);
-    for (let i = 0; i < 13; i++)
-      c.elco[i] = new Float64Array(14);
+    for (let i = 0; i < 13; i++) c.elco[i] = new Float64Array(14);
     c.tesco = new Array(13);
-    for (let i = 0; i < 13; i++)
-      c.tesco[i] = new Float64Array(4);
+    for (let i = 0; i < 13; i++) c.tesco[i] = new Float64Array(4);
     return true;
   }
   function lsodaPrepare(ctx, opt) {
     ctx.common = new LsodaCommon();
     ctx.opt = opt;
-    if (!checkOpt(ctx, opt))
-      return false;
+    if (!checkOpt(ctx, opt)) return false;
     return allocMem(ctx);
   }
   function lsodaReset(ctx) {
@@ -1646,18 +1541,14 @@ function ds(pts) {
     c.nqu = 0;
     c.miter = 0;
     c.el.fill(0);
-    for (let i = 0; i < c.yh.length; i++)
-      c.yh[i].fill(0);
-    for (let i = 0; i < c.wm.length; i++)
-      c.wm[i].fill(0);
+    for (let i = 0; i < c.yh.length; i++) c.yh[i].fill(0);
+    for (let i = 0; i < c.wm.length; i++) c.wm[i].fill(0);
     c.ewt.fill(0);
     c.savf.fill(0);
     c.acor.fill(0);
     c.ipvt.fill(0);
-    for (let i = 0; i < c.elco.length; i++)
-      c.elco[i].fill(0);
-    for (let i = 0; i < c.tesco.length; i++)
-      c.tesco[i].fill(0);
+    for (let i = 0; i < c.elco.length; i++) c.elco[i].fill(0);
+    for (let i = 0; i < c.tesco.length; i++) c.tesco[i].fill(0);
     ctx.state = 1;
     ctx.error = null;
   }
@@ -1676,19 +1567,16 @@ function ds(pts) {
     }
     function softfailure(code, msg) {
       ctx.error = msg;
-      for (let i = 1; i <= neq; i++)
-        y[i] = c.yh[1][i];
+      for (let i = 1; i <= neq; i++) y[i] = c.yh[1][i];
       t = c.tn;
       ctx.state = code;
       return { t, state: ctx.state };
     }
     function successreturn() {
-      for (let i = 1; i <= neq; i++)
-        y[i] = c.yh[1][i];
+      for (let i = 1; i <= neq; i++) y[i] = c.yh[1][i];
       t = c.tn;
       if (itask === 4 || itask === 5) {
-        if (ihit)
-          t = tcrit;
+        if (ihit) t = tcrit;
       }
       ctx.state = 2;
       return { t, state: ctx.state };
@@ -1697,8 +1585,7 @@ function ds(pts) {
       const iflag = intdy(ctx, tout, 0, y);
       if (iflag !== 0) {
         ctx.error = `[lsoda] trouble from intdy, itask = ${itask}, tout = ${tout}`;
-        for (let i = 1; i <= neq; i++)
-          y[i] = c.yh[1][i];
+        for (let i = 1; i <= neq; i++) y[i] = c.yh[1][i];
         t = c.tn;
       }
       t = tout;
@@ -1706,7 +1593,9 @@ function ds(pts) {
       return { t, state: ctx.state };
     }
     if (c === null)
-      return hardfailure("[lsoda] illegal common block did you call lsoda_prepare?");
+      return hardfailure(
+        "[lsoda] illegal common block did you call lsoda_prepare?",
+      );
     let h0 = 0;
     let tcrit = 0;
     const rtol = opt.rtol;
@@ -1715,12 +1604,13 @@ function ds(pts) {
       h0 = opt.h0;
       if (ctx.state === 1) {
         if ((tout - t) * h0 < 0)
-          return hardfailure(`[lsoda] tout = ${tout} behind t = ${t}. integration direction is given by ${h0}`);
+          return hardfailure(
+            `[lsoda] tout = ${tout} behind t = ${t}. integration direction is given by ${h0}`,
+          );
       }
     }
     const itask = opt.itask;
-    if (ctx.state === 3)
-      jstart = -1;
+    if (ctx.state === 3) jstart = -1;
     if (ctx.state === 1) {
       c.meth = 1;
       c.tn = t;
@@ -1729,15 +1619,13 @@ function ds(pts) {
         tcrit = opt.tcrit;
         if ((tcrit - tout) * (tout - t) < 0)
           return hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tout");
-        if (h0 !== 0 && (t + h0 - tcrit) * h0 > 0)
-          h0 = tcrit - t;
+        if (h0 !== 0 && (t + h0 - tcrit) * h0 > 0) h0 = tcrit - t;
       }
       jstart = 0;
       c.nq = 1;
       ctx.func(t, y.subarray(1), c.yh[2].subarray(1), ctx.data);
       c.nfe = 1;
-      for (let i = 1; i <= neq; i++)
-        c.yh[1][i] = y[i];
+      for (let i = 1; i <= neq; i++) c.yh[1][i] = y[i];
       ewset(ctx, y);
       for (let i = 1; i <= neq; i++) {
         if (c.ewt[i] <= 0)
@@ -1747,16 +1635,16 @@ function ds(pts) {
         const tdist = Math.abs(tout - t);
         const w0 = Math.max(Math.abs(t), Math.abs(tout));
         if (tdist < 2 * ETA * w0)
-          return hardfailure("[lsoda] tout too close to t to start integration");
+          return hardfailure(
+            "[lsoda] tout too close to t to start integration",
+          );
         let tol = 0;
-        for (let i = 1; i <= neq; i++)
-          tol = Math.max(tol, rtol[i]);
+        for (let i = 1; i <= neq; i++) tol = Math.max(tol, rtol[i]);
         if (tol <= 0) {
           for (let i = 1; i <= neq; i++) {
             const atoli = atol[i];
             const ayi = Math.abs(y[i]);
-            if (ayi !== 0)
-              tol = Math.max(tol, atoli / ayi);
+            if (ayi !== 0) tol = Math.max(tol, atoli / ayi);
           }
         }
         tol = Math.max(tol, 100 * ETA);
@@ -1768,28 +1656,26 @@ function ds(pts) {
         h0 = h0 * (tout - t >= 0 ? 1 : -1);
       }
       const rh = Math.abs(h0) * opt.hmxi;
-      if (rh > 1)
-        h0 /= rh;
+      if (rh > 1) h0 /= rh;
       c.h = h0;
-      for (let i = 1; i <= neq; i++)
-        c.yh[2][i] *= h0;
+      for (let i = 1; i <= neq; i++) c.yh[2][i] *= h0;
     }
     if (ctx.state === 2 || ctx.state === 3) {
       jstart = 1;
       c.nslast = c.nst;
       switch (itask) {
         case 1:
-          if ((c.tn - tout) * c.h >= 0)
-            return intdyreturn();
+          if ((c.tn - tout) * c.h >= 0) return intdyreturn();
           break;
         case 2:
           break;
         case 3: {
           const tp = c.tn - c.hu * (1 + 100 * ETA);
           if ((tp - tout) * c.h > 0)
-            return hardfailure(`[lsoda] itask = ${itask} and tout behind tcur - hu`);
-          if ((c.tn - tout) * c.h < 0)
-            break;
+            return hardfailure(
+              `[lsoda] itask = ${itask} and tout behind tcur - hu`,
+            );
+          if ((c.tn - tout) * c.h < 0) break;
           return successreturn();
         }
         case 4:
@@ -1798,15 +1684,16 @@ function ds(pts) {
             return hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tcur");
           if ((tcrit - tout) * c.h < 0)
             return hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tout");
-          if ((c.tn - tout) * c.h >= 0)
-            return intdyreturn();
+          if ((c.tn - tout) * c.h >= 0) return intdyreturn();
         // fall through to case 5 logic
         // eslint-disable-next-line no-fallthrough
         case 5:
           if (itask === 5) {
             tcrit = opt.tcrit;
             if ((c.tn - tcrit) * c.h > 0)
-              return hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tcur");
+              return hardfailure(
+                "[lsoda] itask = 4 or 5 and tcrit behind tcur",
+              );
           }
           {
             const hmx = Math.abs(c.tn) + Math.abs(c.h);
@@ -1816,11 +1703,9 @@ function ds(pts) {
               return successreturn();
             }
             const tnext = c.tn + c.h * (1 + 4 * ETA);
-            if ((tnext - tcrit) * c.h <= 0)
-              break;
+            if ((tnext - tcrit) * c.h <= 0) break;
             c.h = (tcrit - c.tn) * (1 - 4 * ETA);
-            if (ctx.state === 2)
-              jstart = -2;
+            if (ctx.state === 2) jstart = -2;
           }
           break;
       }
@@ -1828,7 +1713,10 @@ function ds(pts) {
     while (true) {
       if (ctx.state !== 1 || c.nst !== 0) {
         if (c.nst - c.nslast >= opt.mxstep)
-          return softfailure(-1, `[lsoda] ${opt.mxstep} steps taken before reaching tout`);
+          return softfailure(
+            -1,
+            `[lsoda] ${opt.mxstep} steps taken before reaching tout`,
+          );
         ewset(ctx, c.yh[1]);
         for (let i = 1; i <= neq; i++) {
           if (c.ewt[i] <= 0)
@@ -1839,60 +1727,66 @@ function ds(pts) {
       if (tolsf > 0.01) {
         const scaled = tolsf * 200;
         if (c.nst === 0) {
-          return hardfailure(`lsoda -- at start of problem, too much accuracy requested for precision of machine, suggested scaling factor = ${scaled}`);
+          return hardfailure(
+            `lsoda -- at start of problem, too much accuracy requested for precision of machine, suggested scaling factor = ${scaled}`,
+          );
         }
-        return softfailure(-2, `lsoda -- at t = ${t}, too much accuracy requested for precision of machine, suggested scaling factor = ${scaled}`);
+        return softfailure(
+          -2,
+          `lsoda -- at t = ${t}, too much accuracy requested for precision of machine, suggested scaling factor = ${scaled}`,
+        );
       }
       if (c.tn + c.h === c.tn) {
         c.nhnil++;
         if (c.nhnil <= opt.mxhnil) {
-          console.error(`lsoda -- warning..internal t = ${c.tn} and h = ${c.h} are such that t + h = t on the next step`);
+          console.error(
+            `lsoda -- warning..internal t = ${c.tn} and h = ${c.h} are such that t + h = t on the next step`,
+          );
           if (c.nhnil === opt.mxhnil) {
-            console.error(`lsoda -- above warning has been issued ${c.nhnil} times, it will not be issued again for this problem`);
+            console.error(
+              `lsoda -- above warning has been issued ${c.nhnil} times, it will not be issued again for this problem`,
+            );
           }
         }
       }
       kflag = stoda(ctx, y, jstart);
       if (kflag === 0) {
-        if (ctx.snapshots)
-          ctx.snapshots.push(captureSnapshot(c, neq));
+        if (ctx.snapshots) ctx.snapshots.push(captureSnapshot(c, neq));
         jstart = 1;
         if (c.meth !== c.mused) {
           c.tsw = c.tn;
           jstart = -1;
           if (opt.ixpr) {
             if (c.meth === 2) {
-              console.error(`[lsoda] a switch to the stiff method has occurred at t = ${c.tn}, tentative step size h = ${c.h}, step nst = ${c.nst}`);
+              console.error(
+                `[lsoda] a switch to the stiff method has occurred at t = ${c.tn}, tentative step size h = ${c.h}, step nst = ${c.nst}`,
+              );
             }
             if (c.meth === 1) {
-              console.error(`[lsoda] a switch to the nonstiff method has occurred at t = ${c.tn}, tentative step size h = ${c.h}, step nst = ${c.nst}`);
+              console.error(
+                `[lsoda] a switch to the nonstiff method has occurred at t = ${c.tn}, tentative step size h = ${c.h}, step nst = ${c.nst}`,
+              );
             }
           }
         }
         if (itask === 1) {
-          if ((c.tn - tout) * c.h < 0)
-            continue;
+          if ((c.tn - tout) * c.h < 0) continue;
           return intdyreturn();
         }
-        if (itask === 2)
-          return successreturn();
+        if (itask === 2) return successreturn();
         if (itask === 3) {
-          if ((c.tn - tout) * c.h >= 0)
-            return successreturn();
+          if ((c.tn - tout) * c.h >= 0) return successreturn();
           continue;
         }
         if (itask === 4) {
           tcrit = opt.tcrit;
-          if ((c.tn - tout) * c.h >= 0)
-            return intdyreturn();
+          if ((c.tn - tout) * c.h >= 0) return intdyreturn();
           else {
             const hmx = Math.abs(c.tn) + Math.abs(c.h);
             ihit = Math.abs(c.tn - tcrit) <= 100 * ETA * hmx ? 1 : 0;
-            if (ihit)
-              return successreturn();
+            if (ihit) return successreturn();
             const tnext = c.tn + c.h * (1 + 4 * ETA);
-            if ((tnext - tcrit) * c.h <= 0)
-              continue;
+            if ((tnext - tcrit) * c.h <= 0) continue;
             c.h = (tcrit - c.tn) * (1 - 4 * ETA);
             jstart = -2;
             continue;
@@ -1916,10 +1810,16 @@ function ds(pts) {
           }
         }
         if (kflag === -1) {
-          return softfailure(-4, `lsoda -- at t = ${c.tn} and step size h = ${c.h}, the error test failed repeatedly or with abs(h) = hmin`);
+          return softfailure(
+            -4,
+            `lsoda -- at t = ${c.tn} and step size h = ${c.h}, the error test failed repeatedly or with abs(h) = hmin`,
+          );
         }
         if (kflag === -2) {
-          return softfailure(-5, `lsoda -- at t = ${c.tn} and step size h = ${c.h}, the corrector convergence failed repeatedly or with abs(h) = hmin`);
+          return softfailure(
+            -5,
+            `lsoda -- at t = ${c.tn} and step size h = ${c.h}, the corrector convergence failed repeatedly or with abs(h) = hmin`,
+          );
         }
       }
     }
@@ -1948,25 +1848,21 @@ function ds(pts) {
         itask: 1,
         rtol: new Float64Array(neq + 1),
         atol: new Float64Array(neq + 1),
-        ...opt
+        ...opt,
       };
       if (opt?.rtol) {
         if (opt.rtol.length === neq) {
           const r = new Float64Array(neq + 1);
-          for (let i = 0; i < neq; i++)
-            r[i + 1] = opt.rtol[i];
+          for (let i = 0; i < neq; i++) r[i + 1] = opt.rtol[i];
           fullOpt.rtol = r;
-        } else
-          fullOpt.rtol = opt.rtol;
+        } else fullOpt.rtol = opt.rtol;
       }
       if (opt?.atol) {
         if (opt.atol.length === neq) {
           const a = new Float64Array(neq + 1);
-          for (let i = 0; i < neq; i++)
-            a[i + 1] = opt.atol[i];
+          for (let i = 0; i < neq; i++) a[i + 1] = opt.atol[i];
           fullOpt.atol = a;
-        } else
-          fullOpt.atol = opt.atol;
+        } else fullOpt.atol = opt.atol;
       }
       lsodaPrepare(this.ctx, fullOpt);
       if (opt?.dense) {
@@ -1981,12 +1877,10 @@ function ds(pts) {
      */
     solve(y, t, tout) {
       const neq = this.ctx.neq;
-      for (let i = 0; i < neq; i++)
-        this.internalY[i + 1] = y[i];
+      for (let i = 0; i < neq; i++) this.internalY[i + 1] = y[i];
       const result = lsoda(this.ctx, this.internalY, t, tout);
       const out = new Float64Array(neq);
-      for (let i = 0; i < neq; i++)
-        out[i] = this.internalY[i + 1];
+      for (let i = 0; i < neq; i++) out[i] = this.internalY[i + 1];
       return { y: out, t: result.t };
     }
     get state() {
@@ -1998,13 +1892,14 @@ function ds(pts) {
     /** Returns a DenseOutput interpolator from collected snapshots. */
     getDenseOutput() {
       if (!this.ctx.snapshots || this.ctx.snapshots.length === 0)
-        throw new Error("[Lsoda] dense output not enabled or no steps taken \u2014 pass { dense: true } in options");
+        throw new Error(
+          "[Lsoda] dense output not enabled or no steps taken \u2014 pass { dense: true } in options",
+        );
       return new DenseOutput(this.ctx.snapshots, this.ctx.neq);
     }
     reset() {
       lsodaReset(this.ctx);
-      if (this.denseEnabled)
-        this.ctx.snapshots = [];
+      if (this.denseEnabled) this.ctx.snapshots = [];
     }
   };
 
@@ -2029,7 +1924,7 @@ function ds(pts) {
       atol,
       itask: 1,
       dense: true,
-      mxstep
+      mxstep,
     });
     let y = [...odes.initial];
     let t = t0;
@@ -2037,8 +1932,7 @@ function ds(pts) {
     let warmupOk = false;
     for (let k = 5; k <= 10; k++) {
       const warmupTout = t0 + base * Math.pow(10, -k);
-      if (warmupTout <= t0 || warmupTout >= t1)
-        continue;
+      if (warmupTout <= t0 || warmupTout >= t1) continue;
       const wr = solver.solve(y, t, warmupTout);
       if (solver.state > 0) {
         y = wr.y;
@@ -2050,32 +1944,26 @@ function ds(pts) {
       y = [...odes.initial];
       t = t0;
     }
-    if (!warmupOk && t === t0)
-      throw new Error(ERROR_MSG.LSODA_FAILS);
+    if (!warmupOk && t === t0) throw new Error(ERROR_MSG.LSODA_FAILS);
     const gridPoints = Math.trunc((t1 - t0) / step) + 1;
     const numCheckpoints = Math.min(gridPoints, 1e3);
     const cpStep = (t1 - t0) / numCheckpoints;
     for (let i = 1; i <= numCheckpoints; i++) {
-      if (callback)
-        callback.onIterationStart();
+      if (callback) callback.onIterationStart();
       const tout = i < numCheckpoints ? t0 + i * cpStep : t1;
       const result = solver.solve(y, t, tout);
       y = result.y;
       t = result.t;
-      if (solver.state <= 0)
-        throw new Error(ERROR_MSG.LSODA_FAILS);
+      if (solver.state <= 0) throw new Error(ERROR_MSG.LSODA_FAILS);
     }
     const dense = solver.getDenseOutput();
     const grid = dense.solveOnGrid(t0, t1, step);
-    if (callback)
-      callback.onComputationsCompleted();
+    if (callback) callback.onComputationsCompleted();
     const rowCount = grid.t.length;
     const solution = Array(dim + 1);
     solution[0] = grid.t;
-    for (let i = 0; i < dim; ++i)
-      solution[i + 1] = grid.y[i];
-    for (let i = 0; i < dim; ++i)
-      solution[i + 1][rowCount - 1] = y[i];
+    for (let i = 0; i < dim; ++i) solution[i + 1] = grid.y[i];
+    for (let i = 0; i < dim; ++i) solution[i + 1][rowCount - 1] = y[i];
     return solution;
   }
 
@@ -2452,41 +2340,34 @@ function ds(pts) {
     return Math.sqrt(sum / n);
   }
   function vLinearSum(a, x, b, y, z, n) {
-    for (let i = 0; i < n; i++)
-      z[i] = a * x[i] + b * y[i];
+    for (let i = 0; i < n; i++) z[i] = a * x[i] + b * y[i];
   }
   function vScale(c, x, z, n) {
-    for (let i = 0; i < n; i++)
-      z[i] = c * x[i];
+    for (let i = 0; i < n; i++) z[i] = c * x[i];
   }
   function vConst(c, z, n) {
     z.fill(c, 0, n);
   }
   function cvodeGetDky(mem, t, k, dky) {
-    if (k < 0 || k > mem.cv_q)
-      return -1;
+    if (k < 0 || k > mem.cv_q) return -1;
     const N = mem.cv_N;
-    const tfuzz = FUZZ_FACTOR * UROUND * (Math.abs(mem.cv_tn) + Math.abs(mem.cv_hu));
+    const tfuzz =
+      FUZZ_FACTOR * UROUND * (Math.abs(mem.cv_tn) + Math.abs(mem.cv_hu));
     const tp = mem.cv_tn - mem.cv_hu - Math.abs(tfuzz);
     const tn1 = mem.cv_tn + Math.abs(tfuzz);
-    if ((t - tp) * (t - tn1) > 0)
-      return -1;
+    if ((t - tp) * (t - tn1) > 0) return -1;
     const s = (t - mem.cv_tn) / mem.cv_h;
     dky.fill(0, 0, N);
     for (let j = mem.cv_q; j >= k; j--) {
       let c = 1;
-      for (let i = j; i >= j - k + 1; i--)
-        c *= i;
-      for (let i = 0; i < j - k; i++)
-        c *= s;
+      for (let i = j; i >= j - k + 1; i--) c *= i;
+      for (let i = 0; i < j - k; i++) c *= s;
       const znj = mem.cv_zn[j];
-      for (let i = 0; i < N; i++)
-        dky[i] += c * znj[i];
+      for (let i = 0; i < N; i++) dky[i] += c * znj[i];
     }
     if (k > 0) {
       const r = Math.pow(mem.cv_h, -k);
-      for (let i = 0; i < N; i++)
-        dky[i] *= r;
+      for (let i = 0; i < N; i++) dky[i] *= r;
     }
     return 0;
   }
@@ -2502,8 +2383,7 @@ function ds(pts) {
     mem.cv_l[1] = 1;
     xi_inv = 1;
     xistar_inv = 1;
-    for (let i = 2; i <= mem.cv_q; i++)
-      mem.cv_l[i] = 0;
+    for (let i = 2; i <= mem.cv_q; i++) mem.cv_l[i] = 0;
     alpha0 = -1;
     alpha0_hat = -1;
     hsum = mem.cv_h;
@@ -2512,8 +2392,7 @@ function ds(pts) {
         hsum += mem.cv_tau[j - 1];
         xi_inv = mem.cv_h / hsum;
         alpha0 -= 1 / j;
-        for (let i = j; i >= 1; i--)
-          mem.cv_l[i] += mem.cv_l[i - 1] * xi_inv;
+        for (let i = j; i >= 1; i--) mem.cv_l[i] += mem.cv_l[i - 1] * xi_inv;
       }
       alpha0 -= 1 / mem.cv_q;
       xistar_inv = -mem.cv_l[1] - alpha0;
@@ -2529,7 +2408,7 @@ function ds(pts) {
     const A1 = 1 - alpha0_hat + alpha0;
     const A2 = 1 + mem.cv_q * A1;
     mem.cv_tq[2] = Math.abs(A1 / (alpha0 * A2));
-    mem.cv_tq[5] = Math.abs(A2 * xistar_inv / (mem.cv_l[mem.cv_q] * xi_inv));
+    mem.cv_tq[5] = Math.abs((A2 * xistar_inv) / (mem.cv_l[mem.cv_q] * xi_inv));
     if (mem.cv_qwait === 1) {
       if (mem.cv_q > 1) {
         const C = xistar_inv / mem.cv_l[mem.cv_q];
@@ -2537,8 +2416,7 @@ function ds(pts) {
         const A4 = alpha0_hat + xi_inv;
         const Cpinv = (1 - A4 + A3) / A3;
         mem.cv_tq[1] = Math.abs(C * Cpinv);
-      } else
-        mem.cv_tq[1] = 1;
+      } else mem.cv_tq[1] = 1;
       hsum += mem.cv_tau[mem.cv_q];
       const xi_inv2 = mem.cv_h / hsum;
       const A5 = alpha0 - 1 / (mem.cv_q + 1);
@@ -2550,8 +2428,7 @@ function ds(pts) {
   }
   function cvIncreaseBDF(mem) {
     const N = mem.cv_N;
-    for (let i = 0; i <= mem.cv_qmax; i++)
-      mem.cv_l[i] = 0;
+    for (let i = 0; i <= mem.cv_qmax; i++) mem.cv_l[i] = 0;
     mem.cv_l[2] = 1;
     let alpha1 = 1;
     let prod = 1;
@@ -2573,21 +2450,18 @@ function ds(pts) {
     const A1 = (-alpha0 - alpha1) / prod;
     const znL = mem.cv_zn[mem.cv_L];
     const znSaved = mem.cv_zn[mem.cv_indx_acor];
-    for (let i = 0; i < N; i++)
-      znL[i] = A1 * znSaved[i];
+    for (let i = 0; i < N; i++) znL[i] = A1 * znSaved[i];
     if (mem.cv_q > 1) {
       for (let j = 2; j <= mem.cv_q; j++) {
         const c = mem.cv_l[j];
         const znj = mem.cv_zn[j];
-        for (let i = 0; i < N; i++)
-          znj[i] += c * znL[i];
+        for (let i = 0; i < N; i++) znj[i] += c * znL[i];
       }
     }
   }
   function cvDecreaseBDF(mem) {
     const N = mem.cv_N;
-    for (let i = 0; i <= mem.cv_qmax; i++)
-      mem.cv_l[i] = 0;
+    for (let i = 0; i <= mem.cv_qmax; i++) mem.cv_l[i] = 0;
     mem.cv_l[2] = 1;
     let hsum = 0;
     for (let j = 1; j <= mem.cv_q - 2; j++) {
@@ -2601,16 +2475,14 @@ function ds(pts) {
       for (let j = 2; j < mem.cv_q; j++) {
         const c = -mem.cv_l[j];
         const znj = mem.cv_zn[j];
-        for (let i = 0; i < N; i++)
-          znj[i] += c * znq[i];
+        for (let i = 0; i < N; i++) znj[i] += c * znq[i];
       }
     }
   }
 
   // node_modules/diff-grok/dist/src/solver-tools/cvode/cvode_adams.js
   function cvAltSum(iend, a, k) {
-    if (iend < 0)
-      return 0;
+    if (iend < 0) return 0;
     let sum = 0;
     let sign2 = 1;
     for (let i = 0; i <= iend; i++) {
@@ -2622,16 +2494,14 @@ function ds(pts) {
   function cvAdamsStart(mem, m) {
     let hsum = mem.cv_h;
     m[0] = 1;
-    for (let i = 1; i <= mem.cv_q; i++)
-      m[i] = 0;
+    for (let i = 1; i <= mem.cv_q; i++) m[i] = 0;
     for (let j = 1; j < mem.cv_q; j++) {
       if (j === mem.cv_q - 1 && mem.cv_qwait === 1) {
         const sum = cvAltSum(mem.cv_q - 2, m, 2);
-        mem.cv_tq[1] = mem.cv_q * sum / m[mem.cv_q - 2];
+        mem.cv_tq[1] = (mem.cv_q * sum) / m[mem.cv_q - 2];
       }
       const xi_inv = mem.cv_h / hsum;
-      for (let i = j; i >= 1; i--)
-        m[i] += m[i - 1] * xi_inv;
+      for (let i = j; i >= 1; i--) m[i] += m[i - 1] * xi_inv;
       hsum += mem.cv_tau[j];
     }
     return hsum;
@@ -2639,17 +2509,15 @@ function ds(pts) {
   function cvAdamsFinish(mem, m, M, hsum) {
     const M0_inv = 1 / M[0];
     mem.cv_l[0] = 1;
-    for (let i = 1; i <= mem.cv_q; i++)
-      mem.cv_l[i] = M0_inv * (m[i - 1] / i);
+    for (let i = 1; i <= mem.cv_q; i++) mem.cv_l[i] = M0_inv * (m[i - 1] / i);
     const xi = hsum / mem.cv_h;
     const xi_inv = 1 / xi;
-    mem.cv_tq[2] = M[1] * M0_inv / xi;
+    mem.cv_tq[2] = (M[1] * M0_inv) / xi;
     mem.cv_tq[5] = xi / mem.cv_l[mem.cv_q];
     if (mem.cv_qwait === 1) {
-      for (let i = mem.cv_q; i >= 1; i--)
-        m[i] += m[i - 1] * xi_inv;
+      for (let i = mem.cv_q; i >= 1; i--) m[i] += m[i - 1] * xi_inv;
       M[2] = cvAltSum(mem.cv_q, m, 2);
-      mem.cv_tq[3] = M[2] * M0_inv / mem.cv_L;
+      mem.cv_tq[3] = (M[2] * M0_inv) / mem.cv_L;
     }
     mem.cv_tq[4] = mem.cv_nlscoef / mem.cv_tq[2];
   }
@@ -2677,8 +2545,7 @@ function ds(pts) {
       mem.cv_zn[mem.cv_L].fill(0, 0, N);
       return;
     }
-    for (let i = 0; i <= mem.cv_qmax; i++)
-      mem.cv_l[i] = 0;
+    for (let i = 0; i <= mem.cv_qmax; i++) mem.cv_l[i] = 0;
     mem.cv_l[1] = 1;
     let hsum = 0;
     for (let j = 1; j <= mem.cv_q - 2; j++) {
@@ -2694,8 +2561,7 @@ function ds(pts) {
       for (let j = 2; j < mem.cv_q; j++) {
         const c = -mem.cv_l[j];
         const znj = mem.cv_zn[j];
-        for (let i = 0; i < N; i++)
-          znj[i] += c * znq[i];
+        for (let i = 0; i < N; i++) znj[i] += c * znq[i];
       }
     }
   }
@@ -2705,38 +2571,31 @@ function ds(pts) {
     const N = mem.cv_N;
     const sign2 = tout - mem.cv_tn >= 0 ? 1 : -1;
     const tdist = Math.abs(tout - mem.cv_tn);
-    const tround = Math.max(Math.abs(mem.cv_tn), Math.abs(tout)) * 2220446049250313e-31;
-    if (tdist < 2 * tround)
-      return CV_TOO_CLOSE;
+    const tround =
+      Math.max(Math.abs(mem.cv_tn), Math.abs(tout)) * 2220446049250313e-31;
+    if (tdist < 2 * tround) return CV_TOO_CLOSE;
     const hlb = HLB_FACTOR * tround;
     const hub = cvUpperBoundH0(mem, tdist);
     let hg = Math.sqrt(hlb * hub);
-    if (hub < 100 * hlb)
-      hg = 0.5 * hub;
+    if (hub < 100 * hlb) hg = 0.5 * hub;
     let hnew = hg;
     let retval;
     for (let count = 0; count < MAX_ITERS; count++) {
       hg = hnew;
       const result = cvYddNorm(mem, hg * sign2);
       retval = result.retval;
-      if (retval !== CV_SUCCESS)
-        return retval;
+      if (retval !== CV_SUCCESS) return retval;
       const yddnrm = result.yddnrm;
-      if (yddnrm * hub * hub > 2)
-        hnew = Math.sqrt(2 / yddnrm);
-      else
-        hnew = Math.sqrt(hg * hub);
+      if (yddnrm * hub * hub > 2) hnew = Math.sqrt(2 / yddnrm);
+      else hnew = Math.sqrt(hg * hub);
       hnew = H_BIAS * hnew + (1 - H_BIAS) * hg;
-      if (hnew / hg > 2 || hnew / hg < 0.5)
-        continue;
+      if (hnew / hg > 2 || hnew / hg < 0.5) continue;
       break;
     }
     hnew = Math.min(hnew, hub);
     hnew = Math.max(hnew, hlb);
-    if (mem.cv_hmax_inv > 0)
-      hnew = Math.min(hnew, 1 / mem.cv_hmax_inv);
-    if (mem.cv_hmin > 0)
-      hnew = Math.max(hnew, mem.cv_hmin);
+    if (mem.cv_hmax_inv > 0) hnew = Math.min(hnew, 1 / mem.cv_hmax_inv);
+    if (mem.cv_hmin > 0) hnew = Math.max(hnew, mem.cv_hmin);
     hnew = Math.min(hnew, tdist);
     mem.cv_h = sign2 * hnew;
     mem.cv_next_h = mem.cv_h;
@@ -2748,19 +2607,21 @@ function ds(pts) {
     const N = mem.cv_N;
     const hub_inv = wrmsNorm(N, mem.cv_zn[1], mem.cv_ewt);
     let hub = HUB_FACTOR * tdist;
-    if (hub * hub_inv > 1)
-      hub = 1 / hub_inv;
+    if (hub * hub_inv > 1) hub = 1 / hub_inv;
     return hub;
   }
   function cvYddNorm(mem, hg) {
     const N = mem.cv_N;
     vLinearSum(hg, mem.cv_zn[1], 1, mem.cv_zn[0], mem.cv_y, N);
-    const retval = mem.cv_f(mem.cv_tn + hg, mem.cv_y, mem.cv_tempv, mem.cv_user_data);
+    const retval = mem.cv_f(
+      mem.cv_tn + hg,
+      mem.cv_y,
+      mem.cv_tempv,
+      mem.cv_user_data,
+    );
     mem.cv_nfe++;
-    if (retval < 0)
-      return { retval: CV_RHSFUNC_FAIL, yddnrm: 0 };
-    if (retval > 0)
-      return { retval: RHSFUNC_RECVR, yddnrm: 0 };
+    if (retval < 0) return { retval: CV_RHSFUNC_FAIL, yddnrm: 0 };
+    if (retval > 0) return { retval: RHSFUNC_RECVR, yddnrm: 0 };
     const hg_inv = 1 / hg;
     vLinearSum(hg_inv, mem.cv_tempv, -hg_inv, mem.cv_zn[1], mem.cv_tempv, N);
     const yddnrm = wrmsNorm(N, mem.cv_tempv, mem.cv_ewt);
@@ -2772,8 +2633,17 @@ function ds(pts) {
     const N = mem.cv_N;
     let callSetup;
     if (mem.cv_lsetup) {
-      mem.convfail = nflag === FIRST_CALL || nflag === PREV_ERR_FAIL ? CV_NO_FAILURES : CV_FAIL_OTHER;
-      callSetup = nflag === PREV_CONV_FAIL || nflag === PREV_ERR_FAIL || mem.cv_nst === 0 || mem.first_step_after_resize || mem.cv_nst >= mem.cv_nstlp + mem.cv_msbp || Math.abs(mem.cv_gamrat - 1) > mem.cv_dgmax_lsetup;
+      mem.convfail =
+        nflag === FIRST_CALL || nflag === PREV_ERR_FAIL
+          ? CV_NO_FAILURES
+          : CV_FAIL_OTHER;
+      callSetup =
+        nflag === PREV_CONV_FAIL ||
+        nflag === PREV_ERR_FAIL ||
+        mem.cv_nst === 0 ||
+        mem.first_step_after_resize ||
+        mem.cv_nst >= mem.cv_nstlp + mem.cv_msbp ||
+        Math.abs(mem.cv_gamrat - 1) > mem.cv_dgmax_lsetup;
     } else {
       mem.cv_crate = 1;
       callSetup = false;
@@ -2781,15 +2651,11 @@ function ds(pts) {
     vConst(0, mem.cv_acor, N);
     mem.cv_acnrmcur = false;
     let flag;
-    if (mem.cv_lmm === CV_BDF)
-      flag = cvNewtonIteration(mem, callSetup);
-    else
-      flag = cvFixedPointIteration(mem);
-    if (flag !== CV_SUCCESS)
-      return flag;
+    if (mem.cv_lmm === CV_BDF) flag = cvNewtonIteration(mem, callSetup);
+    else flag = cvFixedPointIteration(mem);
+    if (flag !== CV_SUCCESS) return flag;
     vLinearSum(1, mem.cv_zn[0], 1, mem.cv_acor, mem.cv_y, N);
-    if (!mem.cv_acnrmcur)
-      mem.cv_acnrm = wrmsNorm(N, mem.cv_acor, mem.cv_ewt);
+    if (!mem.cv_acnrmcur) mem.cv_acnrm = wrmsNorm(N, mem.cv_acor, mem.cv_ewt);
     mem.cv_jcur = false;
     return CV_SUCCESS;
   }
@@ -2800,48 +2666,49 @@ function ds(pts) {
       vLinearSum(1, mem.cv_zn[0], 1, mem.cv_acor, mem.cv_y, N);
       retval = mem.cv_f(mem.cv_tn, mem.cv_y, mem.cv_ftemp, mem.cv_user_data);
       mem.cv_nfe++;
-      if (retval < 0)
-        return CV_RHSFUNC_FAIL;
-      if (retval > 0)
-        return RHSFUNC_RECVR;
+      if (retval < 0) return CV_RHSFUNC_FAIL;
+      if (retval > 0) return RHSFUNC_RECVR;
       const jcurPtr = { value: false };
-      retval = mem.cv_lsetup(mem, mem.convfail, mem.cv_y, mem.cv_ftemp, jcurPtr, mem.cv_vtemp1, mem.cv_vtemp2, mem.cv_vtemp3);
+      retval = mem.cv_lsetup(
+        mem,
+        mem.convfail,
+        mem.cv_y,
+        mem.cv_ftemp,
+        jcurPtr,
+        mem.cv_vtemp1,
+        mem.cv_vtemp2,
+        mem.cv_vtemp3,
+      );
       mem.cv_nsetups++;
       mem.cv_jcur = jcurPtr.value;
       mem.cv_gamrat = 1;
       mem.cv_gammap = mem.cv_gamma;
       mem.cv_crate = 1;
       mem.cv_nstlp = mem.cv_nst;
-      if (retval < 0)
-        return CV_LSETUP_FAIL;
-      if (retval > 0)
-        return SUN_NLS_CONV_RECVR;
+      if (retval < 0) return CV_LSETUP_FAIL;
+      if (retval > 0) return SUN_NLS_CONV_RECVR;
     }
     for (let m = 0; m < NLS_MAXCOR; m++) {
       mem.cv_nni++;
       vLinearSum(1, mem.cv_zn[0], 1, mem.cv_acor, mem.cv_y, N);
       retval = mem.cv_f(mem.cv_tn, mem.cv_y, mem.cv_ftemp, mem.cv_user_data);
       mem.cv_nfe++;
-      if (retval < 0)
-        return CV_RHSFUNC_FAIL;
-      if (retval > 0)
-        return RHSFUNC_RECVR;
+      if (retval < 0) return CV_RHSFUNC_FAIL;
+      if (retval > 0) return RHSFUNC_RECVR;
       const b = mem.cv_tempv;
       for (let i = 0; i < N; i++)
-        b[i] = mem.cv_rl1 * mem.cv_zn[1][i] + mem.cv_acor[i] - mem.cv_gamma * mem.cv_ftemp[i];
-      for (let i = 0; i < N; i++)
-        b[i] = -b[i];
+        b[i] =
+          mem.cv_rl1 * mem.cv_zn[1][i] +
+          mem.cv_acor[i] -
+          mem.cv_gamma * mem.cv_ftemp[i];
+      for (let i = 0; i < N; i++) b[i] = -b[i];
       retval = mem.cv_lsolve(mem, b, mem.cv_ewt, mem.cv_y, mem.cv_ftemp);
-      if (retval < 0)
-        return CV_LSOLVE_FAIL;
-      if (retval > 0)
-        return SUN_NLS_CONV_RECVR;
-      for (let i = 0; i < N; i++)
-        mem.cv_acor[i] += b[i];
+      if (retval < 0) return CV_LSOLVE_FAIL;
+      if (retval > 0) return SUN_NLS_CONV_RECVR;
+      for (let i = 0; i < N; i++) mem.cv_acor[i] += b[i];
       const del = wrmsNorm(N, b, mem.cv_ewt);
       const convTestResult = cvNlsConvTest(mem, del, m, mem.cv_tq[4]);
-      if (convTestResult === CV_SUCCESS)
-        return CV_SUCCESS;
+      if (convTestResult === CV_SUCCESS) return CV_SUCCESS;
       if (convTestResult === SUN_NLS_CONV_RECVR) {
         mem.cv_nnf++;
         return SUN_NLS_CONV_RECVR;
@@ -2858,23 +2725,18 @@ function ds(pts) {
       vLinearSum(1, mem.cv_zn[0], 1, mem.cv_acor, mem.cv_y, N);
       retval = mem.cv_f(mem.cv_tn, mem.cv_y, mem.cv_tempv, mem.cv_user_data);
       mem.cv_nfe++;
-      if (retval < 0)
-        return CV_RHSFUNC_FAIL;
-      if (retval > 0)
-        return RHSFUNC_RECVR;
+      if (retval < 0) return CV_RHSFUNC_FAIL;
+      if (retval > 0) return RHSFUNC_RECVR;
       for (let i = 0; i < N; i++)
         mem.cv_tempv[i] = mem.cv_h * mem.cv_tempv[i] - mem.cv_zn[1][i];
       const newAcor = mem.cv_vtemp1;
       vScale(mem.cv_rl1, mem.cv_tempv, newAcor, N);
       const delta = mem.cv_tempv;
-      for (let i = 0; i < N; i++)
-        delta[i] = newAcor[i] - mem.cv_acor[i];
-      for (let i = 0; i < N; i++)
-        mem.cv_acor[i] = newAcor[i];
+      for (let i = 0; i < N; i++) delta[i] = newAcor[i] - mem.cv_acor[i];
+      for (let i = 0; i < N; i++) mem.cv_acor[i] = newAcor[i];
       const del = wrmsNorm(N, delta, mem.cv_ewt);
       const convTestResult = cvNlsConvTest(mem, del, m, mem.cv_tq[4]);
-      if (convTestResult === CV_SUCCESS)
-        return CV_SUCCESS;
+      if (convTestResult === CV_SUCCESS) return CV_SUCCESS;
       if (convTestResult === SUN_NLS_CONV_RECVR) {
         mem.cv_nnf++;
         return SUN_NLS_CONV_RECVR;
@@ -2886,17 +2748,14 @@ function ds(pts) {
   function cvNlsConvTest(mem, del, m, tol) {
     if (m > 0)
       mem.cv_crate = Math.max(CRDOWN * mem.cv_crate, del / mem.cv_delp);
-    const dcon = del * Math.min(1, mem.cv_crate) / tol;
+    const dcon = (del * Math.min(1, mem.cv_crate)) / tol;
     if (dcon <= 1) {
-      if (m === 0)
-        mem.cv_acnrm = del;
-      else
-        mem.cv_acnrm = wrmsNorm(mem.cv_N, mem.cv_acor, mem.cv_ewt);
+      if (m === 0) mem.cv_acnrm = del;
+      else mem.cv_acnrm = wrmsNorm(mem.cv_N, mem.cv_acor, mem.cv_ewt);
       mem.cv_acnrmcur = true;
       return CV_SUCCESS;
     }
-    if (m >= 1 && del > RDIV * mem.cv_delp)
-      return SUN_NLS_CONV_RECVR;
+    if (m >= 1 && del > RDIV * mem.cv_delp) return SUN_NLS_CONV_RECVR;
     mem.cv_delp = del;
     return SUN_NLS_CONTINUE;
   }
@@ -2930,14 +2789,17 @@ function ds(pts) {
   function cvRcheck1(mem) {
     const nrtfn = mem.cv_nrtfn;
     const N = mem.cv_N;
-    for (let i = 0; i < nrtfn; i++)
-      mem.cv_iroots[i] = 0;
+    for (let i = 0; i < nrtfn; i++) mem.cv_iroots[i] = 0;
     mem.cv_tlo = mem.cv_tn;
     mem.cv_ttol = (Math.abs(mem.cv_tn) + Math.abs(mem.cv_h)) * UROUND * HUNDRED;
-    const retval = mem.cv_gfun(mem.cv_tlo, mem.cv_zn[0], mem.cv_glo, mem.cv_user_data);
+    const retval = mem.cv_gfun(
+      mem.cv_tlo,
+      mem.cv_zn[0],
+      mem.cv_glo,
+      mem.cv_user_data,
+    );
     mem.cv_nge = 1;
-    if (retval !== 0)
-      return CV_RTFUNC_FAIL;
+    if (retval !== 0) return CV_RTFUNC_FAIL;
     let zroot = false;
     for (let i = 0; i < nrtfn; i++) {
       if (Math.abs(mem.cv_glo[i]) === ZERO) {
@@ -2945,16 +2807,14 @@ function ds(pts) {
         mem.cv_gactive[i] = 0;
       }
     }
-    if (!zroot)
-      return CV_SUCCESS;
+    if (!zroot) return CV_SUCCESS;
     const hratio = Math.max(mem.cv_ttol / Math.abs(mem.cv_h), PT1);
     const smallh = hratio * mem.cv_h;
     const tplus = mem.cv_tlo + smallh;
     vLinearSum(ONE, mem.cv_zn[0], hratio, mem.cv_zn[1], mem.cv_y, N);
     const retval2 = mem.cv_gfun(tplus, mem.cv_y, mem.cv_ghi, mem.cv_user_data);
     mem.cv_nge++;
-    if (retval2 !== 0)
-      return CV_RTFUNC_FAIL;
+    if (retval2 !== 0) return CV_RTFUNC_FAIL;
     for (let i = 0; i < nrtfn; i++) {
       if (mem.cv_gactive[i] === 0 && Math.abs(mem.cv_ghi[i]) !== ZERO) {
         mem.cv_gactive[i] = 1;
@@ -2966,54 +2826,48 @@ function ds(pts) {
   function cvRcheck2(mem) {
     const nrtfn = mem.cv_nrtfn;
     const N = mem.cv_N;
-    if (mem.cv_irfnd === 0)
-      return CV_SUCCESS;
+    if (mem.cv_irfnd === 0) return CV_SUCCESS;
     cvodeGetDky(mem, mem.cv_tlo, 0, mem.cv_y);
-    let retval = mem.cv_gfun(mem.cv_tlo, mem.cv_y, mem.cv_glo, mem.cv_user_data);
+    let retval = mem.cv_gfun(
+      mem.cv_tlo,
+      mem.cv_y,
+      mem.cv_glo,
+      mem.cv_user_data,
+    );
     mem.cv_nge++;
-    if (retval !== 0)
-      return CV_RTFUNC_FAIL;
+    if (retval !== 0) return CV_RTFUNC_FAIL;
     let zroot = false;
-    for (let i = 0; i < nrtfn; i++)
-      mem.cv_iroots[i] = 0;
+    for (let i = 0; i < nrtfn; i++) mem.cv_iroots[i] = 0;
     for (let i = 0; i < nrtfn; i++) {
-      if (mem.cv_gactive[i] === 0)
-        continue;
+      if (mem.cv_gactive[i] === 0) continue;
       if (Math.abs(mem.cv_glo[i]) === ZERO) {
         zroot = true;
         mem.cv_iroots[i] = 1;
       }
     }
-    if (!zroot)
-      return CV_SUCCESS;
+    if (!zroot) return CV_SUCCESS;
     mem.cv_ttol = (Math.abs(mem.cv_tn) + Math.abs(mem.cv_h)) * UROUND * HUNDRED;
     const smallh = mem.cv_h > ZERO ? mem.cv_ttol : -mem.cv_ttol;
     const tplus = mem.cv_tlo + smallh;
     if ((tplus - mem.cv_tn) * mem.cv_h >= ZERO) {
       const hratio = smallh / mem.cv_h;
       vLinearSum(ONE, mem.cv_y, hratio, mem.cv_zn[1], mem.cv_y, N);
-    } else
-      cvodeGetDky(mem, tplus, 0, mem.cv_y);
+    } else cvodeGetDky(mem, tplus, 0, mem.cv_y);
     retval = mem.cv_gfun(tplus, mem.cv_y, mem.cv_ghi, mem.cv_user_data);
     mem.cv_nge++;
-    if (retval !== 0)
-      return CV_RTFUNC_FAIL;
+    if (retval !== 0) return CV_RTFUNC_FAIL;
     zroot = false;
     for (let i = 0; i < nrtfn; i++) {
-      if (mem.cv_gactive[i] === 0)
-        continue;
+      if (mem.cv_gactive[i] === 0) continue;
       if (Math.abs(mem.cv_ghi[i]) === ZERO) {
-        if (mem.cv_iroots[i] === 1)
-          return CLOSERT;
+        if (mem.cv_iroots[i] === 1) return CLOSERT;
         zroot = true;
         mem.cv_iroots[i] = 1;
       } else {
-        if (mem.cv_iroots[i] === 1)
-          mem.cv_glo[i] = mem.cv_ghi[i];
+        if (mem.cv_iroots[i] === 1) mem.cv_glo[i] = mem.cv_ghi[i];
       }
     }
-    if (zroot)
-      return RTFOUND;
+    if (zroot) return RTFOUND;
     return CV_SUCCESS;
   }
   function cvRcheck3(mem) {
@@ -3032,23 +2886,24 @@ function ds(pts) {
         cvodeGetDky(mem, mem.cv_thi, 0, mem.cv_y);
       }
     }
-    const retval = mem.cv_gfun(mem.cv_thi, mem.cv_y, mem.cv_ghi, mem.cv_user_data);
+    const retval = mem.cv_gfun(
+      mem.cv_thi,
+      mem.cv_y,
+      mem.cv_ghi,
+      mem.cv_user_data,
+    );
     mem.cv_nge++;
-    if (retval !== 0)
-      return CV_RTFUNC_FAIL;
+    if (retval !== 0) return CV_RTFUNC_FAIL;
     mem.cv_ttol = (Math.abs(mem.cv_tn) + Math.abs(mem.cv_h)) * UROUND * HUNDRED;
     const ier = cvRootfind(mem);
-    if (ier === CV_RTFUNC_FAIL)
-      return CV_RTFUNC_FAIL;
+    if (ier === CV_RTFUNC_FAIL) return CV_RTFUNC_FAIL;
     for (let i = 0; i < nrtfn; i++) {
       if (mem.cv_gactive[i] === 0 && mem.cv_grout[i] !== ZERO)
         mem.cv_gactive[i] = 1;
     }
     mem.cv_tlo = mem.cv_trout;
-    for (let i = 0; i < nrtfn; i++)
-      mem.cv_glo[i] = mem.cv_grout[i];
-    if (ier === CV_SUCCESS)
-      return CV_SUCCESS;
+    for (let i = 0; i < nrtfn; i++) mem.cv_glo[i] = mem.cv_grout[i];
+    if (ier === CV_SUCCESS) return CV_SUCCESS;
     cvodeGetDky(mem, mem.cv_trout, 0, mem.cv_y);
     return RTFOUND;
   }
@@ -3065,13 +2920,14 @@ function ds(pts) {
     let zroot = false;
     let sgnchg = false;
     for (let i = 0; i < nrtfn; i++) {
-      if (mem.cv_gactive[i] === 0)
-        continue;
+      if (mem.cv_gactive[i] === 0) continue;
       if (Math.abs(mem.cv_ghi[i]) === ZERO) {
-        if (mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO)
-          zroot = true;
+        if (mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO) zroot = true;
       } else {
-        if (mem.cv_glo[i] * mem.cv_ghi[i] < 0 && mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO) {
+        if (
+          mem.cv_glo[i] * mem.cv_ghi[i] < 0 &&
+          mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO
+        ) {
           gfrac = Math.abs(mem.cv_ghi[i] / (mem.cv_ghi[i] - mem.cv_glo[i]));
           if (gfrac > maxfrac) {
             sgnchg = true;
@@ -3083,15 +2939,15 @@ function ds(pts) {
     }
     if (!sgnchg) {
       mem.cv_trout = mem.cv_thi;
-      for (let i = 0; i < nrtfn; i++)
-        mem.cv_grout[i] = mem.cv_ghi[i];
-      if (!zroot)
-        return CV_SUCCESS;
+      for (let i = 0; i < nrtfn; i++) mem.cv_grout[i] = mem.cv_ghi[i];
+      if (!zroot) return CV_SUCCESS;
       for (let i = 0; i < nrtfn; i++) {
         mem.cv_iroots[i] = 0;
-        if (mem.cv_gactive[i] === 0)
-          continue;
-        if (Math.abs(mem.cv_ghi[i]) === ZERO && mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO)
+        if (mem.cv_gactive[i] === 0) continue;
+        if (
+          Math.abs(mem.cv_ghi[i]) === ZERO &&
+          mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO
+        )
           mem.cv_iroots[i] = mem.cv_glo[i] > 0 ? -1 : 1;
       }
       return RTFOUND;
@@ -3099,14 +2955,14 @@ function ds(pts) {
     alph = ONE;
     let side = 0;
     let sideprev = -1;
-    for (; ; ) {
-      if (Math.abs(mem.cv_thi - mem.cv_tlo) <= mem.cv_ttol)
-        break;
-      if (sideprev === side)
-        alph = side === 2 ? alph * TWO : alph * HALF;
-      else
-        alph = ONE;
-      tmid = mem.cv_thi - (mem.cv_thi - mem.cv_tlo) * mem.cv_ghi[imax] / (mem.cv_ghi[imax] - alph * mem.cv_glo[imax]);
+    for (;;) {
+      if (Math.abs(mem.cv_thi - mem.cv_tlo) <= mem.cv_ttol) break;
+      if (sideprev === side) alph = side === 2 ? alph * TWO : alph * HALF;
+      else alph = ONE;
+      tmid =
+        mem.cv_thi -
+        ((mem.cv_thi - mem.cv_tlo) * mem.cv_ghi[imax]) /
+          (mem.cv_ghi[imax] - alph * mem.cv_glo[imax]);
       if (Math.abs(tmid - mem.cv_tlo) < HALF * mem.cv_ttol) {
         fracint = Math.abs(mem.cv_thi - mem.cv_tlo) / mem.cv_ttol;
         fracsub = fracint > FIVE ? PT1 : HALF / fracint;
@@ -3118,23 +2974,30 @@ function ds(pts) {
         tmid = mem.cv_thi - fracsub * (mem.cv_thi - mem.cv_tlo);
       }
       cvodeGetDky(mem, tmid, 0, mem.cv_y);
-      const retval = mem.cv_gfun(tmid, mem.cv_y, mem.cv_grout, mem.cv_user_data);
+      const retval = mem.cv_gfun(
+        tmid,
+        mem.cv_y,
+        mem.cv_grout,
+        mem.cv_user_data,
+      );
       mem.cv_nge++;
-      if (retval !== 0)
-        return CV_RTFUNC_FAIL;
+      if (retval !== 0) return CV_RTFUNC_FAIL;
       maxfrac = ZERO;
       zroot = false;
       sgnchg = false;
       sideprev = side;
       for (let i = 0; i < nrtfn; i++) {
-        if (mem.cv_gactive[i] === 0)
-          continue;
+        if (mem.cv_gactive[i] === 0) continue;
         if (Math.abs(mem.cv_grout[i]) === ZERO) {
-          if (mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO)
-            zroot = true;
+          if (mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO) zroot = true;
         } else {
-          if (mem.cv_glo[i] * mem.cv_grout[i] < 0 && mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO) {
-            gfrac = Math.abs(mem.cv_grout[i] / (mem.cv_grout[i] - mem.cv_glo[i]));
+          if (
+            mem.cv_glo[i] * mem.cv_grout[i] < 0 &&
+            mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO
+          ) {
+            gfrac = Math.abs(
+              mem.cv_grout[i] / (mem.cv_grout[i] - mem.cv_glo[i]),
+            );
             if (gfrac > maxfrac) {
               sgnchg = true;
               maxfrac = gfrac;
@@ -3145,35 +3008,35 @@ function ds(pts) {
       }
       if (sgnchg) {
         mem.cv_thi = tmid;
-        for (let i = 0; i < nrtfn; i++)
-          mem.cv_ghi[i] = mem.cv_grout[i];
+        for (let i = 0; i < nrtfn; i++) mem.cv_ghi[i] = mem.cv_grout[i];
         side = 1;
-        if (Math.abs(mem.cv_thi - mem.cv_tlo) <= mem.cv_ttol)
-          break;
+        if (Math.abs(mem.cv_thi - mem.cv_tlo) <= mem.cv_ttol) break;
         continue;
       }
       if (zroot) {
         mem.cv_thi = tmid;
-        for (let i = 0; i < nrtfn; i++)
-          mem.cv_ghi[i] = mem.cv_grout[i];
+        for (let i = 0; i < nrtfn; i++) mem.cv_ghi[i] = mem.cv_grout[i];
         break;
       }
       mem.cv_tlo = tmid;
-      for (let i = 0; i < nrtfn; i++)
-        mem.cv_glo[i] = mem.cv_grout[i];
+      for (let i = 0; i < nrtfn; i++) mem.cv_glo[i] = mem.cv_grout[i];
       side = 2;
-      if (Math.abs(mem.cv_thi - mem.cv_tlo) <= mem.cv_ttol)
-        break;
+      if (Math.abs(mem.cv_thi - mem.cv_tlo) <= mem.cv_ttol) break;
     }
     mem.cv_trout = mem.cv_thi;
     for (let i = 0; i < nrtfn; i++) {
       mem.cv_grout[i] = mem.cv_ghi[i];
       mem.cv_iroots[i] = 0;
-      if (mem.cv_gactive[i] === 0)
-        continue;
-      if (Math.abs(mem.cv_ghi[i]) === ZERO && mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO)
+      if (mem.cv_gactive[i] === 0) continue;
+      if (
+        Math.abs(mem.cv_ghi[i]) === ZERO &&
+        mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO
+      )
         mem.cv_iroots[i] = mem.cv_glo[i] > 0 ? -1 : 1;
-      if (mem.cv_glo[i] * mem.cv_ghi[i] < 0 && mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO)
+      if (
+        mem.cv_glo[i] * mem.cv_ghi[i] < 0 &&
+        mem.cv_rootdir[i] * mem.cv_glo[i] <= ZERO
+      )
         mem.cv_iroots[i] = mem.cv_glo[i] > 0 ? -1 : 1;
     }
     return RTFOUND;
@@ -3189,8 +3052,7 @@ function ds(pts) {
     mem.cv_qmax = maxord;
     mem.cv_qmax_alloc = maxord;
     mem.cv_ssdat = [];
-    for (let i = 0; i < 6; i++)
-      mem.cv_ssdat[i] = [0, 0, 0, 0];
+    for (let i = 0; i < 6; i++) mem.cv_ssdat[i] = [0, 0, 0, 0];
     mem.cv_nlscoef = CORTES;
     return mem;
   }
@@ -3201,8 +3063,7 @@ function ds(pts) {
     const N = mem.cv_N;
     const allocQ = mem.cv_qmax_alloc;
     mem.cv_zn = [];
-    for (let i = 0; i <= allocQ + 1; i++)
-      mem.cv_zn[i] = new Float64Array(N);
+    for (let i = 0; i <= allocQ + 1; i++) mem.cv_zn[i] = new Float64Array(N);
     mem.cv_ewt = new Float64Array(N);
     mem.cv_acor = new Float64Array(N);
     mem.cv_tempv = new Float64Array(N);
@@ -3236,8 +3097,7 @@ function ds(pts) {
     mem.cv_next_q = 0;
     mem.cv_nor = 0;
     mem.cv_ssdat = [];
-    for (let i = 0; i < 6; i++)
-      mem.cv_ssdat[i] = [0, 0, 0, 0];
+    for (let i = 0; i < 6; i++) mem.cv_ssdat[i] = [0, 0, 0, 0];
     mem.cv_indx_acor = mem.cv_qmax_alloc;
     mem.cv_MallocDone = true;
     return CV_SUCCESS;
@@ -3250,20 +3110,21 @@ function ds(pts) {
     let tret = mem.cv_tn;
     if (itask !== CV_NORMAL && itask !== CV_ONE_STEP)
       return { flag: -99, t: mem.cv_tn };
-    if (itask === CV_NORMAL)
-      mem.cv_toutc = tout;
+    if (itask === CV_NORMAL) mem.cv_toutc = tout;
     mem.cv_taskc = itask;
     if (mem.cv_nst === 0) {
       mem.cv_tretlast = tret = mem.cv_tn;
       ier = cvInitialSetup(mem);
-      if (ier !== CV_SUCCESS)
-        return { flag: ier, t: tret };
-      retval = mem.cv_f(mem.cv_tn, mem.cv_zn[0], mem.cv_zn[1], mem.cv_user_data);
+      if (ier !== CV_SUCCESS) return { flag: ier, t: tret };
+      retval = mem.cv_f(
+        mem.cv_tn,
+        mem.cv_zn[0],
+        mem.cv_zn[1],
+        mem.cv_user_data,
+      );
       mem.cv_nfe++;
-      if (retval < 0)
-        return { flag: CV_RHSFUNC_FAIL, t: tret };
-      if (retval > 0)
-        return { flag: CV_FIRST_RHSFUNC_ERR, t: tret };
+      if (retval < 0) return { flag: CV_RHSFUNC_FAIL, t: tret };
+      if (retval > 0) return { flag: CV_FIRST_RHSFUNC_ERR, t: tret };
       if (mem.cv_tstopset) {
         if ((mem.cv_tstop - mem.cv_tn) * (tout - mem.cv_tn) <= 0)
           return { flag: -99, t: tret };
@@ -3282,8 +3143,7 @@ function ds(pts) {
         }
       }
       const rh = Math.abs(mem.cv_h) * mem.cv_hmax_inv;
-      if (rh > 1)
-        mem.cv_h /= rh;
+      if (rh > 1) mem.cv_h /= rh;
       if (Math.abs(mem.cv_h) < mem.cv_hmin)
         mem.cv_h *= mem.cv_hmin / Math.abs(mem.cv_h);
       if (mem.cv_tstopset) {
@@ -3296,17 +3156,16 @@ function ds(pts) {
       vScale(mem.cv_h, mem.cv_zn[1], mem.cv_zn[1], mem.cv_N);
       if (mem.cv_nrtfn > 0) {
         retval = cvRcheck1(mem);
-        if (retval === CV_RTFUNC_FAIL)
-          return { flag: CV_RTFUNC_FAIL, t: tret };
+        if (retval === CV_RTFUNC_FAIL) return { flag: CV_RTFUNC_FAIL, t: tret };
       }
     }
     if (mem.cv_nst > 0) {
-      troundoff = FUZZ_FACTOR * UROUND * (Math.abs(mem.cv_tn) + Math.abs(mem.cv_h));
+      troundoff =
+        FUZZ_FACTOR * UROUND * (Math.abs(mem.cv_tn) + Math.abs(mem.cv_h));
       if (mem.cv_nrtfn > 0) {
         const irfndp = mem.cv_irfnd;
         retval = cvRcheck2(mem);
-        if (retval === CLOSERT)
-          return { flag: -99, t: mem.cv_tlo };
+        if (retval === CLOSERT) return { flag: -99, t: mem.cv_tlo };
         else if (retval === CV_RTFUNC_FAIL)
           return { flag: CV_RTFUNC_FAIL, t: mem.cv_tlo };
         else if (retval === RTFOUND) {
@@ -3332,11 +3191,12 @@ function ds(pts) {
       }
       if (mem.cv_tstopset) {
         if (Math.abs(mem.cv_tn - mem.cv_tstop) <= troundoff) {
-          if ((tout - mem.cv_tstop) * mem.cv_h >= 0 || Math.abs(tout - mem.cv_tstop) <= troundoff) {
-            if (mem.cv_tstopinterp)
-              cvodeGetDky(mem, mem.cv_tstop, 0, yout);
-            else
-              yout.set(mem.cv_zn[0]);
+          if (
+            (tout - mem.cv_tstop) * mem.cv_h >= 0 ||
+            Math.abs(tout - mem.cv_tstop) <= troundoff
+          ) {
+            if (mem.cv_tstopinterp) cvodeGetDky(mem, mem.cv_tstop, 0, yout);
+            else yout.set(mem.cv_zn[0]);
             mem.cv_tretlast = tret = mem.cv_tstop;
             mem.cv_tstopset = false;
             return { flag: CV_TSTOP_RETURN, t: tret };
@@ -3351,7 +3211,10 @@ function ds(pts) {
         cvodeGetDky(mem, tout, 0, yout);
         return { flag: CV_SUCCESS, t: tret };
       }
-      if (itask === CV_ONE_STEP && Math.abs(mem.cv_tn - mem.cv_tretlast) > troundoff) {
+      if (
+        itask === CV_ONE_STEP &&
+        Math.abs(mem.cv_tn - mem.cv_tretlast) > troundoff
+      ) {
         mem.cv_tretlast = tret = mem.cv_tn;
         yout.set(mem.cv_zn[0]);
         return { flag: CV_SUCCESS, t: tret };
@@ -3359,7 +3222,7 @@ function ds(pts) {
     }
     let nstloc = 0;
     istate = CV_SUCCESS;
-    for (; ; ) {
+    for (;;) {
       mem.cv_next_h = mem.cv_h;
       mem.cv_next_q = mem.cv_q;
       if (mem.cv_nst > 0) {
@@ -3385,10 +3248,8 @@ function ds(pts) {
         yout.set(mem.cv_zn[0]);
         mem.cv_tolsf *= 2;
         break;
-      } else
-        mem.cv_tolsf = 1;
-      if (mem.cv_tn + mem.cv_h === mem.cv_tn)
-        mem.cv_nhnil++;
+      } else mem.cv_tolsf = 1;
+      if (mem.cv_tn + mem.cv_h === mem.cv_tn) mem.cv_nhnil++;
       const kflag = cvStep(mem);
       if (kflag !== CV_SUCCESS) {
         istate = cvHandleFailure(mem, kflag);
@@ -3398,7 +3259,8 @@ function ds(pts) {
       }
       nstloc++;
       if (mem.cv_tstopset) {
-        troundoff = FUZZ_FACTOR * UROUND * (Math.abs(mem.cv_tn) + Math.abs(mem.cv_h));
+        troundoff =
+          FUZZ_FACTOR * UROUND * (Math.abs(mem.cv_tn) + Math.abs(mem.cv_h));
         if (Math.abs(mem.cv_tn - mem.cv_tstop) <= troundoff)
           mem.cv_tn = mem.cv_tstop;
       }
@@ -3415,13 +3277,15 @@ function ds(pts) {
         }
       }
       if (mem.cv_tstopset) {
-        troundoff = FUZZ_FACTOR * UROUND * (Math.abs(mem.cv_tn) + Math.abs(mem.cv_h));
+        troundoff =
+          FUZZ_FACTOR * UROUND * (Math.abs(mem.cv_tn) + Math.abs(mem.cv_h));
         if (Math.abs(mem.cv_tn - mem.cv_tstop) <= troundoff) {
-          if ((tout - mem.cv_tstop) * mem.cv_h >= 0 || Math.abs(tout - mem.cv_tstop) <= troundoff) {
-            if (mem.cv_tstopinterp)
-              cvodeGetDky(mem, mem.cv_tstop, 0, yout);
-            else
-              yout.set(mem.cv_zn[0]);
+          if (
+            (tout - mem.cv_tstop) * mem.cv_h >= 0 ||
+            Math.abs(tout - mem.cv_tstop) <= troundoff
+          ) {
+            if (mem.cv_tstopinterp) cvodeGetDky(mem, mem.cv_tstop, 0, yout);
+            else yout.set(mem.cv_zn[0]);
             mem.cv_tretlast = tret = mem.cv_tstop;
             mem.cv_tstopset = false;
             istate = CV_TSTOP_RETURN;
@@ -3488,8 +3352,7 @@ function ds(pts) {
     const ewt = mem.cv_ewt;
     for (let i = 0; i < N; i++) {
       const tol = rtol * Math.abs(y[i]) + atol;
-      if (mem.cv_atolmin0 && tol <= 0)
-        return -1;
+      if (mem.cv_atolmin0 && tol <= 0) return -1;
       ewt[i] = 1 / tol;
     }
     return 0;
@@ -3502,8 +3365,7 @@ function ds(pts) {
     const ewt = mem.cv_ewt;
     for (let i = 0; i < N; i++) {
       const tol = rtol * Math.abs(y[i]) + vatol[i];
-      if (mem.cv_atolmin0 && tol <= 0)
-        return -1;
+      if (mem.cv_atolmin0 && tol <= 0) return -1;
       ewt[i] = 1 / tol;
     }
     return 0;
@@ -3515,11 +3377,10 @@ function ds(pts) {
     let nflag;
     let kflag;
     let eflag;
-    if (mem.cv_nst > 0 && mem.cv_hprime !== mem.cv_h)
-      cvAdjustParams(mem);
+    if (mem.cv_nst > 0 && mem.cv_hprime !== mem.cv_h) cvAdjustParams(mem);
     const saved_t = mem.cv_tn;
     nflag = FIRST_CALL;
-    for (; ; ) {
+    for (;;) {
       cvPredict(mem);
       cvSet(mem);
       nflag = cvNls(mem, nflag);
@@ -3528,10 +3389,8 @@ function ds(pts) {
       kflag = cvHandleNFlag(mem, nflagRef, saved_t, ncfRef);
       nflag = nflagRef.value;
       ncf = ncfRef.value;
-      if (kflag === PREDICT_AGAIN)
-        continue;
-      if (kflag !== DO_ERROR_TEST)
-        return kflag;
+      if (kflag === PREDICT_AGAIN) continue;
+      if (kflag !== DO_ERROR_TEST) return kflag;
       const nflagRef2 = { value: nflag };
       const nefRef = { value: nef };
       const dsmRef = { value: dsm };
@@ -3539,17 +3398,15 @@ function ds(pts) {
       nflag = nflagRef2.value;
       nef = nefRef.value;
       dsm = dsmRef.value;
-      if (eflag === TRY_AGAIN)
-        continue;
-      if (eflag !== CV_SUCCESS)
-        return eflag;
+      if (eflag === TRY_AGAIN) continue;
+      if (eflag !== CV_SUCCESS) return eflag;
       break;
     }
     cvCompleteStep(mem);
     cvPrepareNextStep(mem, dsm);
-    if (mem.cv_sldeton)
-      cvBDFStab(mem);
-    mem.cv_etamax = mem.cv_nst <= mem.cv_small_nst ? mem.cv_eta_max_es : mem.cv_eta_max_gs;
+    if (mem.cv_sldeton) cvBDFStab(mem);
+    mem.cv_etamax =
+      mem.cv_nst <= mem.cv_small_nst ? mem.cv_eta_max_es : mem.cv_eta_max_gs;
     vScale(mem.cv_tq[2], mem.cv_acor, mem.cv_acor, mem.cv_N);
     return CV_SUCCESS;
   }
@@ -3564,15 +3421,11 @@ function ds(pts) {
     cvRescale(mem);
   }
   function cvAdjustOrder(mem, deltaq) {
-    if (mem.cv_q === 2 && deltaq !== 1)
-      return;
-    if (mem.cv_lmm === CV_ADAMS)
-      cvAdjustAdams(mem, deltaq);
+    if (mem.cv_q === 2 && deltaq !== 1) return;
+    if (mem.cv_lmm === CV_ADAMS) cvAdjustAdams(mem, deltaq);
     else if (mem.cv_lmm === CV_BDF) {
-      if (deltaq === 1)
-        cvIncreaseBDF(mem);
-      else if (deltaq === -1)
-        cvDecreaseBDF(mem);
+      if (deltaq === 1) cvIncreaseBDF(mem);
+      else if (deltaq === -1) cvDecreaseBDF(mem);
     }
   }
   function cvRescale(mem) {
@@ -3580,8 +3433,7 @@ function ds(pts) {
     let factor = mem.cv_eta;
     for (let j = 1; j <= mem.cv_q; j++) {
       const znj = mem.cv_zn[j];
-      for (let i = 0; i < N; i++)
-        znj[i] *= factor;
+      for (let i = 0; i < N; i++) znj[i] *= factor;
       factor *= mem.cv_eta;
     }
     mem.cv_h = mem.cv_hscale * mem.cv_eta;
@@ -3593,52 +3445,43 @@ function ds(pts) {
     const N = mem.cv_N;
     mem.cv_tn += mem.cv_h;
     if (mem.cv_tstopset) {
-      if ((mem.cv_tn - mem.cv_tstop) * mem.cv_h > 0)
-        mem.cv_tn = mem.cv_tstop;
+      if ((mem.cv_tn - mem.cv_tstop) * mem.cv_h > 0) mem.cv_tn = mem.cv_tstop;
     }
     for (let k = 1; k <= mem.cv_q; k++) {
       for (let j = mem.cv_q; j >= k; j--) {
         const znjm1 = mem.cv_zn[j - 1];
         const znj = mem.cv_zn[j];
-        for (let i = 0; i < N; i++)
-          znjm1[i] += znj[i];
+        for (let i = 0; i < N; i++) znjm1[i] += znj[i];
       }
     }
   }
   function cvSet(mem) {
-    if (mem.cv_lmm === CV_ADAMS)
-      cvSetAdams(mem);
-    else
-      cvSetBDF(mem);
+    if (mem.cv_lmm === CV_ADAMS) cvSetAdams(mem);
+    else cvSetBDF(mem);
     mem.cv_rl1 = 1 / mem.cv_l[1];
     mem.cv_gamma = mem.cv_h * mem.cv_rl1;
-    if (mem.cv_nst === 0)
-      mem.cv_gammap = mem.cv_gamma;
+    if (mem.cv_nst === 0) mem.cv_gammap = mem.cv_gamma;
     mem.cv_gamrat = mem.cv_nst > 0 ? mem.cv_gamma / mem.cv_gammap : 1;
   }
   function cvHandleNFlag(mem, nflagRef, saved_t, ncfRef) {
     const nflag = nflagRef.value;
-    if (nflag === CV_SUCCESS)
-      return DO_ERROR_TEST;
+    if (nflag === CV_SUCCESS) return DO_ERROR_TEST;
     mem.cv_ncfn++;
     cvRestore(mem, saved_t);
     if (nflag < 0) {
-      if (nflag === CV_LSETUP_FAIL)
-        return CV_LSETUP_FAIL;
-      else if (nflag === CV_LSOLVE_FAIL)
-        return CV_LSOLVE_FAIL;
-      else if (nflag === CV_RHSFUNC_FAIL)
-        return CV_RHSFUNC_FAIL;
-      else
-        return CV_NLS_FAIL;
+      if (nflag === CV_LSETUP_FAIL) return CV_LSETUP_FAIL;
+      else if (nflag === CV_LSOLVE_FAIL) return CV_LSOLVE_FAIL;
+      else if (nflag === CV_RHSFUNC_FAIL) return CV_RHSFUNC_FAIL;
+      else return CV_NLS_FAIL;
     }
     ncfRef.value++;
     mem.cv_etamax = 1;
-    if (Math.abs(mem.cv_h) <= mem.cv_hmin * ONEPSM || ncfRef.value === mem.cv_maxncf) {
-      if (nflag === SUN_NLS_CONV_RECVR)
-        return CV_CONV_FAILURE;
-      if (nflag === RHSFUNC_RECVR)
-        return CV_REPTD_RHSFUNC_ERR;
+    if (
+      Math.abs(mem.cv_h) <= mem.cv_hmin * ONEPSM ||
+      ncfRef.value === mem.cv_maxncf
+    ) {
+      if (nflag === SUN_NLS_CONV_RECVR) return CV_CONV_FAILURE;
+      if (nflag === RHSFUNC_RECVR) return CV_REPTD_RHSFUNC_ERR;
     }
     mem.cv_eta = Math.max(mem.cv_eta_cf, mem.cv_hmin / Math.abs(mem.cv_h));
     nflagRef.value = PREV_CONV_FAIL;
@@ -3652,33 +3495,40 @@ function ds(pts) {
       for (let j = mem.cv_q; j >= k; j--) {
         const znjm1 = mem.cv_zn[j - 1];
         const znj = mem.cv_zn[j];
-        for (let i = 0; i < N; i++)
-          znjm1[i] -= znj[i];
+        for (let i = 0; i < N; i++) znjm1[i] -= znj[i];
       }
     }
   }
   function cvDoErrorTest(mem, nflagRef, saved_t, nefRef, dsmRef) {
     const dsm = mem.cv_acnrm * mem.cv_tq[2];
     dsmRef.value = dsm;
-    if (dsm <= 1)
-      return CV_SUCCESS;
+    if (dsm <= 1) return CV_SUCCESS;
     nefRef.value++;
     mem.cv_netf++;
     nflagRef.value = PREV_ERR_FAIL;
     cvRestore(mem, saved_t);
-    if (Math.abs(mem.cv_h) <= mem.cv_hmin * ONEPSM || nefRef.value === mem.cv_maxnef)
+    if (
+      Math.abs(mem.cv_h) <= mem.cv_hmin * ONEPSM ||
+      nefRef.value === mem.cv_maxnef
+    )
       return CV_ERR_FAILURE;
     mem.cv_etamax = 1;
     if (nefRef.value <= MXNEF1) {
       mem.cv_eta = 1 / (Math.pow(BIAS2 * dsm, 1 / mem.cv_L) + ADDON);
-      mem.cv_eta = Math.max(mem.cv_eta_min_ef, Math.max(mem.cv_eta, mem.cv_hmin / Math.abs(mem.cv_h)));
+      mem.cv_eta = Math.max(
+        mem.cv_eta_min_ef,
+        Math.max(mem.cv_eta, mem.cv_hmin / Math.abs(mem.cv_h)),
+      );
       if (nefRef.value >= mem.cv_small_nef)
         mem.cv_eta = Math.min(mem.cv_eta, mem.cv_eta_max_ef);
       cvRescale(mem);
       return TRY_AGAIN;
     }
     if (mem.cv_q > 1) {
-      mem.cv_eta = Math.max(mem.cv_eta_min_ef, mem.cv_hmin / Math.abs(mem.cv_h));
+      mem.cv_eta = Math.max(
+        mem.cv_eta_min_ef,
+        mem.cv_hmin / Math.abs(mem.cv_h),
+      );
       cvAdjustOrder(mem, -1);
       mem.cv_L = mem.cv_q;
       mem.cv_q--;
@@ -3692,12 +3542,15 @@ function ds(pts) {
     mem.cv_hscale = mem.cv_h;
     mem.cv_qwait = LONG_WAIT;
     mem.cv_nscon = 0;
-    const retval = mem.cv_f(mem.cv_tn, mem.cv_zn[0], mem.cv_tempv, mem.cv_user_data);
+    const retval = mem.cv_f(
+      mem.cv_tn,
+      mem.cv_zn[0],
+      mem.cv_tempv,
+      mem.cv_user_data,
+    );
     mem.cv_nfe++;
-    if (retval < 0)
-      return CV_RHSFUNC_FAIL;
-    if (retval > 0)
-      return CV_UNREC_RHSFUNC_ERR;
+    if (retval < 0) return CV_RHSFUNC_FAIL;
+    if (retval > 0) return CV_UNREC_RHSFUNC_ERR;
     vScale(mem.cv_h, mem.cv_tempv, mem.cv_zn[1], mem.cv_N);
     return TRY_AGAIN;
   }
@@ -3708,17 +3561,14 @@ function ds(pts) {
     mem.cv_hu = mem.cv_h;
     mem.cv_qu = mem.cv_q;
     mem.first_step_after_resize = false;
-    for (let i = mem.cv_q; i >= 2; i--)
-      mem.cv_tau[i] = mem.cv_tau[i - 1];
-    if (mem.cv_q === 1 && mem.cv_nst > 1)
-      mem.cv_tau[2] = mem.cv_tau[1];
+    for (let i = mem.cv_q; i >= 2; i--) mem.cv_tau[i] = mem.cv_tau[i - 1];
+    if (mem.cv_q === 1 && mem.cv_nst > 1) mem.cv_tau[2] = mem.cv_tau[1];
     mem.cv_tau[1] = mem.cv_h;
     for (let j = 0; j <= mem.cv_q; j++) {
       const lj = mem.cv_l[j];
       const znj = mem.cv_zn[j];
       const acor = mem.cv_acor;
-      for (let i = 0; i < N; i++)
-        znj[i] += lj * acor[i];
+      for (let i = 0; i < N; i++) znj[i] += lj * acor[i];
     }
     mem.cv_qwait--;
     if (mem.cv_qwait === 1 && mem.cv_q !== mem.cv_qmax) {
@@ -3755,20 +3605,23 @@ function ds(pts) {
     } else {
       if (mem.cv_eta >= mem.cv_eta_max_fx) {
         mem.cv_eta = Math.min(mem.cv_eta, mem.cv_etamax);
-        mem.cv_eta /= Math.max(1, Math.abs(mem.cv_h) * mem.cv_hmax_inv * mem.cv_eta);
+        mem.cv_eta /= Math.max(
+          1,
+          Math.abs(mem.cv_h) * mem.cv_hmax_inv * mem.cv_eta,
+        );
       } else {
         mem.cv_eta = Math.max(mem.cv_eta, mem.cv_eta_min);
         mem.cv_eta = Math.max(mem.cv_eta, mem.cv_hmin / Math.abs(mem.cv_h));
       }
       mem.cv_hprime = mem.cv_h * mem.cv_eta;
-      if (mem.cv_qprime < mem.cv_q)
-        mem.cv_nscon = 0;
+      if (mem.cv_qprime < mem.cv_q) mem.cv_nscon = 0;
     }
   }
   function cvComputeEtaqm1(mem) {
     mem.cv_etaqm1 = 0;
     if (mem.cv_q > 1) {
-      const ddn = wrmsNorm(mem.cv_N, mem.cv_zn[mem.cv_q], mem.cv_ewt) * mem.cv_tq[1];
+      const ddn =
+        wrmsNorm(mem.cv_N, mem.cv_zn[mem.cv_q], mem.cv_ewt) * mem.cv_tq[1];
       mem.cv_etaqm1 = 1 / (Math.pow(BIAS1 * ddn, 1 / mem.cv_q) + ADDON);
     }
     return mem.cv_etaqm1;
@@ -3776,15 +3629,15 @@ function ds(pts) {
   function cvComputeEtaqp1(mem) {
     mem.cv_etaqp1 = 0;
     if (mem.cv_q !== mem.cv_qmax) {
-      if (mem.cv_saved_tq5 === 0)
-        return mem.cv_etaqp1;
-      const cquot = mem.cv_tq[5] / mem.cv_saved_tq5 * Math.pow(mem.cv_h / mem.cv_tau[2], mem.cv_L);
+      if (mem.cv_saved_tq5 === 0) return mem.cv_etaqp1;
+      const cquot =
+        (mem.cv_tq[5] / mem.cv_saved_tq5) *
+        Math.pow(mem.cv_h / mem.cv_tau[2], mem.cv_L);
       const N = mem.cv_N;
       const tempv = mem.cv_tempv;
       const znqmax = mem.cv_zn[mem.cv_qmax];
       const acor = mem.cv_acor;
-      for (let i = 0; i < N; i++)
-        tempv[i] = acor[i] - cquot * znqmax[i];
+      for (let i = 0; i < N; i++) tempv[i] = acor[i] - cquot * znqmax[i];
       const dup = wrmsNorm(N, tempv, mem.cv_ewt) * mem.cv_tq[3];
       mem.cv_etaqp1 = 1 / (Math.pow(BIAS3 * dup, 1 / (mem.cv_L + 1)) + ADDON);
     }
@@ -3853,11 +3706,16 @@ function ds(pts) {
           mem.cv_ssdat[i][k] = mem.cv_ssdat[i - 1][k];
       }
       let factorial = 1;
-      for (let i = 1; i <= mem.cv_q - 1; i++)
-        factorial *= i;
-      const sq = factorial * mem.cv_q * (mem.cv_q + 1) * mem.cv_acnrm / Math.max(mem.cv_tq[5], TINY2);
-      const sqm1 = factorial * mem.cv_q * wrmsNorm(mem.cv_N, mem.cv_zn[mem.cv_q], mem.cv_ewt);
-      const sqm2 = factorial * wrmsNorm(mem.cv_N, mem.cv_zn[mem.cv_q - 1], mem.cv_ewt);
+      for (let i = 1; i <= mem.cv_q - 1; i++) factorial *= i;
+      const sq =
+        (factorial * mem.cv_q * (mem.cv_q + 1) * mem.cv_acnrm) /
+        Math.max(mem.cv_tq[5], TINY2);
+      const sqm1 =
+        factorial *
+        mem.cv_q *
+        wrmsNorm(mem.cv_N, mem.cv_zn[mem.cv_q], mem.cv_ewt);
+      const sqm2 =
+        factorial * wrmsNorm(mem.cv_N, mem.cv_zn[mem.cv_q - 1], mem.cv_ewt);
       mem.cv_ssdat[1][1] = sqm2 * sqm2;
       mem.cv_ssdat[1][2] = sqm1 * sqm1;
       mem.cv_ssdat[1][3] = sq * sq;
@@ -3869,7 +3727,9 @@ function ds(pts) {
           mem.cv_qprime = mem.cv_q - 1;
           mem.cv_eta = mem.cv_etaqm1;
           mem.cv_eta = Math.min(mem.cv_eta, mem.cv_etamax);
-          mem.cv_eta = mem.cv_eta / Math.max(1, Math.abs(mem.cv_h) * mem.cv_hmax_inv * mem.cv_eta);
+          mem.cv_eta =
+            mem.cv_eta /
+            Math.max(1, Math.abs(mem.cv_h) * mem.cv_hmax_inv * mem.cv_eta);
           mem.cv_hprime = mem.cv_h * mem.cv_eta;
           mem.cv_nor = mem.cv_nor + 1;
         }
@@ -3882,8 +3742,7 @@ function ds(pts) {
     let kmin = 0;
     let kflag = 0;
     const rat = [];
-    for (let i = 0; i < 5; i++)
-      rat[i] = [0, 0, 0, 0];
+    for (let i = 0; i < 5; i++) rat[i] = [0, 0, 0, 0];
     const rav = [0, 0, 0, 0];
     const qkr = [0, 0, 0, 0];
     const sigsq = [0, 0, 0, 0];
@@ -3894,14 +3753,11 @@ function ds(pts) {
     const sqmx = [0, 0, 0, 0];
     const vrat = [0, 0, 0, 0, 0];
     const qjk = [];
-    for (let j = 0; j < 4; j++)
-      qjk[j] = [0, 0, 0, 0];
+    for (let j = 0; j < 4; j++) qjk[j] = [0, 0, 0, 0];
     const qc = [];
-    for (let i = 0; i < 6; i++)
-      qc[i] = [0, 0, 0, 0];
+    for (let i = 0; i < 6; i++) qc[i] = [0, 0, 0, 0];
     const qco = [];
-    for (let i = 0; i < 6; i++)
-      qco[i] = [0, 0, 0, 0];
+    for (let i = 0; i < 6; i++) qco[i] = [0, 0, 0, 0];
     const rrcut = 0.98;
     const vrrtol = 1e-4;
     const vrrt2 = 5e-4;
@@ -3915,8 +3771,7 @@ function ds(pts) {
         smink = Math.min(smink, mem.cv_ssdat[i][k]);
         smaxk = Math.max(smaxk, mem.cv_ssdat[i][k]);
       }
-      if (smink < TINY2 * smaxk)
-        return -1;
+      if (smink < TINY2 * smaxk) return -1;
       smax[k] = smaxk;
       ssmax[k] = smaxk * smaxk;
       let sumrat = 0;
@@ -3928,19 +3783,25 @@ function ds(pts) {
       }
       rav[k] = 0.25 * sumrat;
       vrat[k] = Math.abs(0.25 * sumrsq - rav[k] * rav[k]);
-      qc[5][k] = mem.cv_ssdat[1][k] * mem.cv_ssdat[3][k] - mem.cv_ssdat[2][k] * mem.cv_ssdat[2][k];
-      qc[4][k] = mem.cv_ssdat[2][k] * mem.cv_ssdat[3][k] - mem.cv_ssdat[1][k] * mem.cv_ssdat[4][k];
+      qc[5][k] =
+        mem.cv_ssdat[1][k] * mem.cv_ssdat[3][k] -
+        mem.cv_ssdat[2][k] * mem.cv_ssdat[2][k];
+      qc[4][k] =
+        mem.cv_ssdat[2][k] * mem.cv_ssdat[3][k] -
+        mem.cv_ssdat[1][k] * mem.cv_ssdat[4][k];
       qc[3][k] = 0;
-      qc[2][k] = mem.cv_ssdat[2][k] * mem.cv_ssdat[5][k] - mem.cv_ssdat[3][k] * mem.cv_ssdat[4][k];
-      qc[1][k] = mem.cv_ssdat[4][k] * mem.cv_ssdat[4][k] - mem.cv_ssdat[3][k] * mem.cv_ssdat[5][k];
-      for (let i = 1; i <= 5; i++)
-        qco[i][k] = qc[i][k];
+      qc[2][k] =
+        mem.cv_ssdat[2][k] * mem.cv_ssdat[5][k] -
+        mem.cv_ssdat[3][k] * mem.cv_ssdat[4][k];
+      qc[1][k] =
+        mem.cv_ssdat[4][k] * mem.cv_ssdat[4][k] -
+        mem.cv_ssdat[3][k] * mem.cv_ssdat[5][k];
+      for (let i = 1; i <= 5; i++) qco[i][k] = qc[i][k];
     }
     const vmin = Math.min(vrat[1], Math.min(vrat[2], vrat[3]));
     const vmax = Math.max(vrat[1], Math.max(vrat[2], vrat[3]));
     if (vmin < vrrtol * vrrtol) {
-      if (vmax > vrrt2 * vrrt2)
-        return -2;
+      if (vmax > vrrt2 * vrrt2) return -2;
       else {
         rr = (rav[1] + rav[2] + rav[3]) / 3;
         let drrmax = 0;
@@ -3948,58 +3809,48 @@ function ds(pts) {
           const adrr = Math.abs(rav[k] - rr);
           drrmax = Math.max(drrmax, adrr);
         }
-        if (drrmax > vrrt2)
-          return -3;
+        if (drrmax > vrrt2) return -3;
         kflag = 1;
       }
     } else {
-      if (Math.abs(qco[1][1]) < TINY2 * ssmax[1])
-        return -4;
+      if (Math.abs(qco[1][1]) < TINY2 * ssmax[1]) return -4;
       let tem = qco[1][2] / qco[1][1];
-      for (let i = 2; i <= 5; i++)
-        qco[i][2] = qco[i][2] - tem * qco[i][1];
+      for (let i = 2; i <= 5; i++) qco[i][2] = qco[i][2] - tem * qco[i][1];
       qco[1][2] = 0;
       tem = qco[1][3] / qco[1][1];
-      for (let i = 2; i <= 5; i++)
-        qco[i][3] = qco[i][3] - tem * qco[i][1];
+      for (let i = 2; i <= 5; i++) qco[i][3] = qco[i][3] - tem * qco[i][1];
       qco[1][3] = 0;
-      if (Math.abs(qco[2][2]) < TINY2 * ssmax[2])
-        return -4;
+      if (Math.abs(qco[2][2]) < TINY2 * ssmax[2]) return -4;
       tem = qco[2][3] / qco[2][2];
-      for (let i = 3; i <= 5; i++)
-        qco[i][3] = qco[i][3] - tem * qco[i][2];
-      if (Math.abs(qco[4][3]) < TINY2 * ssmax[3])
-        return -4;
+      for (let i = 3; i <= 5; i++) qco[i][3] = qco[i][3] - tem * qco[i][2];
+      if (Math.abs(qco[4][3]) < TINY2 * ssmax[3]) return -4;
       rr = -qco[5][3] / qco[4][3];
-      if (rr < TINY2 || rr > 100)
-        return -5;
+      if (rr < TINY2 || rr > 100) return -5;
       for (let k = 1; k <= 3; k++)
-        qkr[k] = qc[5][k] + rr * (qc[4][k] + rr * rr * (qc[2][k] + rr * qc[1][k]));
+        qkr[k] =
+          qc[5][k] + rr * (qc[4][k] + rr * rr * (qc[2][k] + rr * qc[1][k]));
       let sqmax = 0;
       for (let k = 1; k <= 3; k++) {
         const saqk = Math.abs(qkr[k]) / ssmax[k];
-        if (saqk > sqmax)
-          sqmax = saqk;
+        if (saqk > sqmax) sqmax = saqk;
       }
-      if (sqmax < sqtol)
-        kflag = 2;
+      if (sqmax < sqtol) kflag = 2;
       else {
         for (let it = 1; it <= 3; it++) {
           for (let k = 1; k <= 3; k++) {
             const qp = qc[4][k] + rr * rr * (3 * qc[2][k] + rr * 4 * qc[1][k]);
             drr[k] = 0;
-            if (Math.abs(qp) > TINY2 * ssmax[k])
-              drr[k] = -qkr[k] / qp;
+            if (Math.abs(qp) > TINY2 * ssmax[k]) drr[k] = -qkr[k] / qp;
             rrc[k] = rr + drr[k];
           }
           for (let k = 1; k <= 3; k++) {
             const s = rrc[k];
             let sqmaxk = 0;
             for (let j = 1; j <= 3; j++) {
-              qjk[j][k] = qc[5][j] + s * (qc[4][j] + s * s * (qc[2][j] + s * qc[1][j]));
+              qjk[j][k] =
+                qc[5][j] + s * (qc[4][j] + s * s * (qc[2][j] + s * qc[1][j]));
               const saqj = Math.abs(qjk[j][k]) / ssmax[j];
-              if (saqj > sqmaxk)
-                sqmaxk = saqj;
+              if (saqj > sqmaxk) sqmaxk = saqj;
             }
             sqmx[k] = sqmaxk;
           }
@@ -4014,9 +3865,7 @@ function ds(pts) {
           if (sqmin < sqtol) {
             kflag = 3;
             break;
-          } else
-            for (let j = 1; j <= 3; j++)
-              qkr[j] = qjk[j][kmin];
+          } else for (let j = 1; j <= 3; j++) qkr[j] = qjk[j][kmin];
         }
         if (kflag !== 3) {
           return -6;
@@ -4034,34 +3883,26 @@ function ds(pts) {
       const rd2a = rd1a - rd1b;
       const rd2b = rd1b - rd1c;
       const rd3a = rd2a - rd2b;
-      if (Math.abs(rd1b) < TINY2 * smax[k])
-        return -7;
+      if (Math.abs(rd1b) < TINY2 * smax[k]) return -7;
       const cest1 = -rd3a / rd1b;
-      if (cest1 < TINY2 || cest1 > 4)
-        return -7;
+      if (cest1 < TINY2 || cest1 > 4) return -7;
       const corr1 = rd2b / cest1 / (rr * rr);
       sigsq[k] = mem.cv_ssdat[3][k] + corr1;
     }
-    if (sigsq[2] < TINY2)
-      return -8;
+    if (sigsq[2] < TINY2) return -8;
     const ratp = sigsq[3] / sigsq[2];
     const ratm = sigsq[1] / sigsq[2];
     const qfac1 = 0.25 * (mem.cv_q * mem.cv_q - 1);
     const qfac2 = 2 / (mem.cv_q - 1);
     const bb = ratp * ratm - 1 - qfac1 * ratp;
     const tem2 = 1 - qfac2 * bb;
-    if (Math.abs(tem2) < TINY2)
-      return -8;
+    if (Math.abs(tem2) < TINY2) return -8;
     const rrb = 1 / tem2;
-    if (Math.abs(rrb - rr) > rrtol)
-      return -9;
+    if (Math.abs(rrb - rr) > rrtol) return -9;
     if (rr > rrcut) {
-      if (kflag === 1)
-        kflag = 4;
-      if (kflag === 2)
-        kflag = 5;
-      if (kflag === 3)
-        kflag = 6;
+      if (kflag === 1) kflag = 4;
+      if (kflag === 2) kflag = 5;
+      if (kflag === 3) kflag = 6;
     }
     return kflag;
   }
@@ -4091,15 +3932,13 @@ function ds(pts) {
       }
       const pivot = a[k][k];
       const mult = 1 / pivot;
-      for (let i = k + 1; i < n; i++)
-        a[i][k] *= mult;
+      for (let i = k + 1; i < n; i++) a[i][k] *= mult;
       for (let i = k + 1; i < n; i++) {
         const m = a[i][k];
         if (m !== 0) {
           const rowI = a[i];
           const rowK = a[k];
-          for (let j = k + 1; j < n; j++)
-            rowI[j] -= m * rowK[j];
+          for (let j = k + 1; j < n; j++) rowI[j] -= m * rowK[j];
         }
       }
     }
@@ -4115,13 +3954,11 @@ function ds(pts) {
       }
     }
     for (let k = 0; k < n - 1; k++) {
-      for (let i = k + 1; i < n; i++)
-        b[i] -= a[i][k] * b[k];
+      for (let i = k + 1; i < n; i++) b[i] -= a[i][k] * b[k];
     }
     for (let k = n - 1; k >= 0; k--) {
       b[k] /= a[k][k];
-      for (let i = 0; i < k; i++)
-        b[i] -= a[i][k] * b[k];
+      for (let i = 0; i < k; i++) b[i] -= a[i][k] * b[k];
     }
   }
 
@@ -4154,8 +3991,7 @@ function ds(pts) {
   }
   function cvodeSetJacFn(mem, jac) {
     const lmem = mem.cv_lmem;
-    if (!lmem)
-      return -1;
+    if (!lmem) return -1;
     if (jac) {
       lmem.jacDQ = false;
       lmem.jacFn = jac;
@@ -4180,12 +4016,9 @@ function ds(pts) {
     const jbad = lmem.jbad;
     let jok = !jbad;
     if (!jbad) {
-      if (Math.abs(mem.cv_gamrat - 1) > lmem.dgmax_jbad)
-        jok = false;
-      if (mem.cv_nst >= lmem.nstlj + lmem.msbj)
-        jok = false;
-      if (convfail === CV_FAIL_BAD_J)
-        jok = false;
+      if (Math.abs(mem.cv_gamrat - 1) > lmem.dgmax_jbad) jok = false;
+      if (mem.cv_nst >= lmem.nstlj + lmem.msbj) jok = false;
+      if (convfail === CV_FAIL_BAD_J) jok = false;
     }
     if (jok) {
       jcurPtr.value = false;
@@ -4200,9 +4033,23 @@ function ds(pts) {
       lmem.jbad = false;
       jcurPtr.value = true;
       if (lmem.jacDQ)
-        retval = cvLsDQJac(mem, mem.cv_tn, ypred, fpred, lmem.savedJ, tmp1, tmp2);
+        retval = cvLsDQJac(
+          mem,
+          mem.cv_tn,
+          ypred,
+          fpred,
+          lmem.savedJ,
+          tmp1,
+          tmp2,
+        );
       else
-        retval = lmem.jacFn(mem.cv_tn, ypred, fpred, lmem.savedJ, mem.cv_user_data);
+        retval = lmem.jacFn(
+          mem.cv_tn,
+          ypred,
+          fpred,
+          lmem.savedJ,
+          mem.cv_user_data,
+        );
       if (retval < 0) {
         lmem.jbad = true;
         return -1;
@@ -4230,8 +4077,7 @@ function ds(pts) {
     dgesl2(lmem.A, N, lmem.pivots, b);
     if (mem.cv_gamrat !== 1) {
       const factor = 2 / (1 + mem.cv_gamrat);
-      for (let i = 0; i < N; i++)
-        b[i] *= factor;
+      for (let i = 0; i < N; i++) b[i] *= factor;
     }
     return CV_SUCCESS;
   }
@@ -4241,7 +4087,8 @@ function ds(pts) {
     const uround = 2220446049250313e-31;
     const srur = Math.sqrt(uround);
     const fnorm_val = wrmsNorm(N, fy, mem.cv_ewt);
-    const minInc = fnorm_val !== 0 ? 1e3 * Math.abs(mem.cv_h) * uround * N * fnorm_val : 1;
+    const minInc =
+      fnorm_val !== 0 ? 1e3 * Math.abs(mem.cv_h) * uround * N * fnorm_val : 1;
     for (let j = 0; j < N; j++) {
       const yjsaved = y[j];
       let inc = Math.max(srur * Math.abs(yjsaved), minInc / mem.cv_ewt[j]);
@@ -4251,11 +4098,9 @@ function ds(pts) {
       const retval = mem.cv_f(t, tmp1, tmp2, mem.cv_user_data);
       lmem.nfeDQ++;
       mem.cv_nfe++;
-      if (retval !== 0)
-        return retval;
+      if (retval !== 0) return retval;
       const inc_inv = 1 / inc;
-      for (let i = 0; i < N; i++)
-        J[i][j] = (tmp2[i] - fy[i]) * inc_inv;
+      for (let i = 0; i < N; i++) J[i][j] = (tmp2[i] - fy[i]) * inc_inv;
     }
     return CV_SUCCESS;
   }
@@ -4295,8 +4140,7 @@ function ds(pts) {
     mem.cv_itol = CV_SV;
     let minAtol = Infinity;
     for (let i = 0; i < atol.length; i++)
-      if (atol[i] < minAtol)
-        minAtol = atol[i];
+      if (atol[i] < minAtol) minAtol = atol[i];
     mem.cv_atolmin0 = minAtol === 0;
     mem.cv_VabstolMallocDone = true;
     return CV_SUCCESS;
@@ -4307,18 +4151,14 @@ function ds(pts) {
   }
   function cvodeSetMaxOrd(mem, maxord) {
     const qmax = mem.cv_lmm === CV_ADAMS ? ADAMS_Q_MAX : BDF_Q_MAX;
-    if (maxord < 1)
-      maxord = 1;
-    if (maxord > qmax)
-      maxord = qmax;
+    if (maxord < 1) maxord = 1;
+    if (maxord > qmax) maxord = qmax;
     mem.cv_qmax = maxord;
     return CV_SUCCESS;
   }
   function cvodeSetMaxStep(mem, hmax) {
-    if (hmax <= 0)
-      mem.cv_hmax_inv = 0;
-    else
-      mem.cv_hmax_inv = 1 / hmax;
+    if (hmax <= 0) mem.cv_hmax_inv = 0;
+    else mem.cv_hmax_inv = 1 / hmax;
     return CV_SUCCESS;
   }
   function cvodeSetMinStep(mem, hmin) {
@@ -4384,7 +4224,7 @@ function ds(pts) {
       nGEvals: cvodeGetNumGEvals(mem),
       lastOrder: cvodeGetLastOrder(mem),
       lastStep: cvodeGetLastStep(mem),
-      currentTime: cvodeGetCurrentTime(mem)
+      currentTime: cvodeGetCurrentTime(mem),
     };
   }
 
@@ -4409,10 +4249,8 @@ function ds(pts) {
       cvodeInit(this.mem, this.wrappedF, t0, y0);
       const rtol = opts.rtol ?? 1e-4;
       const atol = opts.atol ?? 1e-6;
-      if (typeof atol === "number")
-        cvodeSStolerances(this.mem, rtol, atol);
-      else
-        cvodeSVtolerances(this.mem, rtol, atol);
+      if (typeof atol === "number") cvodeSStolerances(this.mem, rtol, atol);
+      else cvodeSVtolerances(this.mem, rtol, atol);
       cvodeSetLinearSolver(this.mem);
       if (opts.jacFn) {
         const userJac = opts.jacFn;
@@ -4424,18 +4262,12 @@ function ds(pts) {
       }
       if (opts.maxSteps !== void 0)
         cvodeSetMaxNumSteps(this.mem, opts.maxSteps);
-      if (opts.maxOrder !== void 0)
-        cvodeSetMaxOrd(this.mem, opts.maxOrder);
-      if (opts.maxStep !== void 0)
-        cvodeSetMaxStep(this.mem, opts.maxStep);
-      if (opts.minStep !== void 0)
-        cvodeSetMinStep(this.mem, opts.minStep);
-      if (opts.initStep !== void 0)
-        cvodeSetInitStep(this.mem, opts.initStep);
-      if (opts.stopTime !== void 0)
-        cvodeSetStopTime(this.mem, opts.stopTime);
-      if (opts.userData !== void 0)
-        cvodeSetUserData(this.mem, opts.userData);
+      if (opts.maxOrder !== void 0) cvodeSetMaxOrd(this.mem, opts.maxOrder);
+      if (opts.maxStep !== void 0) cvodeSetMaxStep(this.mem, opts.maxStep);
+      if (opts.minStep !== void 0) cvodeSetMinStep(this.mem, opts.minStep);
+      if (opts.initStep !== void 0) cvodeSetInitStep(this.mem, opts.initStep);
+      if (opts.stopTime !== void 0) cvodeSetStopTime(this.mem, opts.stopTime);
+      if (opts.userData !== void 0) cvodeSetUserData(this.mem, opts.userData);
       if (opts.rootFn && opts.nRootFns && opts.nRootFns > 0) {
         const userRoot = opts.rootFn;
         const wrappedRootFn = (t, y, gout, _userData) => {
@@ -4481,7 +4313,9 @@ function ds(pts) {
       const dky = new Float64Array(this.neq);
       const flag = cvodeGetDky(this.mem, t, k, dky);
       if (flag !== 0)
-        throw new Error(`[Cvode] getDky failed: t=${t} out of range or k=${k} invalid`);
+        throw new Error(
+          `[Cvode] getDky failed: t=${t} out of range or k=${k} invalid`,
+        );
       return dky;
     }
     /**
@@ -4520,18 +4354,23 @@ function ds(pts) {
     const step = odes.arg.step;
     const tolerance = odes.tolerance;
     const dim = odes.initial.length;
-    const solver = new Cvode(odes.func, dim, t0, Float64Array.from(odes.initial), {
-      lmm: "bdf",
-      rtol: tolerance,
-      atol: tolerance,
-      maxSteps: 5e4
-    });
+    const solver = new Cvode(
+      odes.func,
+      dim,
+      t0,
+      Float64Array.from(odes.initial),
+      {
+        lmm: "bdf",
+        rtol: tolerance,
+        atol: tolerance,
+        maxSteps: 5e4,
+      },
+    );
     const base = Math.min(step, 1);
     let warmupOk = false;
     for (let k = 4; k <= 15; k++) {
       const warmupTout = t0 + base * Math.pow(10, -k);
-      if (warmupTout <= t0 || warmupTout >= t1)
-        continue;
+      if (warmupTout <= t0 || warmupTout >= t1) continue;
       const wr = solver.solve(warmupTout);
       if (wr.flag >= 0) {
         warmupOk = true;
@@ -4539,135 +4378,102 @@ function ds(pts) {
       }
       solver.reInit(t0, Float64Array.from(odes.initial));
     }
-    if (!warmupOk)
-      throw new Error(ERROR_MSG.CVODE_FAILS);
+    if (!warmupOk) throw new Error(ERROR_MSG.CVODE_FAILS);
     const gridPoints = Math.trunc((t1 - t0) / step) + 1;
     const solution = new Array(dim + 1);
-    for (let i = 0; i <= dim; i++)
-      solution[i] = new Float64Array(gridPoints);
+    for (let i = 0; i <= dim; i++) solution[i] = new Float64Array(gridPoints);
     solution[0][0] = t0;
-    for (let j = 0; j < dim; j++)
-      solution[j + 1][0] = odes.initial[j];
+    for (let j = 0; j < dim; j++) solution[j + 1][0] = odes.initial[j];
     for (let i = 1; i < gridPoints; i++) {
-      if (callback)
-        callback.onIterationStart();
+      if (callback) callback.onIterationStart();
       const tout = i < gridPoints - 1 ? t0 + i * step : t1;
       const result = solver.solve(tout);
-      if (result.flag < 0)
-        throw new Error(ERROR_MSG.CVODE_FAILS);
+      if (result.flag < 0) throw new Error(ERROR_MSG.CVODE_FAILS);
       solution[0][i] = result.t;
-      for (let j = 0; j < dim; j++)
-        solution[j + 1][i] = result.y[j];
+      for (let j = 0; j < dim; j++) solution[j + 1][i] = result.y[j];
     }
-    if (callback)
-      callback.onComputationsCompleted();
+    if (callback) callback.onComputationsCompleted();
     return solution;
   }
 
   // node_modules/diff-grok/dist/src/examples/robertson.js
   var robertsonReferencePoint = new Float64Array([
-    2083340149701255e-23,
-    8333360770334713e-29,
-    0.999999979166505
+    2083340149701255e-23, 8333360770334713e-29, 0.999999979166505,
   ]);
 
   // node_modules/diff-grok/dist/src/examples/hires.js
   var hiresReferencePoint = new Float64Array([
-    7371312573325668e-19,
-    1442485726316185e-19,
-    5888729740967575e-20,
-    0.001175651343283149,
-    0.002386356198831331,
-    0.006238968252742796,
-    0.002849998395185769,
-    0.002850001604814231
+    7371312573325668e-19, 1442485726316185e-19, 5888729740967575e-20,
+    0.001175651343283149, 0.002386356198831331, 0.006238968252742796,
+    0.002849998395185769, 0.002850001604814231,
   ]);
 
   // node_modules/diff-grok/dist/src/examples/vdpol.js
   var vdpolReferencePoint = new Float64Array([
-    1.706167732170469,
-    -8928097010248125e-19
+    1.706167732170469, -8928097010248125e-19,
   ]);
 
   // node_modules/diff-grok/dist/src/examples/orego.js
   var oregoReferencePoint = new Float64Array([
-    1.000814870318523,
-    1228.178521549917,
-    132.0554942846706
+    1.000814870318523, 1228.178521549917, 132.0554942846706,
   ]);
 
   // node_modules/diff-grok/dist/src/examples/e5.js
   var E53;
-  (function(E54) {
-    E54[E54["K1"] = 789e-12] = "K1";
-    E54[E54["K2"] = 113e7] = "K2";
-    E54[E54["K3"] = 11e6] = "K3";
-    E54[E54["K4"] = 1130] = "K4";
+  (function (E54) {
+    E54[(E54["K1"] = 789e-12)] = "K1";
+    E54[(E54["K2"] = 113e7)] = "K2";
+    E54[(E54["K3"] = 11e6)] = "K3";
+    E54[(E54["K4"] = 1130)] = "K4";
   })(E53 || (E53 = {}));
   var e5ReferencePoint = new Float64Array([
-    1152903278711829e-306,
-    886765551764212e-37,
-    8854814626268838e-38,
-    0
+    1152903278711829e-306, 886765551764212e-37, 8854814626268838e-38, 0,
   ]);
 
   // node_modules/diff-grok/dist/src/examples/pollution.js
   var POL;
-  (function(POL2) {
-    POL2[POL2["K1"] = 0.35] = "K1";
-    POL2[POL2["K2"] = 26.6] = "K2";
-    POL2[POL2["K3"] = 12300] = "K3";
-    POL2[POL2["K4"] = 86e-5] = "K4";
-    POL2[POL2["K5"] = 82e-5] = "K5";
-    POL2[POL2["K6"] = 15e3] = "K6";
-    POL2[POL2["K7"] = 13e-5] = "K7";
-    POL2[POL2["K8"] = 24e3] = "K8";
-    POL2[POL2["K9"] = 16500] = "K9";
-    POL2[POL2["K10"] = 9e3] = "K10";
-    POL2[POL2["K11"] = 0.022] = "K11";
-    POL2[POL2["K12"] = 12e3] = "K12";
-    POL2[POL2["K13"] = 1.88] = "K13";
-    POL2[POL2["K14"] = 16300] = "K14";
-    POL2[POL2["K15"] = 48e5] = "K15";
-    POL2[POL2["K16"] = 35e-5] = "K16";
-    POL2[POL2["K17"] = 0.0175] = "K17";
-    POL2[POL2["K18"] = 1e8] = "K18";
-    POL2[POL2["K19"] = 444e9] = "K19";
-    POL2[POL2["K20"] = 1240] = "K20";
-    POL2[POL2["K21"] = 2.1] = "K21";
-    POL2[POL2["K22"] = 5.78] = "K22";
-    POL2[POL2["K23"] = 0.0474] = "K23";
-    POL2[POL2["K24"] = 1780] = "K24";
-    POL2[POL2["K25"] = 3.12] = "K25";
+  (function (POL2) {
+    POL2[(POL2["K1"] = 0.35)] = "K1";
+    POL2[(POL2["K2"] = 26.6)] = "K2";
+    POL2[(POL2["K3"] = 12300)] = "K3";
+    POL2[(POL2["K4"] = 86e-5)] = "K4";
+    POL2[(POL2["K5"] = 82e-5)] = "K5";
+    POL2[(POL2["K6"] = 15e3)] = "K6";
+    POL2[(POL2["K7"] = 13e-5)] = "K7";
+    POL2[(POL2["K8"] = 24e3)] = "K8";
+    POL2[(POL2["K9"] = 16500)] = "K9";
+    POL2[(POL2["K10"] = 9e3)] = "K10";
+    POL2[(POL2["K11"] = 0.022)] = "K11";
+    POL2[(POL2["K12"] = 12e3)] = "K12";
+    POL2[(POL2["K13"] = 1.88)] = "K13";
+    POL2[(POL2["K14"] = 16300)] = "K14";
+    POL2[(POL2["K15"] = 48e5)] = "K15";
+    POL2[(POL2["K16"] = 35e-5)] = "K16";
+    POL2[(POL2["K17"] = 0.0175)] = "K17";
+    POL2[(POL2["K18"] = 1e8)] = "K18";
+    POL2[(POL2["K19"] = 444e9)] = "K19";
+    POL2[(POL2["K20"] = 1240)] = "K20";
+    POL2[(POL2["K21"] = 2.1)] = "K21";
+    POL2[(POL2["K22"] = 5.78)] = "K22";
+    POL2[(POL2["K23"] = 0.0474)] = "K23";
+    POL2[(POL2["K24"] = 1780)] = "K24";
+    POL2[(POL2["K25"] = 3.12)] = "K25";
   })(POL || (POL = {}));
   var pollutionReferencePoint = new Float64Array([
-    0.05646255480022769,
-    0.1342484130422339,
-    4139734331099427e-24,
-    0.005523140207484359,
-    2018977262302196e-22,
-    1464541863493966e-22,
-    0.07784249118997964,
-    0.3245075353396018,
-    0.007494013383880406,
-    1622293157301561e-23,
-    1135863833257075e-23,
-    0.002230505975721359,
-    208716288279863e-18,
-    1396921016840158e-20,
-    0.008964884856898295,
-    4352846369330103e-33,
-    0.006899219696263405,
-    1007803037365946e-19,
-    1772146513969984e-21,
-    5682943292316392e-20
+    0.05646255480022769, 0.1342484130422339, 4139734331099427e-24,
+    0.005523140207484359, 2018977262302196e-22, 1464541863493966e-22,
+    0.07784249118997964, 0.3245075353396018, 0.007494013383880406,
+    1622293157301561e-23, 1135863833257075e-23, 0.002230505975721359,
+    208716288279863e-18, 1396921016840158e-20, 0.008964884856898295,
+    4352846369330103e-33, 0.006899219696263405, 1007803037365946e-19,
+    1772146513969984e-21, 5682943292316392e-20,
   ]);
 
   // node_modules/diff-grok/dist/src/scripting-tools/constants.js
   var CONTROL_TAG = "#";
   var CONTROL_TAG_LEN = CONTROL_TAG.length;
   var CONTROL_EXPR;
-  (function(CONTROL_EXPR2) {
+  (function (CONTROL_EXPR2) {
     CONTROL_EXPR2["NAME"] = "#name";
     CONTROL_EXPR2["TAGS"] = "#tags";
     CONTROL_EXPR2["DESCR"] = "#description";
@@ -4688,69 +4494,99 @@ function ds(pts) {
     CONTROL_EXPR2["INPUTS"] = "#meta.inputs";
   })(CONTROL_EXPR || (CONTROL_EXPR = {}));
   var LOOP;
-  (function(LOOP2) {
-    LOOP2[LOOP2["MIN_LINES_COUNT"] = 1] = "MIN_LINES_COUNT";
-    LOOP2[LOOP2["COUNT_IDX"] = 0] = "COUNT_IDX";
+  (function (LOOP2) {
+    LOOP2[(LOOP2["MIN_LINES_COUNT"] = 1)] = "MIN_LINES_COUNT";
+    LOOP2[(LOOP2["COUNT_IDX"] = 0)] = "COUNT_IDX";
     LOOP2["COUNT_NAME"] = "_count";
-    LOOP2[LOOP2["MIN_COUNT"] = 1] = "MIN_COUNT";
+    LOOP2[(LOOP2["MIN_COUNT"] = 1)] = "MIN_COUNT";
   })(LOOP || (LOOP = {}));
   var UPDATE;
-  (function(UPDATE2) {
-    UPDATE2[UPDATE2["MIN_LINES_COUNT"] = 1] = "MIN_LINES_COUNT";
-    UPDATE2[UPDATE2["DURATION_IDX"] = 0] = "DURATION_IDX";
+  (function (UPDATE2) {
+    UPDATE2[(UPDATE2["MIN_LINES_COUNT"] = 1)] = "MIN_LINES_COUNT";
+    UPDATE2[(UPDATE2["DURATION_IDX"] = 0)] = "DURATION_IDX";
     UPDATE2["DURATION"] = "_duration";
   })(UPDATE || (UPDATE = {}));
 
   // node_modules/diff-grok/dist/src/scripting-tools/scripting-tools.js
-  var MATH_FUNCS = ["pow", "sin", "cos", "tan", "asin", "acos", "atan", "sqrt", "exp", "log", "sinh", "cosh", "tanh"];
+  var MATH_FUNCS = [
+    "pow",
+    "sin",
+    "cos",
+    "tan",
+    "asin",
+    "acos",
+    "atan",
+    "sqrt",
+    "exp",
+    "log",
+    "sinh",
+    "cosh",
+    "tanh",
+  ];
   var POW_IDX = MATH_FUNCS.indexOf("pow");
   var SCRIPTING;
-  (function(SCRIPTING2) {
+  (function (SCRIPTING2) {
     SCRIPTING2["ARG_NAME"] = "name";
     SCRIPTING2["COUNT"] = "count";
     SCRIPTING2["DURATION"] = "duration";
   })(SCRIPTING || (SCRIPTING = {}));
   var ERROR_LINK;
-  (function(ERROR_LINK2) {
+  (function (ERROR_LINK2) {
     ERROR_LINK2["MAIN_DOCS"] = "/help/compute/diff-studio";
     ERROR_LINK2["CORE_BLOCKS"] = "/help/compute/diff-studio#core-blocks";
-    ERROR_LINK2["COMPS_SYNTAX"] = "/help/compute/diff-studio#model-components-and-syntax";
+    ERROR_LINK2["COMPS_SYNTAX"] =
+      "/help/compute/diff-studio#model-components-and-syntax";
     ERROR_LINK2["LOOP"] = "/help/compute/diff-studio#cyclic-processes";
     ERROR_LINK2["UPDATE"] = "/help/compute/diff-studio#multistage-processes";
     ERROR_LINK2["UI_OPTS"] = "/help/compute/diff-studio#user-interface-options";
-    ERROR_LINK2["LOOP_VS_UPDATE"] = "/help/compute/diff-studio#advanced-features";
-    ERROR_LINK2["SOLVER_CONFIG"] = "/help/compute/diff-studio#solver-configuration";
+    ERROR_LINK2["LOOP_VS_UPDATE"] =
+      "/help/compute/diff-studio#advanced-features";
+    ERROR_LINK2["SOLVER_CONFIG"] =
+      "/help/compute/diff-studio#solver-configuration";
     ERROR_LINK2["MODEL_PARAMS"] = "/help/compute/diff-studio#model-parameters";
   })(ERROR_LINK || (ERROR_LINK = {}));
   var ERROR_MSG2;
-  (function(ERROR_MSG4) {
-    ERROR_MSG4["CTRL_EXPR"] = 'Unsupported control expression with the tag **"#"**';
-    ERROR_MSG4["ARG"] = "'The **#argument** block must consist of 3 lines specifying initial and final time, and solution grid step.";
+  (function (ERROR_MSG4) {
+    ERROR_MSG4["CTRL_EXPR"] =
+      'Unsupported control expression with the tag **"#"**';
+    ERROR_MSG4["ARG"] =
+      "'The **#argument** block must consist of 3 lines specifying initial and final time, and solution grid step.";
     ERROR_MSG4["LOOP"] = "The **#loop** block must contain at least one line.";
     ERROR_MSG4["COUNT"] = "Incorrect loop count";
-    ERROR_MSG4["LOOP_VS_UPDATE"] = "The **#loop** and **'#update'** blocks cannot be used simultaneously.";
-    ERROR_MSG4["UPDATE_LINES_COUNT"] = "The **'#update'** block must contain at least one line.";
+    ERROR_MSG4["LOOP_VS_UPDATE"] =
+      "The **#loop** and **'#update'** blocks cannot be used simultaneously.";
+    ERROR_MSG4["UPDATE_LINES_COUNT"] =
+      "The **'#update'** block must contain at least one line.";
     ERROR_MSG4["DURATION"] = "Incorrect update duration";
     ERROR_MSG4["BRACES"] = " Missing one of the braces (**{**, **}**).";
     ERROR_MSG4["COLON"] = 'Incorrect position of **":"**.';
-    ERROR_MSG4["CASE_INSENS"] = "Non-unique name (case-insensitive): use different caption for ";
+    ERROR_MSG4["CASE_INSENS"] =
+      "Non-unique name (case-insensitive): use different caption for ";
     ERROR_MSG4["MISSING_INIT"] = "Correct the **#inits** block.";
-    ERROR_MSG4["UNDEF_NAME"] = "Model name missing. Specify the model name in the **#name** block.";
-    ERROR_MSG4["UNDEF_DEQS"] = "Differential equation(s) are required for this model. Add equation(s) under the **#equations** block.";
-    ERROR_MSG4["UNDEF_INITS"] = "Initial conditions are required for this model. Add initial conditions under the **#inits** block.";
-    ERROR_MSG4["UNDEF_ARG"] = "Argument specification is required for this model. Specify an argument, its range, and a grid step in the **#argument** block.";
-    ERROR_MSG4["CORRECT_ARG_LIM"] = "Correct limits in the **#argument** block.";
+    ERROR_MSG4["UNDEF_NAME"] =
+      "Model name missing. Specify the model name in the **#name** block.";
+    ERROR_MSG4["UNDEF_DEQS"] =
+      "Differential equation(s) are required for this model. Add equation(s) under the **#equations** block.";
+    ERROR_MSG4["UNDEF_INITS"] =
+      "Initial conditions are required for this model. Add initial conditions under the **#inits** block.";
+    ERROR_MSG4["UNDEF_ARG"] =
+      "Argument specification is required for this model. Specify an argument, its range, and a grid step in the **#argument** block.";
+    ERROR_MSG4["CORRECT_ARG_LIM"] =
+      "Correct limits in the **#argument** block.";
     ERROR_MSG4["INTERVAL"] = "Incorrect range for";
-    ERROR_MSG4["NEGATIVE_STEP"] = "Solution grid step must be positive. Correct the **#argument** block.";
-    ERROR_MSG4["INCOR_STEP"] = "Grid step must less than the length of solution interval. Correct the **#argument** block.";
+    ERROR_MSG4["NEGATIVE_STEP"] =
+      "Solution grid step must be positive. Correct the **#argument** block.";
+    ERROR_MSG4["INCOR_STEP"] =
+      "Grid step must less than the length of solution interval. Correct the **#argument** block.";
     ERROR_MSG4["MISS_COLON"] = 'Missing **":"**';
     ERROR_MSG4["NAN"] = "is not a valid number. Correct the line";
     ERROR_MSG4["SERVICE_START"] = 'Variable names must not begin with **"_"**.';
     ERROR_MSG4["REUSE_NAME"] = "Variable reuse (case-insensitive): rename ";
-    ERROR_MSG4["SOLVER"] = "Incorrect solver options. Correct the **#meta.solver** line.";
+    ERROR_MSG4["SOLVER"] =
+      "Incorrect solver options. Correct the **#meta.solver** line.";
   })(ERROR_MSG2 || (ERROR_MSG2 = {}));
   var ANNOT;
-  (function(ANNOT2) {
+  (function (ANNOT2) {
     ANNOT2["NAME"] = "//name:";
     ANNOT2["DESCR"] = "//description:";
     ANNOT2["TAGS"] = "//tags:";
@@ -4768,13 +4604,15 @@ function ds(pts) {
     ANNOT2["PARAMS"] = "category: Parameters";
   })(ANNOT || (ANNOT = {}));
   var SCRIPT;
-  (function(SCRIPT2) {
+  (function (SCRIPT2) {
     SCRIPT2["CONSTS"] = "// constants";
     SCRIPT2["ODE_COM"] = "// the problem definition";
     SCRIPT2["ODE"] = "let odes = {";
     SCRIPT2["SOLVER_COM"] = "// solve the problem";
-    SCRIPT2["SOLVER"] = "const solver = await grok.functions.eval('DiffStudio:solveEquations');";
-    SCRIPT2["PREPARE"] = "let call = solver.prepare({problem: odes, options: opts});";
+    SCRIPT2["SOLVER"] =
+      "const solver = await grok.functions.eval('DiffStudio:solveEquations');";
+    SCRIPT2["PREPARE"] =
+      "let call = solver.prepare({problem: odes, options: opts});";
     SCRIPT2["CALL"] = "await call.call();";
     SCRIPT2["OUTPUT"] = "let df = call.getParamValue('df');";
     SCRIPT2["SPACE2"] = "  ";
@@ -4806,7 +4644,7 @@ function ds(pts) {
 
   // node_modules/diff-grok/dist/src/pipeline/constants.js
   var ARG;
-  (function(ARG2) {
+  (function (ARG2) {
     ARG2["START"] = "_t0";
     ARG2["FINISH"] = "_t1";
     ARG2["STEP"] = "_h";
@@ -4814,7 +4652,7 @@ function ds(pts) {
   var argName2IdxMap = /* @__PURE__ */ new Map([
     [ARG.START, 0],
     [ARG.FINISH, 1],
-    [ARG.STEP, 2]
+    [ARG.STEP, 2],
   ]);
 
   // node_modules/diff-grok/dist/src/latex-export/transformer/identifier.js
@@ -4847,7 +4685,7 @@ function ds(pts) {
     ["mu", "\\mu"],
     ["nu", "\\nu"],
     ["pi", "\\pi"],
-    ["xi", "\\xi"]
+    ["xi", "\\xi"],
   ];
   var GREEK_UPPER = [
     ["Epsilon", "\\mathrm{E}"],
@@ -4873,9 +4711,11 @@ function ds(pts) {
     ["Rho", "\\mathrm{P}"],
     ["Tau", "\\mathrm{T}"],
     ["Pi", "\\Pi"],
-    ["Xi", "\\Xi"]
+    ["Xi", "\\Xi"],
   ];
-  var ALL_GREEK = [...GREEK_LOWER, ...GREEK_UPPER].sort((a, b) => b[0].length - a[0].length);
+  var ALL_GREEK = [...GREEK_LOWER, ...GREEK_UPPER].sort(
+    (a, b) => b[0].length - a[0].length,
+  );
   var GREEK_MAP = new Map(ALL_GREEK);
 
   // dynamics.ts
@@ -4934,12 +4774,14 @@ function ds(pts) {
     return Phi;
   }
   function smoothstep(x, m, w, c) {
-    if (m <= 0 || w <= 0 || c <= 0) throw new Error("smoothstep: require m > 0, w > 0, c > 0");
+    if (m <= 0 || w <= 0 || c <= 0)
+      throw new Error("smoothstep: require m > 0, w > 0, c > 0");
     const x0 = c / m - w / 2;
     const x1 = x0 + w;
-    if (x0 <= 0) throw new Error(`smoothstep: require w < 2*c/m (got w = ${w})`);
-    const alpha = m * w / 2;
-    const beta = c - m * w / 2;
+    if (x0 <= 0)
+      throw new Error(`smoothstep: require w < 2*c/m (got w = ${w})`);
+    const alpha = (m * w) / 2;
+    const beta = c - (m * w) / 2;
     const gbase = (t) => {
       const t2 = t * t;
       const t3 = t2 * t;
@@ -4947,7 +4789,7 @@ function ds(pts) {
       const t5 = t4 * t;
       return [
         2 * t - 5 * t4 + 6 * t5 - 2 * t3 * t3,
-        2 - 20 * t3 + 30 * t4 - 12 * t5
+        2 - 20 * t3 + 30 * t4 - 12 * t5,
       ];
     };
     if (x <= -x1) return [-c, 0];
@@ -4955,10 +4797,10 @@ function ds(pts) {
     if (x > -x0 && x < x0) return [m * x, m];
     if (x >= x0) {
       const [g2, gp2] = gbase((x - x0) / w);
-      return [alpha * g2 + beta, m / 2 * gp2];
+      return [alpha * g2 + beta, (m / 2) * gp2];
     }
     const [g, gp] = gbase((-x - x0) / w);
-    return [-(alpha * g + beta), m / 2 * gp];
+    return [-(alpha * g + beta), (m / 2) * gp];
   }
   function nonlinForceBw(u, dispScale = 6, feScale = 2, a1 = 1, b1 = 1) {
     const E_mu = 33e6;
@@ -4968,16 +4810,28 @@ function ds(pts) {
     const t = 0.073;
     const R = OD / ID;
     const a = OD / 2;
-    const M = 6 / Math.PI / Math.log(R) * ((R - 1) ** 2 / R ** 2);
+    const M = (6 / Math.PI / Math.log(R)) * ((R - 1) ** 2 / R ** 2);
     const one = (ui) => {
       const uu = ui / dispScale;
-      return feScale * E_mu * uu * (a1 * (h - uu) * (h - uu / 2) * t + b1 * t ** 3) / (M * a ** 2);
+      return (
+        (feScale *
+          E_mu *
+          uu *
+          (a1 * (h - uu) * (h - uu / 2) * t + b1 * t ** 3)) /
+        (M * a ** 2)
+      );
     };
     return typeof u === "number" ? one(u) : u.map(one);
   }
   function bellevillemodel(f_, x_, v_, mu = 0.06, Kh = 13e3, No = 3) {
     const F_e = nonlinForceBw(x_);
-    return Kh * (1 - Math.abs(f_ / mu / (f_ + Math.max(F_e, 1e-4))) ** No * ((1 + sign(v_ * f_)) / 2)) * v_;
+    return (
+      Kh *
+      (1 -
+        Math.abs(f_ / mu / (f_ + Math.max(F_e, 1e-4))) ** No *
+          ((1 + sign(v_ * f_)) / 2)) *
+      v_
+    );
   }
   function rockingDynamics(t, x, ctx, xdotOut) {
     const nBW = ctx.xBW0x.length;
@@ -5003,17 +4857,24 @@ function ds(pts) {
     }
     const delt = xtilde.map((v) => ctx.delt0 + v * st);
     const deltd = xtilde.map(
-      (v, j) => (v * ct + ctx.r0 * sgntp * st) * thetd - taupDot[j] * st * phidot
+      (v, j) =>
+        (v * ct + ctx.r0 * sgntp * st) * thetd - taupDot[j] * st * phidot,
     );
     const fBW = delt.map((d, j) => nonlinForceBw(d) + x[2 + j]);
     const Itt = ctx.II + ctx.m * (ctx.r0 * sgnt) ** 2;
     let xtildeF = 0;
     for (let j = 0; j < nBW; j++) xtildeF += xtilde[j] * fBW[j];
-    const rhs = -ctx.m * ctx.r0 ** 2 * sgnt * sgntp * thetd ** 2 - ctx.c * (1 - sgnt ** 2) * thetd - xtildeF - ctx.m * ctx.h * (taup0 * u[0] + taup1 * u[1]) + ctx.m * u[2] * ctx.r0 * sgnt;
+    const rhs =
+      -ctx.m * ctx.r0 ** 2 * sgnt * sgntp * thetd ** 2 -
+      ctx.c * (1 - sgnt ** 2) * thetd -
+      xtildeF -
+      ctx.m * ctx.h * (taup0 * u[0] + taup1 * u[1]) +
+      ctx.m * u[2] * ctx.r0 * sgnt;
     const xdot = xdotOut ?? new Array(2 + nBW);
     xdot[0] = thetd;
     xdot[1] = rhs / Itt;
-    for (let j = 0; j < nBW; j++) xdot[2 + j] = bellevillemodel(x[2 + j], delt[j], deltd[j]);
+    for (let j = 0; j < nBW; j++)
+      xdot[2 + j] = bellevillemodel(x[2 + j], delt[j], deltd[j]);
     return { xdot, phi, delt, deltd };
   }
 
@@ -5037,7 +4898,8 @@ function ds(pts) {
     const Phi_ = getPhiFromU(u_, 0, dt_, 1);
     const PhiU = unwrap(Phi_);
     const Phidot_ = new Array(nExc);
-    for (let i = 0; i < nExc - 1; i++) Phidot_[i] = (PhiU[i + 1] - PhiU[i]) / dt_;
+    for (let i = 0; i < nExc - 1; i++)
+      Phidot_[i] = (PhiU[i + 1] - PhiU[i]) / dt_;
     Phidot_[nExc - 1] = 0;
     Phidot_[0] = 0;
     const ssign = (thet) => smoothstep(thet, 1e5, 1e-5, 1);
@@ -5050,8 +4912,12 @@ function ds(pts) {
       tolerance: 1e-9,
       solutionColNames: ["f"],
       func: (_t, y, out) => {
-        out[0] = bellevillemodel(y[0], Math.min(delt0 * _t, 1), _t <= 1 ? delt0 : 0);
-      }
+        out[0] = bellevillemodel(
+          y[0],
+          Math.min(delt0 * _t, 1),
+          _t <= 1 ? delt0 : 0,
+        );
+      },
     };
     const preload = rkdp(preloadTask);
     const fh0 = preload[1][preload[1].length - 1];
@@ -5066,7 +4932,7 @@ function ds(pts) {
     const xBW0x = new Array(nBW);
     const xBW0y = new Array(nBW);
     for (let j = 0; j < nBW; j++) {
-      const a = j * 2 * Math.PI / nBW;
+      const a = (j * 2 * Math.PI) / nBW;
       xBW0x[j] = r1 * Math.cos(a);
       xBW0y[j] = r1 * Math.sin(a);
     }
@@ -5083,7 +4949,7 @@ function ds(pts) {
       c: cdamp,
       xBW0x,
       xBW0y,
-      delt0
+      delt0,
     };
     const x0 = new Array(2 + nBW).fill(0);
     for (let j = 0; j < nBW; j++) x0[2 + j] = fh0;
@@ -5095,16 +4961,23 @@ function ds(pts) {
       arg: { name: "t", start: 0, finish: tSim, step: dt_ },
       initial: x0,
       tolerance,
-      solutionColNames: ["theta", "thetad", ...Array.from({ length: nBW }, (_, j) => `fh${j + 1}`)],
+      solutionColNames: [
+        "theta",
+        "thetad",
+        ...Array.from({ length: nBW }, (_, j) => `fh${j + 1}`),
+      ],
       func: (t, y, out) => {
         const r = rockingDynamics(t, y, ctx, out);
-        if (out !== r.xdot) for (let k = 0; k < out.length; k++) out[k] = r.xdot[k];
-      }
+        if (out !== r.xdot)
+          for (let k = 0; k < out.length; k++) out[k] = r.xdot[k];
+      },
     });
     const solverMs = performance.now() - t0;
     const T = Array.from(sol[0]);
     const m2 = (col) => Array.from(col);
-    const X = T.map((_t, i) => Array.from({ length: 2 + nBW }, (_v, k) => sol[1 + k][i]));
+    const X = T.map((_t, i) =>
+      Array.from({ length: 2 + nBW }, (_v, k) => sol[1 + k][i]),
+    );
     const Phi = new Array(T.length);
     const Delt = new Array(T.length);
     const Deltd = new Array(T.length);
@@ -5119,14 +4992,28 @@ function ds(pts) {
       fBWtotal[i] = r.delt.map((d, j) => nonlinForceBw(d) + X[i][2 + j]);
     }
     void getValScalar;
-    return { T, X, fBWh, fBWtotal, Phi, Delt, Deltd, u_, fh0, fBWpreload, solverMs };
+    return {
+      T,
+      X,
+      fBWh,
+      fBWtotal,
+      Phi,
+      Delt,
+      Deltd,
+      u_,
+      fh0,
+      fBWpreload,
+      solverMs,
+    };
   }
 
   // animate-rigid-body.ts
   var DEG = Math.PI / 180;
   function rotMatrix(phi, theta) {
-    const sp = Math.sin(phi), cp = Math.cos(phi);
-    const st = Math.sin(theta), ct = Math.cos(theta);
+    const sp = Math.sin(phi),
+      cp = Math.cos(phi);
+    const st = Math.sin(theta),
+      ct = Math.cos(theta);
     const h = [0, 0, cp, 0, 0, sp, -cp, -sp, 0];
     const h2 = [
       h[0] * h[0] + h[1] * h[3] + h[2] * h[6],
@@ -5137,7 +5024,7 @@ function ds(pts) {
       h[3] * h[2] + h[4] * h[5] + h[5] * h[8],
       h[6] * h[0] + h[7] * h[3] + h[8] * h[6],
       h[6] * h[1] + h[7] * h[4] + h[8] * h[7],
-      h[6] * h[2] + h[7] * h[5] + h[8] * h[8]
+      h[6] * h[2] + h[7] * h[5] + h[8] * h[8],
     ];
     return [
       1 + st * h[0] + (1 - ct) * h2[0],
@@ -5148,19 +5035,20 @@ function ds(pts) {
       st * h[5] + (1 - ct) * h2[5],
       st * h[6] + (1 - ct) * h2[6],
       st * h[7] + (1 - ct) * h2[7],
-      1 + st * h[8] + (1 - ct) * h2[8]
+      1 + st * h[8] + (1 - ct) * h2[8],
     ];
   }
   function applyR(R, v) {
     return [
       R[0] * v[0] + R[1] * v[1] + R[2] * v[2],
       R[3] * v[0] + R[4] * v[1] + R[5] * v[2],
-      R[6] * v[0] + R[7] * v[1] + R[8] * v[2]
+      R[6] * v[0] + R[7] * v[1] + R[8] * v[2],
     ];
   }
   function createBushingAnimator(canvas2, data, opts) {
     const ctx = canvas2.getContext("2d");
-    const W = canvas2.width, Hh = canvas2.height;
+    const W = canvas2.width,
+      Hh = canvas2.height;
     const { geom } = opts;
     const N = 40;
     const H = opts.stackFreeLength;
@@ -5169,15 +5057,27 @@ function ds(pts) {
     const cyls = [
       { r: geom.d1 / 2, z0: -geom.h1, z1: 0, color: "rgba(217, 84, 26, 0.35)" },
       { r: geom.d2 / 2, z0: 0, z1: geom.h2, color: "rgba(0, 115, 189, 0.35)" },
-      { r: geom.d3 / 2, z0: geom.h2, z1: geom.h2 + geom.h3, color: "rgba(120, 171, 48, 0.35)" }
+      {
+        r: geom.d3 / 2,
+        z0: geom.h2,
+        z1: geom.h2 + geom.h3,
+        color: "rgba(120, 171, 48, 0.35)",
+      },
     ];
     const ang = [];
-    for (let j = 0; j < opts.nStacks; j++) ang.push(j * 2 * Math.PI / opts.nStacks);
+    for (let j = 0; j < opts.nStacks; j++)
+      ang.push((j * 2 * Math.PI) / opts.nStacks);
     const triadLen = 0.6 * Math.max(geom.d1, geom.d2, geom.d3);
-    let az = -37.5 * DEG, el = 30 * DEG, zoom = 1.5;
-    let cX = 0, cY = 0, cZ = 0, bR = 1;
+    let az = -37.5 * DEG,
+      el = 30 * DEG,
+      zoom = 1.5;
+    let cX = 0,
+      cY = 0,
+      cZ = 0,
+      bR = 1;
     {
-      let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      let lo = [Infinity, Infinity, Infinity],
+        hi = [-Infinity, -Infinity, -Infinity];
       const bump = (p) => {
         for (let k = 0; k < 3; k++) {
           if (p[k] < lo[k]) lo[k] = p[k];
@@ -5191,10 +5091,13 @@ function ds(pts) {
       cX = (lo[0] + hi[0]) / 2;
       cY = (lo[1] + hi[1]) / 2;
       cZ = (lo[2] + hi[2]) / 2;
-      bR = 0.5 * Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) * 1.08 || 1;
+      bR =
+        0.5 * Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) * 1.08 ||
+        1;
     }
     function framePoints(i) {
-      const phi = data.phi[i], theta = data.theta[i];
+      const phi = data.phi[i],
+        theta = data.theta[i];
       const s = opts.ssign(theta);
       const r = [geom.r0 * s * Math.cos(phi), geom.r0 * s * Math.sin(phi), 0];
       const R = rotMatrix(phi, opts.thetaGain * theta);
@@ -5206,23 +5109,29 @@ function ds(pts) {
       const pts = [];
       for (const c of cyls) {
         for (let j = 0; j <= N; j += 4) {
-          const a = j * 2 * Math.PI / N;
+          const a = (j * 2 * Math.PI) / N;
           pts.push(xf([c.r * Math.cos(a), c.r * Math.sin(a), c.z0]));
           pts.push(xf([c.r * Math.cos(a), c.r * Math.sin(a), c.z1]));
         }
       }
       for (const a of ang) {
-        const x = opts.stackRadius * Math.cos(a), y = opts.stackRadius * Math.sin(a);
+        const x = opts.stackRadius * Math.cos(a),
+          y = opts.stackRadius * Math.sin(a);
         pts.push([x, y, H]);
         pts.push(xf([x, y, 0]));
       }
       return pts;
     }
-    let frame = 0, playing = true, speed = 1, acc = 0, last;
+    let frame = 0,
+      playing = true,
+      speed = 1,
+      acc = 0,
+      last;
     const frameDt = globalThis.simulatorFrameDt(data, opts.fps ?? 50);
     let raf = 0;
     function renderFrame(i) {
-      const phi = data.phi[i], theta = data.theta[i];
+      const phi = data.phi[i],
+        theta = data.theta[i];
       const s = opts.ssign(theta);
       const tv = opts.thetaGain * theta;
       const r = [geom.r0 * s * Math.cos(phi), geom.r0 * s * Math.sin(phi), 0];
@@ -5232,17 +5141,20 @@ function ds(pts) {
         const w = applyR(R, d);
         return [r[0] + w[0], r[1] + w[1], r[2] + w[2]];
       };
-      const ce = Math.cos(el), se = Math.sin(el), ca = Math.cos(az), sa = Math.sin(az);
+      const ce = Math.cos(el),
+        se = Math.sin(el),
+        ca = Math.cos(az),
+        sa = Math.sin(az);
       const right = [ca, sa, 0];
       const fwd = [-ce * sa, ce * ca, -se];
       const up = [-sa * se, ca * se, ce];
-      const scale = Math.min(W, Hh) / (2 * bR) * zoom;
+      const scale = (Math.min(W, Hh) / (2 * bR)) * zoom;
       const proj = (p) => {
         const q = [p[0] - cX, p[1] - cY, p[2] - cZ];
         return [
           W / 2 + (q[0] * right[0] + q[1] * right[1] + q[2] * right[2]) * scale,
           Hh / 2 - (q[0] * up[0] + q[1] * up[1] + q[2] * up[2]) * scale,
-          q[0] * fwd[0] + q[1] * fwd[1] + q[2] * fwd[2]
+          q[0] * fwd[0] + q[1] * fwd[1] + q[2] * fwd[2],
         ];
       };
       ctx.fillStyle = "#ffffff";
@@ -5251,14 +5163,15 @@ function ds(pts) {
       for (const c of cyls) {
         const ring = [];
         for (let j = 0; j <= N; j++) {
-          const a = j * 2 * Math.PI / N;
+          const a = (j * 2 * Math.PI) / N;
           ring.push([
             proj(xf([c.r * Math.cos(a), c.r * Math.sin(a), c.z0])),
-            proj(xf([c.r * Math.cos(a), c.r * Math.sin(a), c.z1]))
+            proj(xf([c.r * Math.cos(a), c.r * Math.sin(a), c.z1])),
           ]);
         }
         for (let j = 0; j < N; j++) {
-          const [b0, t0] = ring[j], [b1, t1] = ring[j + 1];
+          const [b0, t0] = ring[j],
+            [b1, t1] = ring[j + 1];
           const depth = (b0[2] + t0[2] + b1[2] + t1[2]) / 4;
           prims.push({
             depth,
@@ -5271,7 +5184,7 @@ function ds(pts) {
               ctx.closePath();
               ctx.fillStyle = c.color;
               ctx.fill();
-            }
+            },
           });
         }
       }
@@ -5279,21 +5192,38 @@ function ds(pts) {
         const a = ang[j];
         // Fixed ceiling endpoint first; the lower endpoint follows the
         // flange as the body rocks.
-        const g = proj([opts.stackRadius * Math.cos(a), opts.stackRadius * Math.sin(a), H]);
-        const p = proj(xf([opts.stackRadius * Math.cos(a), opts.stackRadius * Math.sin(a), 0]));
+        const g = proj([
+          opts.stackRadius * Math.cos(a),
+          opts.stackRadius * Math.sin(a),
+          H,
+        ]);
+        const p = proj(
+          xf([
+            opts.stackRadius * Math.cos(a),
+            opts.stackRadius * Math.sin(a),
+            0,
+          ]),
+        );
         const depth = (g[2] + p[2]) / 2;
         prims.push({
           depth,
           draw: () => {
-            const dx = p[0] - g[0], dy = p[1] - g[1];
+            const dx = p[0] - g[0],
+              dy = p[1] - g[1];
             const len = Math.hypot(dx, dy) || 1;
-            const coils = 9, amp = Math.min(0.13 * len, 6);
-            const nx = -dy / len, ny = dx / len;
+            const coils = 9,
+              amp = Math.min(0.13 * len, 6);
+            const nx = -dy / len,
+              ny = dx / len;
             ctx.beginPath();
             ctx.moveTo(g[0], g[1]);
             for (let k = 1; k <= coils; k++) {
-              const fr = k / (coils + 1), sg = k % 2 === 1 ? 1 : -1;
-              ctx.lineTo(g[0] + dx * fr + nx * amp * sg, g[1] + dy * fr + ny * amp * sg);
+              const fr = k / (coils + 1),
+                sg = k % 2 === 1 ? 1 : -1;
+              ctx.lineTo(
+                g[0] + dx * fr + nx * amp * sg,
+                g[1] + dy * fr + ny * amp * sg,
+              );
             }
             ctx.lineTo(p[0], p[1]);
             ctx.strokeStyle = "#555555";
@@ -5309,13 +5239,13 @@ function ds(pts) {
             const lbl = proj([
               opts.stackRadius * 1.3 * Math.cos(a),
               opts.stackRadius * 1.3 * Math.sin(a),
-              -2
+              -2,
             ]);
             ctx.fillStyle = "#111111";
             ctx.font = "11px 'Segoe UI', sans-serif";
             ctx.textAlign = "center";
             ctx.fillText(String(j + 1), lbl[0], lbl[1] + 4);
-          }
+          },
         });
       }
       prims.sort((a, b) => b.depth - a.depth);
@@ -5332,10 +5262,14 @@ function ds(pts) {
       const axes = [
         [[1, 0, 0], "#cc2222"],
         [[0, 1, 0], "#22aa22"],
-        [[0, 0, 1], "#2255cc"]
+        [[0, 0, 1], "#2255cc"],
       ];
       for (const [e, col] of axes) {
-        const w = applyR(R, [e[0] * triadLen, e[1] * triadLen, e[2] * triadLen]);
+        const w = applyR(R, [
+          e[0] * triadLen,
+          e[1] * triadLen,
+          e[2] * triadLen,
+        ]);
         const tip = proj([ob[0] + w[0], ob[1] + w[1], ob[2] + w[2]]);
         const base = proj(ob);
         ctx.beginPath();
@@ -5353,14 +5287,14 @@ function ds(pts) {
       ctx.font = "13px 'Segoe UI', sans-serif";
       ctx.textAlign = "left";
       ctx.fillText(
-        `t = ${data.t[i].toFixed(2)} s   (\u03C6 = ${(phi / Math.PI * 180).toFixed(1)}\xB0,  \u03B8 = ${(theta / Math.PI * 180).toFixed(3)}\xB0)`,
+        `t = ${data.t[i].toFixed(2)} s   (\u03C6 = ${((phi / Math.PI) * 180).toFixed(1)}\xB0,  \u03B8 = ${((theta / Math.PI) * 180).toFixed(3)}\xB0)`,
         12,
-        20
+        20,
       );
     }
     function tick(now) {
       if (last !== void 0 && playing) {
-        acc += (now - last) / 1e3 * speed;
+        acc += ((now - last) / 1e3) * speed;
         while (acc >= frameDt) {
           acc -= frameDt;
           frame = (frame + 1) % data.t.length;
@@ -5372,7 +5306,9 @@ function ds(pts) {
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
-    let dragging = false, lx = 0, ly = 0;
+    let dragging = false,
+      lx = 0,
+      ly = 0;
     canvas2.addEventListener("pointerdown", (e) => {
       dragging = true;
       lx = e.clientX;
@@ -5382,17 +5318,24 @@ function ds(pts) {
     canvas2.addEventListener("pointermove", (e) => {
       if (!dragging) return;
       az -= (e.clientX - lx) * 0.01;
-      el = Math.min(89 * DEG, Math.max(-89 * DEG, el + (e.clientY - ly) * 0.01));
+      el = Math.min(
+        89 * DEG,
+        Math.max(-89 * DEG, el + (e.clientY - ly) * 0.01),
+      );
       lx = e.clientX;
       ly = e.clientY;
     });
     canvas2.addEventListener("pointerup", () => {
       dragging = false;
     });
-    canvas2.addEventListener("wheel", (e) => {
-      e.preventDefault();
-      zoom = Math.min(10, Math.max(0.2, zoom * Math.exp(-e.deltaY * 1e-3)));
-    }, { passive: false });
+    canvas2.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        zoom = Math.min(10, Math.max(0.2, zoom * Math.exp(-e.deltaY * 1e-3)));
+      },
+      { passive: false },
+    );
     return {
       play() {
         playing = true;
@@ -5424,35 +5367,41 @@ function ds(pts) {
       },
       destroy() {
         cancelAnimationFrame(raf);
-      }
+      },
     };
   }
-
 
   function buildPlot(spec) {
     const W = spec.width ?? 430;
     const Hh = spec.height ?? 270;
     const hasLegend = spec.series.some((ser) => ser.label);
-    const L = 72, R = 12, T = hasLegend ? 48 : 38, B = hasLegend ? 50 : 44;
+    const L = 72,
+      R = 12,
+      T = hasLegend ? 48 : 38,
+      B = hasLegend ? 50 : 44;
     const xs = spec.series.flatMap((s2) => s2.pts.map((p) => p[0]));
     const ys = spec.series.flatMap((s2) => s2.pts.map((p) => p[1]));
-    let x0 = Math.min(...xs), x1 = Math.max(...xs);
-    let y0 = Math.min(...ys), y1 = Math.max(...ys);
+    let x0 = Math.min(...xs),
+      x1 = Math.max(...xs);
+    let y0 = Math.min(...ys),
+      y1 = Math.max(...ys);
     x0 -= (x1 - x0) * 0.02 || 0.5;
     x1 += (x1 - x0) * 0.02 || 0.5;
     y0 -= (y1 - y0) * 0.05 || 0.5;
     y1 += (y1 - y0) * 0.05 || 0.5;
     if (spec.equal) {
-      const sx = W - L - R, sy = Hh - T - B;
+      const sx = W - L - R,
+        sy = Hh - T - B;
       const r = Math.max((x1 - x0) / sx, (y1 - y0) / sy);
-      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-      x0 = cx - r * sx / 2;
-      x1 = cx + r * sx / 2;
-      y0 = cy - r * sy / 2;
-      y1 = cy + r * sy / 2;
+      const cx = (x0 + x1) / 2,
+        cy = (y0 + y1) / 2;
+      x0 = cx - (r * sx) / 2;
+      x1 = cx + (r * sx) / 2;
+      y0 = cy - (r * sy) / 2;
+      y1 = cy + (r * sy) / 2;
     }
-    const px = (v) => L + (v - x0) / (x1 - x0) * (W - L - R);
-    const py = (v) => Hh - B - (v - y0) / (y1 - y0) * (Hh - T - B);
+    const px = (v) => L + ((v - x0) / (x1 - x0)) * (W - L - R);
+    const py = (v) => Hh - B - ((v - y0) / (y1 - y0)) * (Hh - T - B);
     let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${Hh}" font-family="Segoe UI, sans-serif">`;
     s += `<rect width="${W}" height="${Hh}" fill="white"/>`;
     s += `<text x="${L}" y="${T - 14}" font-size="17" font-weight="600" fill="#111">${spec.title}</text>`;
@@ -5478,7 +5427,8 @@ function ds(pts) {
     s += `<rect x="${L}" y="${T}" width="${W - L - R}" height="${Hh - T - B}" fill="none" stroke="#9ca3af"/>`;
     for (const ser of spec.series) {
       let d = "";
-      for (const p of ser.pts) d += `${px(p[0]).toFixed(2)},${py(p[1]).toFixed(2)} `;
+      for (const p of ser.pts)
+        d += `${px(p[0]).toFixed(2)},${py(p[1]).toFixed(2)} `;
       s += `<polyline points="${d}" fill="none" stroke="${ser.color}" stroke-width="1.3"/>`;
     }
     if (spec.cursors) {
@@ -5527,13 +5477,15 @@ function ds(pts) {
           const n = pts.length;
           if (n === 0) continue;
           const tc = Math.max(pts[0][0], Math.min(pts[n - 1][0], t));
-          let lo = 0, hi = n - 1;
+          let lo = 0,
+            hi = n - 1;
           while (hi - lo > 1) {
-            const mid = lo + hi >> 1;
+            const mid = (lo + hi) >> 1;
             if (pts[mid][0] <= tc) lo = mid;
             else hi = mid;
           }
-          const [xa, ya] = pts[lo], [xb, yb] = pts[hi];
+          const [xa, ya] = pts[lo],
+            [xb, yb] = pts[hi];
           const f = (tc - xa) / (xb - xa || 1);
           setDot(c.id, tc, ya + f * (yb - ya), c.label);
         }
@@ -5542,245 +5494,325 @@ function ds(pts) {
       setMarker(id, x, y) {
         const m = (spec.markers ?? []).find((mk) => mk.id === id);
         setDot(id, x, y, m?.label);
-      }
+      },
     };
   }
 
   // Worker: MinAccel ramp-until-target solve.
-//
-// The solver bundle (animate-app.js) is an IIFE whose functions are scoped
-// inside, so we append a message handler INSIDE that IIFE via a marker.
-// Build:  cp validate/animate-app.js validate/minaccel-worker.js
-//         sed -i '/\/\/ validate\/animate-src\.ts/,$d' validate/minaccel-worker.js
-//         cat validate/minaccel-worker-wiring.js >> validate/minaccel-worker.js
-//
-// Excitation: a_x(t) = rate*t (g), a_y = 0, so the tipping direction is
-// phi = 0 (2D side view). The solve runs in 2 s segments, continuing from
-// the previous segment's final state, until |theta| first reaches the
-// target angle (or maxT elapses). The base acceleration at that moment
-// (rate * t_cross) is the minimum acceleration needed to rock the body to
-// the target angle.
-//
-// Once the target is reached the load is REMOVED (a_x drops to zero) and
-// the solve continues for `freeT` more seconds to show the free response.
-//
-// Optional disableBW: removes the Belleville-washer forces entirely (pure
-// rocking about the pivot under gravity + base acceleration). The caller
-// then sets the target to 0.8*atan(r0/hCM).
+  //
+  // The solver bundle (animate-app.js) is an IIFE whose functions are scoped
+  // inside, so we append a message handler INSIDE that IIFE via a marker.
+  // Build:  cp validate/animate-app.js validate/minaccel-worker.js
+  //         sed -i '/\/\/ validate\/animate-src\.ts/,$d' validate/minaccel-worker.js
+  //         cat validate/minaccel-worker-wiring.js >> validate/minaccel-worker.js
+  //
+  // Excitation: a_x(t) = rate*t (g), a_y = 0, so the tipping direction is
+  // phi = 0 (2D side view). The solve runs in 2 s segments, continuing from
+  // the previous segment's final state, until |theta| first reaches the
+  // target angle (or maxT elapses). The base acceleration at that moment
+  // (rate * t_cross) is the minimum acceleration needed to rock the body to
+  // the target angle.
+  //
+  // Once the target is reached the load is REMOVED (a_x drops to zero) and
+  // the solve continues for `freeT` more seconds to show the free response.
+  //
+  // Optional disableBW: removes the Belleville-washer forces entirely (pure
+  // rocking about the pivot under gravity + base acceleration). The caller
+  // then sets the target to 0.8*atan(r0/hCM).
 
-function num(v, dflt) { return Number.isFinite(v) ? v : dflt; }
-
-function runMinAccel(params) {
-  const grav = 386.4;
-  const dt_ = 1e-3;
-  const rate = num(params.rate, 1);          // g/s
-  const target = num(params.targetDeg, 1) * Math.PI / 180; // rad
-  const maxT = num(params.maxT, 10);
-  const segLen = num(params.segLen, 2);
-  const freeT = num(params.freeT, 10);       // free-response duration after crossing
-  const disableBW = !!params.disableBW;
-  const mass = num(params.mass, 1e3) / grav;
-  const II = 4e3;
-  const r0 = num(params.r0, 12);
-  const hCM = num(params.hCM, 40);
-  const cdamp = disableBW ? 1e7 : 1e6; // stronger rocking damping only when BW force is disabled
-  const r1 = 10.5;
-  const nBW = 12;
-  const delt0 = 0.03;
-  const tolerance = 1e-8;
-  const ay = (t) => 0;
-
-  const xBW0x = new Array(nBW), xBW0y = new Array(nBW);
-  for (let j = 0; j < nBW; j++) {
-    const a = j * 2 * Math.PI / nBW;
-    xBW0x[j] = r1 * Math.cos(a);
-    xBW0y[j] = r1 * Math.sin(a);
+  function num(v, dflt) {
+    return Number.isFinite(v) ? v : dflt;
   }
 
-  // BW preload (deterministic — computed once, not per segment).
-  // Skipped when the BW force is disabled.
-  let fh0 = 0;
-  if (!disableBW) {
-    const preloadTask = {
-      name: "bw_preload",
-      arg: { name: "t", start: 0, finish: 1, step: 1e-3 },
-      initial: [0],
-      tolerance: 1e-9,
-      solutionColNames: ["f"],
-      func: (_t, y, out) => {
-        out[0] = bellevillemodel(y[0], Math.min(delt0 * _t, 1), _t <= 1 ? delt0 : 0);
-      }
+  function runMinAccel(params) {
+    const grav = 386.4;
+    const dt_ = 1e-3;
+    const rate = num(params.rate, 1); // g/s
+    const target = (num(params.targetDeg, 1) * Math.PI) / 180; // rad
+    const maxT = num(params.maxT, 10);
+    const segLen = num(params.segLen, 2);
+    const freeT = num(params.freeT, 10); // free-response duration after crossing
+    const disableBW = !!params.disableBW;
+    const mass = num(params.mass, 1e3) / grav;
+    const II = 4e3;
+    const r0 = num(params.r0, 12);
+    const hCM = num(params.hCM, 40);
+    const cdamp = disableBW ? 1e7 : 1e6; // stronger rocking damping only when BW force is disabled
+    const r1 = 10.5;
+    const nBW = 12;
+    const delt0 = 0.03;
+    const tolerance = 1e-8;
+    const ay = (t) => 0;
+
+    const xBW0x = new Array(nBW),
+      xBW0y = new Array(nBW);
+    for (let j = 0; j < nBW; j++) {
+      const a = (j * 2 * Math.PI) / nBW;
+      xBW0x[j] = r1 * Math.cos(a);
+      xBW0y[j] = r1 * Math.sin(a);
+    }
+
+    // BW preload (deterministic — computed once, not per segment).
+    // Skipped when the BW force is disabled.
+    let fh0 = 0;
+    if (!disableBW) {
+      const preloadTask = {
+        name: "bw_preload",
+        arg: { name: "t", start: 0, finish: 1, step: 1e-3 },
+        initial: [0],
+        tolerance: 1e-9,
+        solutionColNames: ["f"],
+        func: (_t, y, out) => {
+          out[0] = bellevillemodel(
+            y[0],
+            Math.min(delt0 * _t, 1),
+            _t <= 1 ? delt0 : 0,
+          );
+        },
+      };
+      const preload = rkdp(preloadTask);
+      fh0 = preload[1][preload[1].length - 1];
+    }
+
+    const ctx = {
+      uaccel: null,
+      phi_: null,
+      phidot_: null,
+      dtaccel: dt_,
+      ssign: (thet) => smoothstep(thet, 1e5, 1e-5, 1),
+      m: mass,
+      II,
+      r0,
+      h: hCM,
+      c: cdamp,
+      xBW0x,
+      xBW0y,
+      delt0,
     };
-    const preload = rkdp(preloadTask);
-    fh0 = preload[1][preload[1].length - 1];
-  }
 
-  const ctx = {
-    uaccel: null, phi_: null, phidot_: null, dtaccel: dt_,
-    ssign: (thet) => smoothstep(thet, 1e5, 1e-5, 1),
-    m: mass, II, r0, h: hCM, c: cdamp,
-    xBW0x, xBW0y, delt0
-  };
+    let x0 = new Array(2 + nBW).fill(0);
+    for (let j = 0; j < nBW; j++) x0[2 + j] = fh0;
 
-  let x0 = new Array(2 + nBW).fill(0);
-  for (let j = 0; j < nBW; j++) x0[2 + j] = fh0;
+    const T = [],
+      X = [],
+      Phi = [],
+      Delt = [],
+      Deltd = [],
+      fBWh = [],
+      fBWtotal = [];
+    let t0 = 0;
+    let crossing = null,
+      activation = null;
+    const t0w = performance.now();
 
-  const T = [], X = [], Phi = [], Delt = [], Deltd = [], fBWh = [], fBWtotal = [];
-  let t0 = 0;
-  let crossing = null, activation = null;
-  const t0w = performance.now();
+    // Onset detection: the rocking onset is where θ̇ changes rapidly, i.e.
+    // where |θ̈| first exceeds a multiple of its recent baseline (median over
+    // the previous 50 ms, floored at 0.01 deg/s²). This is nearly
+    // rate-independent, unlike a threshold on |θ| or an absolute |θ̈| level
+    // (the pre-onset creep scales with the ramp rate).
+    const ONSET_MULT = 15;
+    const ONSET_WIN = 50; // ms
+    const ONSET_FLOOR = 0.01; // deg/s^2
+    const onsetWin = Math.max(3, Math.round(ONSET_WIN / 1000 / dt_));
+    const tddHist = []; // rolling |θ̈| history (deg/s^2)
 
-  // Onset detection: the rocking onset is where θ̇ changes rapidly, i.e.
-  // where |θ̈| first exceeds a multiple of its recent baseline (median over
-  // the previous 50 ms, floored at 0.01 deg/s²). This is nearly
-  // rate-independent, unlike a threshold on |θ| or an absolute |θ̈| level
-  // (the pre-onset creep scales with the ramp rate).
-  const ONSET_MULT = 15;
-  const ONSET_WIN = 50; // ms
-  const ONSET_FLOOR = 0.01; // deg/s^2
-  const onsetWin = Math.max(3, Math.round(ONSET_WIN / 1000 / dt_));
-  const tddHist = []; // rolling |θ̈| history (deg/s^2)
+    // Excitation: ramp until the load is removed (tDrop), then zero.
+    let tDrop = null;
+    const ax = (t) => (tDrop !== null && t >= tDrop ? 0 : rate * t);
 
-  // Excitation: ramp until the load is removed (tDrop), then zero.
-  let tDrop = null;
-  const ax = (t) => (tDrop !== null && t >= tDrop) ? 0 : rate * t;
-
-  function solveSegment(tStart, tFinish, x0in) {
-    // Excitation table covering [0, tFinish] (getVal indexes by floor(t/dt))
-    const nExc = Math.round(tFinish / dt_) + 1;
-    const uSeg = new Array(nExc);
-    for (let i = 0; i < nExc; i++) {
-      const t = i * dt_;
-      uSeg[i] = [ax(t) * grav, ay(t) * grav, -grav];
-    }
-    const Phi_ = getPhiFromU(uSeg, 0, dt_, 1);
-    const PhiU = unwrap(Phi_);
-    const Phidot_ = new Array(nExc);
-    for (let i = 0; i < nExc - 1; i++) Phidot_[i] = (PhiU[i + 1] - PhiU[i]) / dt_;
-    Phidot_[nExc - 1] = 0; Phidot_[0] = 0;
-    ctx.uaccel = uSeg; ctx.phi_ = Phi_; ctx.phidot_ = Phidot_;
-
-    return lsoda2({
-      name: "minaccel",
-      arg: { name: "t", start: tStart, finish: tFinish, step: dt_ },
-      initial: x0in,
-      tolerance,
-      solutionColNames: ["theta", "thetad", ...Array.from({ length: nBW }, (_, j) => `fh${j + 1}`)],
-      func: (t, y, out) => {
-        const r = rockingDynamics(t, y, ctx, out);
-        if (out !== r.xdot) for (let k = 0; k < out.length; k++) out[k] = r.xdot[k];
-        if (disableBW) {
-          // Pure rocking about the pivot: drop the Belleville-washer term
-          // from θ̈ and freeze the friction states at zero.
-          const thet = y[0], thetd = y[1];
-          const u = getVal(t, ctx.uaccel, ctx.dtaccel, 0);
-          const phi = getValScalar(t, ctx.phi_, ctx.dtaccel, 1);
-          const [sgnt, sgntp] = ctx.ssign(thet);
-          const taup0 = -Math.cos(phi), taup1 = -Math.sin(phi);
-          const Itt = ctx.II + ctx.m * (ctx.r0 * sgnt) ** 2;
-          const rhs = -ctx.m * ctx.r0 ** 2 * sgnt * sgntp * thetd ** 2
-            - ctx.c * (1 - sgnt ** 2) * thetd
-            - ctx.m * ctx.h * (taup0 * u[0] + taup1 * u[1])
-            + ctx.m * u[2] * ctx.r0 * sgnt;
-          out[1] = rhs / Itt;
-          for (let k = 2; k < out.length; k++) out[k] = 0;
-        }
+    function solveSegment(tStart, tFinish, x0in) {
+      // Excitation table covering [0, tFinish] (getVal indexes by floor(t/dt))
+      const nExc = Math.round(tFinish / dt_) + 1;
+      const uSeg = new Array(nExc);
+      for (let i = 0; i < nExc; i++) {
+        const t = i * dt_;
+        uSeg[i] = [ax(t) * grav, ay(t) * grav, -grav];
       }
-    });
-  }
+      const Phi_ = getPhiFromU(uSeg, 0, dt_, 1);
+      const PhiU = unwrap(Phi_);
+      const Phidot_ = new Array(nExc);
+      for (let i = 0; i < nExc - 1; i++)
+        Phidot_[i] = (PhiU[i + 1] - PhiU[i]) / dt_;
+      Phidot_[nExc - 1] = 0;
+      Phidot_[0] = 0;
+      ctx.uaccel = uSeg;
+      ctx.phi_ = Phi_;
+      ctx.phidot_ = Phidot_;
 
-  function appendSegment(sol, detect) {
-    const segT = Array.from(sol[0]);
-    const segX = segT.map((_t, i) => Array.from({ length: 2 + nBW }, (_v, k) => sol[1 + k][i]));
-    const skip = T.length ? 1 : 0; // first sample duplicates previous segment end
-    const baseLen = T.length;
-    let crossIdx = -1;
-    for (let i = skip; i < segT.length; i++) {
-      const r = rockingDynamics(segT[i], segX[i], ctx);
-      T.push(segT[i]); X.push(segX[i]); Phi.push(r.phi);
-      Delt.push(r.delt); Deltd.push(r.deltd);
-      fBWh.push(Array.from({ length: nBW }, (_v, j) => segX[i][2 + j]));
-      fBWtotal.push(disableBW ? new Array(nBW).fill(0) : r.delt.map((d, j) => nonlinForceBw(d) + segX[i][2 + j]));
-      const idx = baseLen + (i - skip); // index of this sample in T/X
-      // θ̈ for the previous sample (one-sample lag; needs X[idx] and X[idx-2])
-      if (idx >= 2) {
-        const tdd = (X[idx][1] - X[idx - 2][1]) / (2 * dt_) * 180 / Math.PI; // deg/s^2
-        if (detect && !activation && tddHist.length >= onsetWin) {
-          const sorted = tddHist.slice().sort((a, b) => a - b);
-          const med = Math.max(sorted[sorted.length / 2], ONSET_FLOOR);
-          if (Math.abs(tdd) > ONSET_MULT * med) {
-            activation = { t: T[idx - 1], theta: X[idx - 1][0], accel: rate * T[idx - 1] };
+      return lsoda2({
+        name: "minaccel",
+        arg: { name: "t", start: tStart, finish: tFinish, step: dt_ },
+        initial: x0in,
+        tolerance,
+        solutionColNames: [
+          "theta",
+          "thetad",
+          ...Array.from({ length: nBW }, (_, j) => `fh${j + 1}`),
+        ],
+        func: (t, y, out) => {
+          const r = rockingDynamics(t, y, ctx, out);
+          if (out !== r.xdot)
+            for (let k = 0; k < out.length; k++) out[k] = r.xdot[k];
+          if (disableBW) {
+            // Pure rocking about the pivot: drop the Belleville-washer term
+            // from θ̈ and freeze the friction states at zero.
+            const thet = y[0],
+              thetd = y[1];
+            const u = getVal(t, ctx.uaccel, ctx.dtaccel, 0);
+            const phi = getValScalar(t, ctx.phi_, ctx.dtaccel, 1);
+            const [sgnt, sgntp] = ctx.ssign(thet);
+            const taup0 = -Math.cos(phi),
+              taup1 = -Math.sin(phi);
+            const Itt = ctx.II + ctx.m * (ctx.r0 * sgnt) ** 2;
+            const rhs =
+              -ctx.m * ctx.r0 ** 2 * sgnt * sgntp * thetd ** 2 -
+              ctx.c * (1 - sgnt ** 2) * thetd -
+              ctx.m * ctx.h * (taup0 * u[0] + taup1 * u[1]) +
+              ctx.m * u[2] * ctx.r0 * sgnt;
+            out[1] = rhs / Itt;
+            for (let k = 2; k < out.length; k++) out[k] = 0;
           }
+        },
+      });
+    }
+
+    function appendSegment(sol, detect) {
+      const segT = Array.from(sol[0]);
+      const segX = segT.map((_t, i) =>
+        Array.from({ length: 2 + nBW }, (_v, k) => sol[1 + k][i]),
+      );
+      const skip = T.length ? 1 : 0; // first sample duplicates previous segment end
+      const baseLen = T.length;
+      let crossIdx = -1;
+      for (let i = skip; i < segT.length; i++) {
+        const r = rockingDynamics(segT[i], segX[i], ctx);
+        T.push(segT[i]);
+        X.push(segX[i]);
+        Phi.push(r.phi);
+        Delt.push(r.delt);
+        Deltd.push(r.deltd);
+        fBWh.push(Array.from({ length: nBW }, (_v, j) => segX[i][2 + j]));
+        fBWtotal.push(
+          disableBW
+            ? new Array(nBW).fill(0)
+            : r.delt.map((d, j) => nonlinForceBw(d) + segX[i][2 + j]),
+        );
+        const idx = baseLen + (i - skip); // index of this sample in T/X
+        // θ̈ for the previous sample (one-sample lag; needs X[idx] and X[idx-2])
+        if (idx >= 2) {
+          const tdd =
+            (((X[idx][1] - X[idx - 2][1]) / (2 * dt_)) * 180) / Math.PI; // deg/s^2
+          if (detect && !activation && tddHist.length >= onsetWin) {
+            const sorted = tddHist.slice().sort((a, b) => a - b);
+            const med = Math.max(sorted[sorted.length / 2], ONSET_FLOOR);
+            if (Math.abs(tdd) > ONSET_MULT * med) {
+              activation = {
+                t: T[idx - 1],
+                theta: X[idx - 1][0],
+                accel: rate * T[idx - 1],
+              };
+            }
+          }
+          tddHist.push(Math.abs(tdd));
+          if (tddHist.length > onsetWin) tddHist.shift();
         }
-        tddHist.push(Math.abs(tdd));
-        if (tddHist.length > onsetWin) tddHist.shift();
+        if (detect && !crossing && Math.abs(segX[i][0]) >= target) {
+          const tA = segT[i - 1],
+            tB = segT[i];
+          const thA = Math.abs(segX[i - 1][0]),
+            thB = Math.abs(segX[i][0]);
+          const f = (target - thA) / (thB - thA);
+          crossing = {
+            t: tA + f * (tB - tA),
+            theta: target,
+            accel: rate * (tA + f * (tB - tA)),
+          };
+          crossIdx = i;
+        }
       }
-      if (detect && !crossing && Math.abs(segX[i][0]) >= target) {
-        const tA = segT[i - 1], tB = segT[i];
-        const thA = Math.abs(segX[i - 1][0]), thB = Math.abs(segX[i][0]);
-        const f = (target - thA) / (thB - thA);
-        crossing = { t: tA + f * (tB - tA), theta: target, accel: rate * (tA + f * (tB - tA)) };
-        crossIdx = i;
-      }
+      return { segT, segX, crossIdx, baseLen, skip };
     }
-    return { segT, segX, crossIdx, baseLen, skip };
-  }
 
-  // Phase 1: ramp until |theta| reaches the target (or maxT)
-  while (t0 < maxT) {
-    const t1 = Math.min(t0 + segLen, maxT);
-    const sol = solveSegment(t0, t1, x0);
-    const { segX, crossIdx, baseLen, skip } = appendSegment(sol, true);
-    if (crossIdx >= 0) {
-      // End the record exactly at the first sample at/above the target
-      const keep = baseLen + (crossIdx - skip + 1);
-      T.length = keep; X.length = keep; Phi.length = keep;
-      Delt.length = keep; Deltd.length = keep;
-      fBWh.length = keep; fBWtotal.length = keep;
-      x0 = X[keep - 1];
-      t0 = T[keep - 1];
-      break;
-    }
-    x0 = segX[segX.length - 1];
-    t0 = t1;
-  }
-
-  // Fallback: if the θ̈-based onset wasn't detected but the target was
-  // reached, use the crossing itself so activation is always defined.
-  if (crossing && !activation) {
-    activation = { t: crossing.t, theta: crossing.theta, accel: crossing.accel };
-  }
-
-  // Phase 2: load removed — continue for freeT more seconds
-  if (crossing) {
-    tDrop = t0; // excitation drops to zero from here
-    const tEnd = t0 + freeT;
-    while (t0 < tEnd) {
-      const t1 = Math.min(t0 + segLen, tEnd);
+    // Phase 1: ramp until |theta| reaches the target (or maxT)
+    while (t0 < maxT) {
+      const t1 = Math.min(t0 + segLen, maxT);
       const sol = solveSegment(t0, t1, x0);
-      const { segX } = appendSegment(sol, false);
+      const { segX, crossIdx, baseLen, skip } = appendSegment(sol, true);
+      if (crossIdx >= 0) {
+        // End the record exactly at the first sample at/above the target
+        const keep = baseLen + (crossIdx - skip + 1);
+        T.length = keep;
+        X.length = keep;
+        Phi.length = keep;
+        Delt.length = keep;
+        Deltd.length = keep;
+        fBWh.length = keep;
+        fBWtotal.length = keep;
+        x0 = X[keep - 1];
+        t0 = T[keep - 1];
+        break;
+      }
       x0 = segX[segX.length - 1];
       t0 = t1;
     }
+
+    // Fallback: if the θ̈-based onset wasn't detected but the target was
+    // reached, use the crossing itself so activation is always defined.
+    if (crossing && !activation) {
+      activation = {
+        t: crossing.t,
+        theta: crossing.theta,
+        accel: crossing.accel,
+      };
+    }
+
+    // Phase 2: load removed — continue for freeT more seconds
+    if (crossing) {
+      tDrop = t0; // excitation drops to zero from here
+      const tEnd = t0 + freeT;
+      while (t0 < tEnd) {
+        const t1 = Math.min(t0 + segLen, tEnd);
+        const sol = solveSegment(t0, t1, x0);
+        const { segX } = appendSegment(sol, false);
+        x0 = segX[segX.length - 1];
+        t0 = t1;
+      }
+    }
+
+    const solverMs = performance.now() - t0w;
+    const u_ = T.map((t) => [ax(t) * grav, ay(t) * grav, -grav]);
+    return {
+      T,
+      X,
+      fBWh,
+      fBWtotal,
+      Phi,
+      Delt,
+      Deltd,
+      u_,
+      fh0,
+      fBWpreload: disableBW ? 0 : fh0 + nonlinForceBw(delt0),
+      solverMs,
+      crossing,
+      activation,
+      reached: !!crossing,
+      maxT,
+      tDrop,
+      freeT,
+    };
   }
 
-  const solverMs = performance.now() - t0w;
-  const u_ = T.map((t) => [ax(t) * grav, ay(t) * grav, -grav]);
-  return {
-    T, X, fBWh, fBWtotal, Phi, Delt, Deltd, u_,
-    fh0, fBWpreload: disableBW ? 0 : fh0 + nonlinForceBw(delt0),
-    solverMs, crossing, activation, reached: !!crossing, maxT,
-    tDrop, freeT
+  self.onmessage = (e) => {
+    const { id, params } = e.data;
+    try {
+      const res = runMinAccel(params);
+      self.postMessage({ id, ok: true, res });
+    } catch (err) {
+      self.postMessage({
+        id,
+        ok: false,
+        error: String((err && err.message) || err),
+      });
+    }
   };
-}
-
-self.onmessage = (e) => {
-  const { id, params } = e.data;
-  try {
-    const res = runMinAccel(params);
-    self.postMessage({ id, ok: true, res });
-  } catch (err) {
-    self.postMessage({ id, ok: false, error: String(err && err.message || err) });
-  }
-};
 })();

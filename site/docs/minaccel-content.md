@@ -28,12 +28,12 @@ $$
 
 ## Controls
 
-| Control | Description |
-|---|---|
-| Ramp rate (g/s) | How fast the base acceleration grows |
-| Target θ (deg) | The rocking angle to reach |
+| Control          | Description                                                                                                             |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Ramp rate (g/s)  | How fast the base acceleration grows                                                                                    |
+| Target θ (deg)   | The rocking angle to reach                                                                                              |
 | Disable BW force | Removes the Belleville-washer forces (pure rocking about the pivot); the target then becomes $0.2\,\arctan(r_0/h_{CM})$ |
-| Mass / r₀ / h_CM | Body parameters (same as the playground) |
+| Mass / r₀ / h_CM | Body parameters (same as the playground)                                                                                |
 
 > **Note:** since it is a linear model (that works on small angle
 > approximation), disabling BW force yields results that are inaccurate at

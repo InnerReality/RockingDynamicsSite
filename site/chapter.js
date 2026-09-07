@@ -1,53 +1,133 @@
 (() => {
-  const root = document.querySelector('[data-chapter]');
+  const root = document.querySelector("[data-chapter]");
   if (!root) return;
-  const bar = document.querySelector('.chapter-progress-bar');
-  const steps = [...document.querySelectorAll('.scrolly-step')];
-  const states = [...document.querySelectorAll('.figure-state')];
-  const plots = [...document.querySelectorAll('.figure-plot')];
-  const canvas = document.querySelector('[data-figure-canvas]');
-  const ctx = canvas?.getContext('2d');
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const bar = document.querySelector(".chapter-progress-bar");
+  const steps = [...document.querySelectorAll(".scrolly-step")];
+  const states = [...document.querySelectorAll(".figure-state")];
+  const plots = [...document.querySelectorAll(".figure-plot")];
+  const canvas = document.querySelector("[data-figure-canvas]");
+  const ctx = canvas?.getContext("2d");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const redraws = [];
-  new MutationObserver(() => redraws.forEach((fn) => fn())).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  new MutationObserver(() => redraws.forEach((fn) => fn())).observe(
+    document.documentElement,
+    { attributes: true, attributeFilter: ["data-theme"] },
+  );
 
   function showState(id) {
-    states.forEach((state) => state.classList.toggle('is-visible', state.dataset.state === id));
-    plots.forEach((plot) => plot.classList.toggle('is-visible', plot.dataset.state === id));
+    states.forEach((state) =>
+      state.classList.toggle("is-visible", state.dataset.state === id),
+    );
+    plots.forEach((plot) =>
+      plot.classList.toggle("is-visible", plot.dataset.state === id),
+    );
     if (ctx) drawFigure(id);
   }
   function drawFigure(id) {
-    const w = canvas.width = 760, h = canvas.height = 500;
+    const w = (canvas.width = 760),
+      h = (canvas.height = 500);
     ctx.clearRect(0, 0, w, h);
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0f766e';
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#1c2524';
-    ctx.lineWidth = 5; ctx.lineCap = 'round';
-    const cx = w / 2, ground = h * .76;
-    ctx.strokeStyle = '#93aaa4'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(70, ground); ctx.lineTo(w - 70, ground); ctx.stroke();
-    const angle = id === 'threshold' ? -.28 : id === 'response' ? .32 : id === 'forcing' ? Math.sin(Date.now() / 320) * .22 : id === 'derivation' ? -.12 : 0;
-    ctx.save(); ctx.translate(cx, ground - 150); ctx.rotate(angle);
-    ctx.strokeStyle = '#244846'; ctx.fillStyle = 'rgba(15,118,110,.18)'; ctx.lineWidth = 6;
-    ctx.beginPath(); ctx.rect(-105, -150, 210, 150); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#c2410c'; ctx.beginPath(); ctx.arc(0, -88, 10, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#c2410c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, -88); ctx.lineTo(0, 20); ctx.stroke(); ctx.restore();
-    ctx.fillStyle = ctx.strokeStyle = '#65716e'; ctx.font = '700 22px system-ui'; ctx.fillText(id === 'threshold' ? 'lift-off' : id === 'response' ? 'impact + decay' : id === 'forcing' ? 'driven rocking' : id === 'derivation' ? 'geometric path' : 'two possible pivots', 75, 90);
+    ctx.strokeStyle =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--accent")
+        .trim() || "#0f766e";
+    ctx.fillStyle =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--text")
+        .trim() || "#1c2524";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    const cx = w / 2,
+      ground = h * 0.76;
+    ctx.strokeStyle = "#93aaa4";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(70, ground);
+    ctx.lineTo(w - 70, ground);
+    ctx.stroke();
+    const angle =
+      id === "threshold"
+        ? -0.28
+        : id === "response"
+          ? 0.32
+          : id === "forcing"
+            ? Math.sin(Date.now() / 320) * 0.22
+            : id === "derivation"
+              ? -0.12
+              : 0;
+    ctx.save();
+    ctx.translate(cx, ground - 150);
+    ctx.rotate(angle);
+    ctx.strokeStyle = "#244846";
+    ctx.fillStyle = "rgba(15,118,110,.18)";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.rect(-105, -150, 210, 150);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#c2410c";
+    ctx.beginPath();
+    ctx.arc(0, -88, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#c2410c";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, -88);
+    ctx.lineTo(0, 20);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = ctx.strokeStyle = "#65716e";
+    ctx.font = "700 22px system-ui";
+    ctx.fillText(
+      id === "threshold"
+        ? "lift-off"
+        : id === "response"
+          ? "impact + decay"
+          : id === "forcing"
+            ? "driven rocking"
+            : id === "derivation"
+              ? "geometric path"
+              : "two possible pivots",
+      75,
+      90,
+    );
   }
-  function setActive(step) { if (!step) return; steps.forEach((item) => item.classList.toggle('is-active', item === step)); showState(step.dataset.state); }
-  const figure = document.querySelector('.scrolly-figure');
-  function progress() { const max = document.documentElement.scrollHeight - innerHeight; if (bar) bar.style.width = `${max > 0 ? (scrollY / max) * 100 : 0}%`; }
+  function setActive(step) {
+    if (!step) return;
+    steps.forEach((item) => item.classList.toggle("is-active", item === step));
+    showState(step.dataset.state);
+  }
+  const figure = document.querySelector(".scrolly-figure");
+  function progress() {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    if (bar) bar.style.width = `${max > 0 ? (scrollY / max) * 100 : 0}%`;
+  }
   function updateActiveOnScroll() {
     const figRect = figure?.getBoundingClientRect();
     if (!figRect) return;
     const top = figRect.top;
-    let closest = steps[0]; let distance = Infinity;
+    let closest = steps[0];
+    let distance = Infinity;
     steps.forEach((step) => {
-      const heading = step.querySelector('h2');
+      const heading = step.querySelector("h2");
       const d = Math.abs(heading.getBoundingClientRect().top - top);
-      if (d < distance) { distance = d; closest = step; }
+      if (d < distance) {
+        distance = d;
+        closest = step;
+      }
     });
     setActive(closest);
   }
-  addEventListener('scroll', () => { progress(); updateActiveOnScroll(); }, { passive: true }); progress(); updateActiveOnScroll();
+  addEventListener(
+    "scroll",
+    () => {
+      progress();
+      updateActiveOnScroll();
+    },
+    { passive: true },
+  );
+  progress();
+  updateActiveOnScroll();
 
   function smoothSign(theta, theta0, m) {
     const width = 2 * (theta0 - 1 / m);
@@ -58,7 +138,7 @@
     if (ax < x0) return m * theta;
     const t = (ax - x0) / width;
     const g = 2 * t - 5 * t ** 4 + 6 * t ** 5 - 2 * t ** 6;
-    return Math.sign(theta) * ((m * width / 2) * g + 1 - m * width / 2);
+    return Math.sign(theta) * (((m * width) / 2) * g + 1 - (m * width) / 2);
   }
   function smoothSignDerivative(theta, theta0, m) {
     const width = 2 * (theta0 - 1 / m);
@@ -77,107 +157,300 @@
     const x0 = 1 / m - width / 2;
     const x1 = x0 + width;
     const ax = Math.abs(theta);
-    const s0 = m * x0 * x0 / 2;
-    if (ax < x0) return m * ax * ax / 2;
+    const s0 = (m * x0 * x0) / 2;
+    if (ax < x0) return (m * ax * ax) / 2;
     if (ax >= x1) {
-      const s1 = s0 + (m * width * width / 2) * (5 / 7) + width * (1 - m * width / 2);
+      const s1 =
+        s0 +
+        ((m * width * width) / 2) * (5 / 7) +
+        width * (1 - (m * width) / 2);
       return s1 + (ax - x1);
     }
     const t = (ax - x0) / width;
     const gInt = t * t - t ** 5 + t ** 6 - (2 / 7) * t ** 7;
-    return s0 + (m * width * width / 2) * gInt + width * (1 - m * width / 2) * t;
+    return (
+      s0 + ((m * width * width) / 2) * gInt + width * (1 - (m * width) / 2) * t
+    );
   }
 
   function themeColors() {
     const colors = getComputedStyle(document.documentElement);
     return {
-      muted: colors.getPropertyValue('--muted').trim() || '#65716e',
-      border: colors.getPropertyValue('--border').trim() || '#d5d8ce',
-      accent: colors.getPropertyValue('--accent').trim() || '#0f766e',
-      panel: colors.getPropertyValue('--panel').trim() || '#fffefa',
-      orange: colors.getPropertyValue('--orange').trim() || '#c2410c',
+      muted: colors.getPropertyValue("--muted").trim() || "#65716e",
+      border: colors.getPropertyValue("--border").trim() || "#d5d8ce",
+      accent: colors.getPropertyValue("--accent").trim() || "#0f766e",
+      panel: colors.getPropertyValue("--panel").trim() || "#fffefa",
+      orange: colors.getPropertyValue("--orange").trim() || "#c2410c",
     };
   }
-  function plotFrame(c, w, h, sx, sy, xMin, xMax, yMin, yMax, colors, xLabel, yLabel) {
-    c.clearRect(0, 0, w, h); c.fillStyle = colors.panel; c.fillRect(0, 0, w, h);
-    c.strokeStyle = colors.border; c.lineWidth = 1; c.beginPath(); c.moveTo(sx(0), sy(yMin)); c.lineTo(sx(0), sy(yMax)); c.moveTo(sx(xMin), sy(0)); c.lineTo(sx(xMax), sy(0)); c.stroke();
-    c.fillStyle = colors.muted; c.font = '12px system-ui'; c.textAlign = 'center'; c.fillText(xLabel, w - 22, h - 12); c.textAlign = 'left'; c.fillText(yLabel, 8, 15);
-    c.fillStyle = colors.muted; c.font = '11px system-ui'; c.textAlign = 'center'; [-1, -.5, 0, .5, 1].forEach((tick) => c.fillText(`${tick} rad`, sx(tick), sy(0) + 18));
+  function plotFrame(
+    c,
+    w,
+    h,
+    sx,
+    sy,
+    xMin,
+    xMax,
+    yMin,
+    yMax,
+    colors,
+    xLabel,
+    yLabel,
+  ) {
+    c.clearRect(0, 0, w, h);
+    c.fillStyle = colors.panel;
+    c.fillRect(0, 0, w, h);
+    c.strokeStyle = colors.border;
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(sx(0), sy(yMin));
+    c.lineTo(sx(0), sy(yMax));
+    c.moveTo(sx(xMin), sy(0));
+    c.lineTo(sx(xMax), sy(0));
+    c.stroke();
+    c.fillStyle = colors.muted;
+    c.font = "12px system-ui";
+    c.textAlign = "center";
+    c.fillText(xLabel, w - 22, h - 12);
+    c.textAlign = "left";
+    c.fillText(yLabel, 8, 15);
+    c.fillStyle = colors.muted;
+    c.font = "11px system-ui";
+    c.textAlign = "center";
+    [-1, -0.5, 0, 0.5, 1].forEach((tick) =>
+      c.fillText(`${tick} rad`, sx(tick), sy(0) + 18),
+    );
   }
 
   function drawPotentialSim(sim) {
-    const canvas = sim.querySelector('canvas');
-    const sliders = [...sim.querySelectorAll('input[type=range]')];
-    const outputs = [...sim.querySelectorAll('[data-value]')];
-    const enhanced = sim.dataset.miniSim === 'potential-enhanced';
+    const canvas = sim.querySelector("canvas");
+    const sliders = [...sim.querySelectorAll("input[type=range]")];
+    const outputs = [...sim.querySelectorAll("[data-value]")];
+    const enhanced = sim.dataset.miniSim === "potential-enhanced";
     function draw() {
-      const w = canvas.width = 700, h = canvas.height = 390;
-      const c = canvas.getContext('2d');
+      const w = (canvas.width = 700),
+        h = (canvas.height = 390);
+      const c = canvas.getContext("2d");
       const thetabar = Number(sliders[0].value);
       const theta0 = enhanced ? Number(sliders[1].value) : 0.6;
       const m = enhanced ? 1.5 / theta0 : 2.5;
-      const xMin = -1.45, xMax = 1.45, yMin = 0, yMax = 1.12;
+      const xMin = -1.45,
+        xMax = 1.45,
+        yMin = 0,
+        yMax = 1.12;
       const pad = { left: 54, right: 18, top: 18, bottom: 42 };
-      const sx = (x) => pad.left + (x - xMin) / (xMax - xMin) * (w - pad.left - pad.right);
-      const sy = (y) => h - pad.bottom - (y - yMin) / (yMax - yMin) * (h - pad.top - pad.bottom);
+      const sx = (x) =>
+        pad.left + ((x - xMin) / (xMax - xMin)) * (w - pad.left - pad.right);
+      const sy = (y) =>
+        h -
+        pad.bottom -
+        ((y - yMin) / (yMax - yMin)) * (h - pad.top - pad.bottom);
       const colors = themeColors();
-      plotFrame(c, w, h, sx, sy, xMin, xMax, yMin, yMax, colors, 'θ', 'V(θ) / mg');
+      plotFrame(
+        c,
+        w,
+        h,
+        sx,
+        sy,
+        xMin,
+        xMax,
+        yMin,
+        yMax,
+        colors,
+        "θ",
+        "V(θ) / mg",
+      );
       const exact = (theta) => Math.sin(thetabar + Math.abs(theta));
-      const smooth = enhanced ? (theta) => Math.sin(thetabar + smoothAbs(theta, theta0, m)) : null;
-      function curve(fn, color, dotted) { c.save(); c.strokeStyle = color; c.lineWidth = 2.5; c.setLineDash(dotted ? [6, 5] : []); c.beginPath(); for (let i = 0; i <= 500; i += 1) { const x = xMin + (xMax - xMin) * i / 500; const y = fn(x); if (i === 0) c.moveTo(sx(x), sy(y)); else c.lineTo(sx(x), sy(y)); } c.stroke(); c.restore(); }
-      curve(exact, colors.orange, true); if (smooth) curve(smooth, colors.accent, false);
-      if (enhanced) { c.save(); c.strokeStyle = colors.accent; c.lineWidth = 1; c.setLineDash([4, 4]); [-theta0, theta0].forEach((x) => { c.beginPath(); c.moveTo(sx(x), sy(yMin)); c.lineTo(sx(x), sy(yMax)); c.stroke(); }); c.restore(); }
-      if (outputs[0]) outputs[0].textContent = `${(thetabar * 180 / Math.PI).toFixed(1)}°`;
-      if (outputs[1]) outputs[1].textContent = `${(theta0 * 180 / Math.PI).toFixed(1)}° · m = ${m.toFixed(2)}`;
+      const smooth = enhanced
+        ? (theta) => Math.sin(thetabar + smoothAbs(theta, theta0, m))
+        : null;
+      function curve(fn, color, dotted) {
+        c.save();
+        c.strokeStyle = color;
+        c.lineWidth = 2.5;
+        c.setLineDash(dotted ? [6, 5] : []);
+        c.beginPath();
+        for (let i = 0; i <= 500; i += 1) {
+          const x = xMin + ((xMax - xMin) * i) / 500;
+          const y = fn(x);
+          if (i === 0) c.moveTo(sx(x), sy(y));
+          else c.lineTo(sx(x), sy(y));
+        }
+        c.stroke();
+        c.restore();
+      }
+      curve(exact, colors.orange, true);
+      if (smooth) curve(smooth, colors.accent, false);
+      if (enhanced) {
+        c.save();
+        c.strokeStyle = colors.accent;
+        c.lineWidth = 1;
+        c.setLineDash([4, 4]);
+        [-theta0, theta0].forEach((x) => {
+          c.beginPath();
+          c.moveTo(sx(x), sy(yMin));
+          c.lineTo(sx(x), sy(yMax));
+          c.stroke();
+        });
+        c.restore();
+      }
+      if (outputs[0])
+        outputs[0].textContent = `${((thetabar * 180) / Math.PI).toFixed(1)}°`;
+      if (outputs[1])
+        outputs[1].textContent = `${((theta0 * 180) / Math.PI).toFixed(1)}° · m = ${m.toFixed(2)}`;
     }
-    sliders.forEach((slider) => slider.addEventListener('input', draw));
-    draw(); redraws.push(draw);
+    sliders.forEach((slider) => slider.addEventListener("input", draw));
+    draw();
+    redraws.push(draw);
   }
 
   function drawSignSim(sim) {
-    const canvases = [...sim.querySelectorAll('canvas')];
-    const slider = sim.querySelector('input[type=range]');
-    const output = sim.querySelector('[data-value]');
+    const canvases = [...sim.querySelectorAll("canvas")];
+    const slider = sim.querySelector("input[type=range]");
+    const output = sim.querySelector("[data-value]");
     function draw() {
       const theta0 = Number(slider.value);
       const m = 1.5 / theta0;
-      const xMin = -1.45, xMax = 1.45;
+      const xMin = -1.45,
+        xMax = 1.45;
       const pad = { left: 54, right: 18, top: 18, bottom: 42 };
       const colors = themeColors();
-      const c1 = canvases[0].getContext('2d');
-      const w1 = canvases[0].width = 700, h1 = canvases[0].height = 350;
-      const yMin1 = -1.2, yMax1 = 1.2;
-      const sx1 = (x) => pad.left + (x - xMin) / (xMax - xMin) * (w1 - pad.left - pad.right);
-      const sy1 = (y) => h1 - pad.bottom - (y - yMin1) / (yMax1 - yMin1) * (h1 - pad.top - pad.bottom);
-      plotFrame(c1, w1, h1, sx1, sy1, xMin, xMax, yMin1, yMax1, colors, 'θ', 'sgn(θ)');
-      c1.save(); c1.strokeStyle = colors.muted; c1.lineWidth = 1; c1.setLineDash([2, 4]); c1.beginPath(); c1.moveTo(sx1(xMin), sy1(1)); c1.lineTo(sx1(xMax), sy1(1)); c1.moveTo(sx1(xMin), sy1(-1)); c1.lineTo(sx1(xMax), sy1(-1)); c1.stroke(); c1.restore();
-      c1.save(); c1.strokeStyle = colors.orange; c1.lineWidth = 1.5; c1.setLineDash([5, 4]); c1.beginPath(); c1.moveTo(sx1(xMin), sy1(m * xMin)); c1.lineTo(sx1(xMax), sy1(m * xMax)); c1.stroke(); c1.restore();
-      c1.save(); c1.strokeStyle = colors.accent; c1.lineWidth = 1; c1.setLineDash([4, 4]); [-theta0, theta0].forEach((x) => { c1.beginPath(); c1.moveTo(sx1(x), sy1(yMin1)); c1.lineTo(sx1(x), sy1(yMax1)); c1.stroke(); }); c1.restore();
-      c1.save(); c1.strokeStyle = colors.accent; c1.lineWidth = 2.5; c1.beginPath(); for (let i = 0; i <= 1000; i += 1) { const x = xMin + (xMax - xMin) * i / 1000; const y = smoothSign(x, theta0, m); if (i === 0) c1.moveTo(sx1(x), sy1(y)); else c1.lineTo(sx1(x), sy1(y)); } c1.stroke(); c1.restore();
-      const c2 = canvases[1].getContext('2d');
-      const w2 = canvases[1].width = 700, h2 = canvases[1].height = 350;
-      const yMax2 = Math.max(m, 1) * 1.1, yMin2 = -yMax2 * 0.05;
-      const sx2 = (x) => pad.left + (x - xMin) / (xMax - xMin) * (w2 - pad.left - pad.right);
-      const sy2 = (y) => h2 - pad.bottom - (y - yMin2) / (yMax2 - yMin2) * (h2 - pad.top - pad.bottom);
-      plotFrame(c2, w2, h2, sx2, sy2, xMin, xMax, yMin2, yMax2, colors, 'θ', 'sgn′(θ)');
-      c2.save(); c2.strokeStyle = colors.accent; c2.lineWidth = 1; c2.setLineDash([4, 4]); [-theta0, theta0].forEach((x) => { c2.beginPath(); c2.moveTo(sx2(x), sy2(yMin2)); c2.lineTo(sx2(x), sy2(yMax2)); c2.stroke(); }); c2.restore();
-      c2.save(); c2.strokeStyle = colors.orange; c2.lineWidth = 2.5; c2.beginPath(); for (let i = 0; i <= 1000; i += 1) { const x = xMin + (xMax - xMin) * i / 1000; const y = smoothSignDerivative(x, theta0, m); if (i === 0) c2.moveTo(sx2(x), sy2(y)); else c2.lineTo(sx2(x), sy2(y)); } c2.stroke(); c2.restore();
-      if (output) output.textContent = `${(theta0 * 180 / Math.PI).toFixed(1)}° · m = ${m.toFixed(2)}`;
+      const c1 = canvases[0].getContext("2d");
+      const w1 = (canvases[0].width = 700),
+        h1 = (canvases[0].height = 350);
+      const yMin1 = -1.2,
+        yMax1 = 1.2;
+      const sx1 = (x) =>
+        pad.left + ((x - xMin) / (xMax - xMin)) * (w1 - pad.left - pad.right);
+      const sy1 = (y) =>
+        h1 -
+        pad.bottom -
+        ((y - yMin1) / (yMax1 - yMin1)) * (h1 - pad.top - pad.bottom);
+      plotFrame(
+        c1,
+        w1,
+        h1,
+        sx1,
+        sy1,
+        xMin,
+        xMax,
+        yMin1,
+        yMax1,
+        colors,
+        "θ",
+        "sgn(θ)",
+      );
+      c1.save();
+      c1.strokeStyle = colors.muted;
+      c1.lineWidth = 1;
+      c1.setLineDash([2, 4]);
+      c1.beginPath();
+      c1.moveTo(sx1(xMin), sy1(1));
+      c1.lineTo(sx1(xMax), sy1(1));
+      c1.moveTo(sx1(xMin), sy1(-1));
+      c1.lineTo(sx1(xMax), sy1(-1));
+      c1.stroke();
+      c1.restore();
+      c1.save();
+      c1.strokeStyle = colors.orange;
+      c1.lineWidth = 1.5;
+      c1.setLineDash([5, 4]);
+      c1.beginPath();
+      c1.moveTo(sx1(xMin), sy1(m * xMin));
+      c1.lineTo(sx1(xMax), sy1(m * xMax));
+      c1.stroke();
+      c1.restore();
+      c1.save();
+      c1.strokeStyle = colors.accent;
+      c1.lineWidth = 1;
+      c1.setLineDash([4, 4]);
+      [-theta0, theta0].forEach((x) => {
+        c1.beginPath();
+        c1.moveTo(sx1(x), sy1(yMin1));
+        c1.lineTo(sx1(x), sy1(yMax1));
+        c1.stroke();
+      });
+      c1.restore();
+      c1.save();
+      c1.strokeStyle = colors.accent;
+      c1.lineWidth = 2.5;
+      c1.beginPath();
+      for (let i = 0; i <= 1000; i += 1) {
+        const x = xMin + ((xMax - xMin) * i) / 1000;
+        const y = smoothSign(x, theta0, m);
+        if (i === 0) c1.moveTo(sx1(x), sy1(y));
+        else c1.lineTo(sx1(x), sy1(y));
+      }
+      c1.stroke();
+      c1.restore();
+      const c2 = canvases[1].getContext("2d");
+      const w2 = (canvases[1].width = 700),
+        h2 = (canvases[1].height = 350);
+      const yMax2 = Math.max(m, 1) * 1.1,
+        yMin2 = -yMax2 * 0.05;
+      const sx2 = (x) =>
+        pad.left + ((x - xMin) / (xMax - xMin)) * (w2 - pad.left - pad.right);
+      const sy2 = (y) =>
+        h2 -
+        pad.bottom -
+        ((y - yMin2) / (yMax2 - yMin2)) * (h2 - pad.top - pad.bottom);
+      plotFrame(
+        c2,
+        w2,
+        h2,
+        sx2,
+        sy2,
+        xMin,
+        xMax,
+        yMin2,
+        yMax2,
+        colors,
+        "θ",
+        "sgn′(θ)",
+      );
+      c2.save();
+      c2.strokeStyle = colors.accent;
+      c2.lineWidth = 1;
+      c2.setLineDash([4, 4]);
+      [-theta0, theta0].forEach((x) => {
+        c2.beginPath();
+        c2.moveTo(sx2(x), sy2(yMin2));
+        c2.lineTo(sx2(x), sy2(yMax2));
+        c2.stroke();
+      });
+      c2.restore();
+      c2.save();
+      c2.strokeStyle = colors.orange;
+      c2.lineWidth = 2.5;
+      c2.beginPath();
+      for (let i = 0; i <= 1000; i += 1) {
+        const x = xMin + ((xMax - xMin) * i) / 1000;
+        const y = smoothSignDerivative(x, theta0, m);
+        if (i === 0) c2.moveTo(sx2(x), sy2(y));
+        else c2.lineTo(sx2(x), sy2(y));
+      }
+      c2.stroke();
+      c2.restore();
+      if (output)
+        output.textContent = `${((theta0 * 180) / Math.PI).toFixed(1)}° · m = ${m.toFixed(2)}`;
     }
-    slider.addEventListener('input', draw);
-    draw(); redraws.push(draw);
+    slider.addEventListener("input", draw);
+    draw();
+    redraws.push(draw);
   }
 
   function drawGeometrySim(sim) {
-    const canvas = sim.querySelector('canvas');
-    const slider = sim.querySelector('input[type=range]');
-    const output = sim.querySelector('[data-value]');
-    const R0 = 3, hcm = 3, contact = 0;
+    const canvas = sim.querySelector("canvas");
+    const slider = sim.querySelector("input[type=range]");
+    const output = sim.querySelector("[data-value]");
+    const R0 = 3,
+      hcm = 3,
+      contact = 0;
     function smoothstep(x, m, width) {
       const x0 = 1 / m - width / 2;
       const x1 = x0 + width;
-      const alpha = m * width / 2;
-      const beta = 1 - m * width / 2;
+      const alpha = (m * width) / 2;
+      const beta = 1 - (m * width) / 2;
       const ax = Math.abs(x);
       if (ax >= x1) return Math.sign(x);
       if (ax < x0) return m * x;
@@ -199,15 +472,22 @@
       const limit = Math.PI / 2;
       const n = 6000;
       const positive = [{ theta: 0, r: 0, y: 0 }];
-      let y = 0, previous = 0;
+      let y = 0,
+        previous = 0;
       for (let i = 1; i <= n; i += 1) {
-        const theta = limit * i / n;
+        const theta = (limit * i) / n;
         const dtheta = theta - previous;
-        const derivative = theta <= theta0 ? smoothstepDerivative(theta, m, width) : 0;
-        const previousDerivative = previous <= theta0 ? smoothstepDerivative(previous, m, width) : 0;
+        const derivative =
+          theta <= theta0 ? smoothstepDerivative(theta, m, width) : 0;
+        const previousDerivative =
+          previous <= theta0 ? smoothstepDerivative(previous, m, width) : 0;
         const tanPrevious = previousDerivative === 0 ? 0 : Math.tan(previous);
         const tanCurrent = derivative === 0 ? 0 : Math.tan(theta);
-        y += R0 * (previousDerivative * tanPrevious + derivative * tanCurrent) * dtheta / 2;
+        y +=
+          (R0 *
+            (previousDerivative * tanPrevious + derivative * tanCurrent) *
+            dtheta) /
+          2;
         positive.push({ theta, r: R0 * smoothstep(theta, m, width), y });
         previous = theta;
       }
@@ -216,13 +496,20 @@
     function arcLengthTo(theta, theta0, m, width) {
       const magnitude = Math.min(Math.abs(theta), theta0);
       const n = 4000;
-      let total = 0, previous = 0;
+      let total = 0,
+        previous = 0;
       for (let i = 1; i <= n; i += 1) {
-        const current = magnitude * i / n;
+        const current = (magnitude * i) / n;
         const dtheta = current - previous;
-        const f0 = R0 * smoothstepDerivative(previous, m, width) * Math.sqrt(1 + Math.tan(previous) ** 2);
-        const f1 = R0 * smoothstepDerivative(current, m, width) * Math.sqrt(1 + Math.tan(current) ** 2);
-        total += (f0 + f1) * dtheta / 2;
+        const f0 =
+          R0 *
+          smoothstepDerivative(previous, m, width) *
+          Math.sqrt(1 + Math.tan(previous) ** 2);
+        const f1 =
+          R0 *
+          smoothstepDerivative(current, m, width) *
+          Math.sqrt(1 + Math.tan(current) ** 2);
+        total += ((f0 + f1) * dtheta) / 2;
         previous = current;
       }
       return Math.sign(theta) * total;
@@ -236,16 +523,33 @@
       const absTheta = Math.abs(contact);
       let contactPoint;
       if (absTheta <= data.limit) {
-        const i = Math.min(data.positive.length - 1, Math.round(absTheta / data.limit * (data.positive.length - 1)));
+        const i = Math.min(
+          data.positive.length - 1,
+          Math.round((absTheta / data.limit) * (data.positive.length - 1)),
+        );
         const point = data.positive[i];
-        contactPoint = { r: side * point.r, y: point.y, tangent: Math.tan(contact), post: false };
+        contactPoint = {
+          r: side * point.r,
+          y: point.y,
+          tangent: Math.tan(contact),
+          post: false,
+        };
       } else {
         const extension = Math.max(0.35, Math.abs(data.y89) * 0.45);
-        const extra = Math.min(1, (absTheta - data.limit) / (Math.PI / 2 - data.limit));
-        contactPoint = { r: side * R0, y: data.y89 + extension * extra, tangent: Math.tan(contact), post: true };
+        const extra = Math.min(
+          1,
+          (absTheta - data.limit) / (Math.PI / 2 - data.limit),
+        );
+        contactPoint = {
+          r: side * R0,
+          y: data.y89 + extension * extra,
+          tangent: Math.tan(contact),
+          post: true,
+        };
       }
       const angle = -contact;
-      const cos = Math.cos(angle), sin = Math.sin(angle);
+      const cos = Math.cos(angle),
+        sin = Math.sin(angle);
       const contactX = arcLengthTo(contact, theta0, m, width);
       const transform = (point) => {
         const dr = point.r - contactPoint.r;
@@ -262,51 +566,204 @@
       const extent = 1.25 * R0;
       const xRange = 2 * extent;
       const yRange = xRange * 1.1;
-      const yMin = -0.10 * extent;
+      const yMin = -0.1 * extent;
       const yMax = yMin + yRange;
-      const w = canvas.width = 700, h = canvas.height = 700;
-      const c = canvas.getContext('2d');
+      const w = (canvas.width = 700),
+        h = (canvas.height = 700);
+      const c = canvas.getContext("2d");
       const colors = themeColors();
       const pad = { left: 48, right: 18, top: 18, bottom: 36 };
-      const sx = (x) => pad.left + (x + extent) / xRange * (w - pad.left - pad.right);
-      const sy = (y) => h - pad.bottom - (y - yMin) / yRange * (h - pad.top - pad.bottom);
-      c.clearRect(0, 0, w, h); c.fillStyle = colors.panel; c.fillRect(0, 0, w, h);
-      c.strokeStyle = colors.border; c.lineWidth = 1; c.beginPath(); c.moveTo(sx(0), sy(yMin)); c.lineTo(sx(0), sy(yMax)); c.moveTo(sx(-extent), sy(0)); c.lineTo(sx(extent), sy(0)); c.stroke();
-      c.fillStyle = colors.muted; c.font = '12px system-ui'; c.textAlign = 'left'; c.fillText('r', w - pad.right - 16, h - 10); c.fillText('y', 8, pad.top + 4);
-      const line = (points, color, width2 = 2.2) => { c.strokeStyle = color; c.lineWidth = width2; c.beginPath(); points.forEach((p, i) => i ? c.lineTo(sx(p.r), sy(p.y)) : c.moveTo(sx(p.r), sy(p.y))); c.stroke(); };
-      c.fillStyle = colors.accent; c.globalAlpha = 0.1; c.beginPath();
-      right.forEach((p, i) => i ? c.lineTo(sx(p.r), sy(p.y)) : c.moveTo(sx(p.r), sy(p.y)));
+      const sx = (x) =>
+        pad.left + ((x + extent) / xRange) * (w - pad.left - pad.right);
+      const sy = (y) =>
+        h - pad.bottom - ((y - yMin) / yRange) * (h - pad.top - pad.bottom);
+      c.clearRect(0, 0, w, h);
+      c.fillStyle = colors.panel;
+      c.fillRect(0, 0, w, h);
+      c.strokeStyle = colors.border;
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(sx(0), sy(yMin));
+      c.lineTo(sx(0), sy(yMax));
+      c.moveTo(sx(-extent), sy(0));
+      c.lineTo(sx(extent), sy(0));
+      c.stroke();
+      c.fillStyle = colors.muted;
+      c.font = "12px system-ui";
+      c.textAlign = "left";
+      c.fillText("r", w - pad.right - 16, h - 10);
+      c.fillText("y", 8, pad.top + 4);
+      const line = (points, color, width2 = 2.2) => {
+        c.strokeStyle = color;
+        c.lineWidth = width2;
+        c.beginPath();
+        points.forEach((p, i) =>
+          i ? c.lineTo(sx(p.r), sy(p.y)) : c.moveTo(sx(p.r), sy(p.y)),
+        );
+        c.stroke();
+      };
+      c.fillStyle = colors.accent;
+      c.globalAlpha = 0.1;
+      c.beginPath();
+      right.forEach((p, i) =>
+        i ? c.lineTo(sx(p.r), sy(p.y)) : c.moveTo(sx(p.r), sy(p.y)),
+      );
       c.lineTo(sx(branchRight.r), sy(branchRight.y));
       c.lineTo(sx(branchLeft.r), sy(branchLeft.y));
-      for (let i = left.length - 1; i >= 0; i -= 1) c.lineTo(sx(left[i].r), sy(left[i].y));
-      c.closePath(); c.fill(); c.globalAlpha = 1;
-      line(right, colors.accent); line(left, colors.accent);
+      for (let i = left.length - 1; i >= 0; i -= 1)
+        c.lineTo(sx(left[i].r), sy(left[i].y));
+      c.closePath();
+      c.fill();
+      c.globalAlpha = 1;
+      line(right, colors.accent);
+      line(left, colors.accent);
       c.setLineDash([6, 4]);
-      line([transform({ r: R0, y: data.y89 }), branchRight], colors.orange, 1.8);
-      line([transform({ r: -R0, y: data.y89 }), branchLeft], colors.orange, 1.8);
+      line(
+        [transform({ r: R0, y: data.y89 }), branchRight],
+        colors.orange,
+        1.8,
+      );
+      line(
+        [transform({ r: -R0, y: data.y89 }), branchLeft],
+        colors.orange,
+        1.8,
+      );
       line([branchLeft, branchRight], colors.orange, 1.8);
       c.setLineDash([]);
       c.setLineDash([3, 4]);
-      line([{ r: center.r, y: yMin }, { r: center.r, y: yMax }], colors.orange, 1.5);
+      line(
+        [
+          { r: center.r, y: yMin },
+          { r: center.r, y: yMax },
+        ],
+        colors.orange,
+        1.5,
+      );
       c.setLineDash([]);
-      c.fillStyle = colors.orange; c.beginPath(); c.arc(sx(center.r), sy(center.y), 5, 0, Math.PI * 2); c.fill();
-      c.fillStyle = colors.muted; c.font = '12px system-ui'; c.fillText('center', sx(center.r) + 8, sy(center.y) - 8);
+      c.fillStyle = colors.orange;
+      c.beginPath();
+      c.arc(sx(center.r), sy(center.y), 5, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = colors.muted;
+      c.font = "12px system-ui";
+      c.fillText("center", sx(center.r) + 8, sy(center.y) - 8);
       const tangentLength = Math.min(0.42, extent * 0.35);
-      line([{ r: contactX - tangentLength, y: 0 }, { r: contactX + tangentLength, y: 0 }], colors.orange, 3);
-      c.fillStyle = colors.orange; c.beginPath(); c.arc(sx(contactX), sy(0), 5, 0, Math.PI * 2); c.fill();
-      c.fillStyle = colors.muted; c.font = '12px system-ui'; c.fillText(contactPoint.post ? 'vertical after θ₀' : 'contact · tangent horizontal', sx(contactX) + 8, sy(0) - 8);
-      if (output) output.textContent = `${(theta0 * 180 / Math.PI).toFixed(1)}° · m = ${m.toFixed(2)}`;
+      line(
+        [
+          { r: contactX - tangentLength, y: 0 },
+          { r: contactX + tangentLength, y: 0 },
+        ],
+        colors.orange,
+        3,
+      );
+      c.fillStyle = colors.orange;
+      c.beginPath();
+      c.arc(sx(contactX), sy(0), 5, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = colors.muted;
+      c.font = "12px system-ui";
+      c.fillText(
+        contactPoint.post
+          ? "vertical after θ₀"
+          : "contact · tangent horizontal",
+        sx(contactX) + 8,
+        sy(0) - 8,
+      );
+      if (output)
+        output.textContent = `${((theta0 * 180) / Math.PI).toFixed(1)}° · m = ${m.toFixed(2)}`;
     }
-    slider.addEventListener('input', draw);
-    draw(); redraws.push(draw);
+    slider.addEventListener("input", draw);
+    draw();
+    redraws.push(draw);
   }
 
-  document.querySelectorAll('[data-mini-sim="potential-basic"], [data-mini-sim="potential-enhanced"]').forEach(drawPotentialSim);
-  document.querySelectorAll('[data-mini-sim="smooth-sign"]').forEach(drawSignSim);
-  document.querySelectorAll('[data-mini-sim="geometry-path"]').forEach(drawGeometrySim);
-  document.querySelectorAll('[data-mini-sim]:not([data-mini-sim="potential-basic"]):not([data-mini-sim="potential-enhanced"]):not([data-mini-sim="smooth-sign"]):not([data-mini-sim="geometry-path"])').forEach((sim) => {
-    const mini = sim.querySelector('canvas'); const c = mini.getContext('2d'); const slider = sim.querySelector('input[type=range]'); const output = sim.querySelector('[data-value]'); const button = sim.querySelector('button'); let running = false;
-    function draw() { const w = mini.width = 700, h = mini.height = 410; c.clearRect(0,0,w,h); c.strokeStyle='#9aaca7'; c.lineWidth=3; c.beginPath(); c.moveTo(45,h-55); c.lineTo(w-35,h-55); c.stroke(); const value=Number(slider?.value || 0.6); if(output) output.textContent=sim.dataset.miniSim==='geometry' ? `${value.toFixed(2)} rad` : sim.dataset.miniSim==='response' ? value.toFixed(2) : `${value.toFixed(1)} Hz`; c.save(); c.translate(w/2,h-100); c.rotate(sim.dataset.miniSim==='geometry' ? value*.35 : Math.sin(value)*.3); c.fillStyle='rgba(15,118,110,.2)'; c.strokeStyle='#244846'; c.lineWidth=6; c.beginPath(); c.rect(-85,-140,170,140); c.fill(); c.stroke(); c.fillStyle='#c2410c'; c.beginPath(); c.arc(0,-80,9,0,Math.PI*2); c.fill(); c.restore(); if(sim.dataset.miniSim==='geometry'){ c.strokeStyle='#0f766e'; c.lineWidth=3; c.beginPath(); for(let x=50;x<w-40;x+=5){const y=h-90-Math.tan((x-w/2)/260)*40;c.lineTo(x,y);} c.stroke(); } }
-    slider?.addEventListener('input', draw); button?.addEventListener('click', () => { running=!running; button.textContent=running?'Pause':'Animate'; if(running && !reduced){ const tick=()=>{ if(!running)return; slider.value=String(Number(slider.value)+.04); if(Number(slider.value)>Number(slider.max)) slider.value=slider.min; draw(); requestAnimationFrame(tick); }; tick(); } }); draw(); redraws.push(draw);
-  });
+  document
+    .querySelectorAll(
+      '[data-mini-sim="potential-basic"], [data-mini-sim="potential-enhanced"]',
+    )
+    .forEach(drawPotentialSim);
+  document
+    .querySelectorAll('[data-mini-sim="smooth-sign"]')
+    .forEach(drawSignSim);
+  document
+    .querySelectorAll('[data-mini-sim="geometry-path"]')
+    .forEach(drawGeometrySim);
+  document
+    .querySelectorAll(
+      '[data-mini-sim]:not([data-mini-sim="potential-basic"]):not([data-mini-sim="potential-enhanced"]):not([data-mini-sim="smooth-sign"]):not([data-mini-sim="geometry-path"])',
+    )
+    .forEach((sim) => {
+      const mini = sim.querySelector("canvas");
+      const c = mini.getContext("2d");
+      const slider = sim.querySelector("input[type=range]");
+      const output = sim.querySelector("[data-value]");
+      const button = sim.querySelector("button");
+      let running = false;
+      function draw() {
+        const w = (mini.width = 700),
+          h = (mini.height = 410);
+        c.clearRect(0, 0, w, h);
+        c.strokeStyle = "#9aaca7";
+        c.lineWidth = 3;
+        c.beginPath();
+        c.moveTo(45, h - 55);
+        c.lineTo(w - 35, h - 55);
+        c.stroke();
+        const value = Number(slider?.value || 0.6);
+        if (output)
+          output.textContent =
+            sim.dataset.miniSim === "geometry"
+              ? `${value.toFixed(2)} rad`
+              : sim.dataset.miniSim === "response"
+                ? value.toFixed(2)
+                : `${value.toFixed(1)} Hz`;
+        c.save();
+        c.translate(w / 2, h - 100);
+        c.rotate(
+          sim.dataset.miniSim === "geometry"
+            ? value * 0.35
+            : Math.sin(value) * 0.3,
+        );
+        c.fillStyle = "rgba(15,118,110,.2)";
+        c.strokeStyle = "#244846";
+        c.lineWidth = 6;
+        c.beginPath();
+        c.rect(-85, -140, 170, 140);
+        c.fill();
+        c.stroke();
+        c.fillStyle = "#c2410c";
+        c.beginPath();
+        c.arc(0, -80, 9, 0, Math.PI * 2);
+        c.fill();
+        c.restore();
+        if (sim.dataset.miniSim === "geometry") {
+          c.strokeStyle = "#0f766e";
+          c.lineWidth = 3;
+          c.beginPath();
+          for (let x = 50; x < w - 40; x += 5) {
+            const y = h - 90 - Math.tan((x - w / 2) / 260) * 40;
+            c.lineTo(x, y);
+          }
+          c.stroke();
+        }
+      }
+      slider?.addEventListener("input", draw);
+      button?.addEventListener("click", () => {
+        running = !running;
+        button.textContent = running ? "Pause" : "Animate";
+        if (running && !reduced) {
+          const tick = () => {
+            if (!running) return;
+            slider.value = String(Number(slider.value) + 0.04);
+            if (Number(slider.value) > Number(slider.max))
+              slider.value = slider.min;
+            draw();
+            requestAnimationFrame(tick);
+          };
+          tick();
+        }
+      });
+      draw();
+      redraws.push(draw);
+    });
 })();

@@ -20,16 +20,18 @@
 // rocking about the pivot under gravity + base acceleration). The caller
 // then sets the target to 0.8*atan(r0/hCM).
 
-function num(v, dflt) { return Number.isFinite(v) ? v : dflt; }
+function num(v, dflt) {
+  return Number.isFinite(v) ? v : dflt;
+}
 
 function runMinAccel(params) {
   const grav = 386.4;
   const dt_ = 1e-3;
-  const rate = num(params.rate, 1);          // g/s
-  const target = num(params.targetDeg, 1) * Math.PI / 180; // rad
+  const rate = num(params.rate, 1); // g/s
+  const target = (num(params.targetDeg, 1) * Math.PI) / 180; // rad
   const maxT = num(params.maxT, 10);
   const segLen = num(params.segLen, 2);
-  const freeT = num(params.freeT, 10);       // free-response duration after crossing
+  const freeT = num(params.freeT, 10); // free-response duration after crossing
   const disableBW = !!params.disableBW;
   const mass = num(params.mass, 1e3) / grav;
   const II = 4e3;
@@ -42,9 +44,10 @@ function runMinAccel(params) {
   const tolerance = 1e-8;
   const ay = (t) => 0;
 
-  const xBW0x = new Array(nBW), xBW0y = new Array(nBW);
+  const xBW0x = new Array(nBW),
+    xBW0y = new Array(nBW);
   for (let j = 0; j < nBW; j++) {
-    const a = j * 2 * Math.PI / nBW;
+    const a = (j * 2 * Math.PI) / nBW;
     xBW0x[j] = r1 * Math.cos(a);
     xBW0y[j] = r1 * Math.sin(a);
   }
@@ -60,26 +63,46 @@ function runMinAccel(params) {
       tolerance: 1e-9,
       solutionColNames: ["f"],
       func: (_t, y, out) => {
-        out[0] = bellevillemodel(y[0], Math.min(delt0 * _t, 1), _t <= 1 ? delt0 : 0);
-      }
+        out[0] = bellevillemodel(
+          y[0],
+          Math.min(delt0 * _t, 1),
+          _t <= 1 ? delt0 : 0,
+        );
+      },
     };
     const preload = rkdp(preloadTask);
     fh0 = preload[1][preload[1].length - 1];
   }
 
   const ctx = {
-    uaccel: null, phi_: null, phidot_: null, dtaccel: dt_,
+    uaccel: null,
+    phi_: null,
+    phidot_: null,
+    dtaccel: dt_,
     ssign: (thet) => smoothstep(thet, 1e5, 1e-5, 1),
-    m: mass, II, r0, h: hCM, c: cdamp,
-    xBW0x, xBW0y, delt0
+    m: mass,
+    II,
+    r0,
+    h: hCM,
+    c: cdamp,
+    xBW0x,
+    xBW0y,
+    delt0,
   };
 
   let x0 = new Array(2 + nBW).fill(0);
   for (let j = 0; j < nBW; j++) x0[2 + j] = fh0;
 
-  const T = [], X = [], Phi = [], Delt = [], Deltd = [], fBWh = [], fBWtotal = [];
+  const T = [],
+    X = [],
+    Phi = [],
+    Delt = [],
+    Deltd = [],
+    fBWh = [],
+    fBWtotal = [];
   let t0 = 0;
-  let crossing = null, activation = null;
+  let crossing = null,
+    activation = null;
   const t0w = performance.now();
 
   // Onset detection: the rocking onset is where θ̇ changes rapidly, i.e.
@@ -95,7 +118,7 @@ function runMinAccel(params) {
 
   // Excitation: ramp until the load is removed (tDrop), then zero.
   let tDrop = null;
-  const ax = (t) => (tDrop !== null && t >= tDrop) ? 0 : rate * t;
+  const ax = (t) => (tDrop !== null && t >= tDrop ? 0 : rate * t);
 
   function solveSegment(tStart, tFinish, x0in) {
     // Excitation table covering [0, tFinish] (getVal indexes by floor(t/dt))
@@ -108,70 +131,101 @@ function runMinAccel(params) {
     const Phi_ = getPhiFromU(uSeg, 0, dt_, 1);
     const PhiU = unwrap(Phi_);
     const Phidot_ = new Array(nExc);
-    for (let i = 0; i < nExc - 1; i++) Phidot_[i] = (PhiU[i + 1] - PhiU[i]) / dt_;
-    Phidot_[nExc - 1] = 0; Phidot_[0] = 0;
-    ctx.uaccel = uSeg; ctx.phi_ = Phi_; ctx.phidot_ = Phidot_;
+    for (let i = 0; i < nExc - 1; i++)
+      Phidot_[i] = (PhiU[i + 1] - PhiU[i]) / dt_;
+    Phidot_[nExc - 1] = 0;
+    Phidot_[0] = 0;
+    ctx.uaccel = uSeg;
+    ctx.phi_ = Phi_;
+    ctx.phidot_ = Phidot_;
 
     return lsoda2({
       name: "minaccel",
       arg: { name: "t", start: tStart, finish: tFinish, step: dt_ },
       initial: x0in,
       tolerance,
-      solutionColNames: ["theta", "thetad", ...Array.from({ length: nBW }, (_, j) => `fh${j + 1}`)],
+      solutionColNames: [
+        "theta",
+        "thetad",
+        ...Array.from({ length: nBW }, (_, j) => `fh${j + 1}`),
+      ],
       func: (t, y, out) => {
         const r = rockingDynamics(t, y, ctx, out);
-        if (out !== r.xdot) for (let k = 0; k < out.length; k++) out[k] = r.xdot[k];
+        if (out !== r.xdot)
+          for (let k = 0; k < out.length; k++) out[k] = r.xdot[k];
         if (disableBW) {
           // Pure rocking about the pivot: drop the Belleville-washer term
           // from θ̈ and freeze the friction states at zero.
-          const thet = y[0], thetd = y[1];
+          const thet = y[0],
+            thetd = y[1];
           const u = getVal(t, ctx.uaccel, ctx.dtaccel, 0);
           const phi = getValScalar(t, ctx.phi_, ctx.dtaccel, 1);
           const [sgnt, sgntp] = ctx.ssign(thet);
-          const taup0 = -Math.cos(phi), taup1 = -Math.sin(phi);
+          const taup0 = -Math.cos(phi),
+            taup1 = -Math.sin(phi);
           const Itt = ctx.II + ctx.m * (ctx.r0 * sgnt) ** 2;
-          const rhs = -ctx.m * ctx.r0 ** 2 * sgnt * sgntp * thetd ** 2
-            - ctx.c * (1 - sgnt ** 2) * thetd
-            - ctx.m * ctx.h * (taup0 * u[0] + taup1 * u[1])
-            + ctx.m * u[2] * ctx.r0 * sgnt;
+          const rhs =
+            -ctx.m * ctx.r0 ** 2 * sgnt * sgntp * thetd ** 2 -
+            ctx.c * (1 - sgnt ** 2) * thetd -
+            ctx.m * ctx.h * (taup0 * u[0] + taup1 * u[1]) +
+            ctx.m * u[2] * ctx.r0 * sgnt;
           out[1] = rhs / Itt;
           for (let k = 2; k < out.length; k++) out[k] = 0;
         }
-      }
+      },
     });
   }
 
   function appendSegment(sol, detect) {
     const segT = Array.from(sol[0]);
-    const segX = segT.map((_t, i) => Array.from({ length: 2 + nBW }, (_v, k) => sol[1 + k][i]));
+    const segX = segT.map((_t, i) =>
+      Array.from({ length: 2 + nBW }, (_v, k) => sol[1 + k][i]),
+    );
     const skip = T.length ? 1 : 0; // first sample duplicates previous segment end
     const baseLen = T.length;
     let crossIdx = -1;
     for (let i = skip; i < segT.length; i++) {
       const r = rockingDynamics(segT[i], segX[i], ctx);
-      T.push(segT[i]); X.push(segX[i]); Phi.push(r.phi);
-      Delt.push(r.delt); Deltd.push(r.deltd);
+      T.push(segT[i]);
+      X.push(segX[i]);
+      Phi.push(r.phi);
+      Delt.push(r.delt);
+      Deltd.push(r.deltd);
       fBWh.push(Array.from({ length: nBW }, (_v, j) => segX[i][2 + j]));
-      fBWtotal.push(disableBW ? new Array(nBW).fill(0) : r.delt.map((d, j) => nonlinForceBw(d) + segX[i][2 + j]));
+      fBWtotal.push(
+        disableBW
+          ? new Array(nBW).fill(0)
+          : r.delt.map((d, j) => nonlinForceBw(d) + segX[i][2 + j]),
+      );
       const idx = baseLen + (i - skip); // index of this sample in T/X
       // θ̈ for the previous sample (one-sample lag; needs X[idx] and X[idx-2])
       if (idx >= 2) {
-        const tdd = (X[idx][1] - X[idx - 2][1]) / (2 * dt_) * 180 / Math.PI; // deg/s^2
+        const tdd = (((X[idx][1] - X[idx - 2][1]) / (2 * dt_)) * 180) / Math.PI; // deg/s^2
         if (detect && !activation && tddHist.length >= onsetWin) {
           const sorted = tddHist.slice().sort((a, b) => a - b);
           const med = Math.max(sorted[sorted.length / 2], ONSET_FLOOR);
           if (Math.abs(tdd) > ONSET_MULT * med) {
-            activation = { t: T[idx - 1], theta: X[idx - 1][0], accel: rate * T[idx - 1] };
+            activation = {
+              t: T[idx - 1],
+              theta: X[idx - 1][0],
+              accel: rate * T[idx - 1],
+            };
           }
         }
         tddHist.push(Math.abs(tdd));
         if (tddHist.length > onsetWin) tddHist.shift();
       }
       if (detect && !crossing && Math.abs(segX[i][0]) >= target) {
-        const tA = segT[i - 1], tB = segT[i];
-        const thA = Math.abs(segX[i - 1][0]), thB = Math.abs(segX[i][0]);
+        const tA = segT[i - 1],
+          tB = segT[i];
+        const thA = Math.abs(segX[i - 1][0]),
+          thB = Math.abs(segX[i][0]);
         const f = (target - thA) / (thB - thA);
-        crossing = { t: tA + f * (tB - tA), theta: target, accel: rate * (tA + f * (tB - tA)) };
+        crossing = {
+          t: tA + f * (tB - tA),
+          theta: target,
+          accel: rate * (tA + f * (tB - tA)),
+        };
         crossIdx = i;
       }
     }
@@ -186,9 +240,13 @@ function runMinAccel(params) {
     if (crossIdx >= 0) {
       // End the record exactly at the first sample at/above the target
       const keep = baseLen + (crossIdx - skip + 1);
-      T.length = keep; X.length = keep; Phi.length = keep;
-      Delt.length = keep; Deltd.length = keep;
-      fBWh.length = keep; fBWtotal.length = keep;
+      T.length = keep;
+      X.length = keep;
+      Phi.length = keep;
+      Delt.length = keep;
+      Deltd.length = keep;
+      fBWh.length = keep;
+      fBWtotal.length = keep;
       x0 = X[keep - 1];
       t0 = T[keep - 1];
       break;
@@ -200,7 +258,11 @@ function runMinAccel(params) {
   // Fallback: if the θ̈-based onset wasn't detected but the target was
   // reached, use the crossing itself so activation is always defined.
   if (crossing && !activation) {
-    activation = { t: crossing.t, theta: crossing.theta, accel: crossing.accel };
+    activation = {
+      t: crossing.t,
+      theta: crossing.theta,
+      accel: crossing.accel,
+    };
   }
 
   // Phase 2: load removed — continue for freeT more seconds
@@ -219,10 +281,23 @@ function runMinAccel(params) {
   const solverMs = performance.now() - t0w;
   const u_ = T.map((t) => [ax(t) * grav, ay(t) * grav, -grav]);
   return {
-    T, X, fBWh, fBWtotal, Phi, Delt, Deltd, u_,
-    fh0, fBWpreload: disableBW ? 0 : fh0 + nonlinForceBw(delt0),
-    solverMs, crossing, activation, reached: !!crossing, maxT,
-    tDrop, freeT
+    T,
+    X,
+    fBWh,
+    fBWtotal,
+    Phi,
+    Delt,
+    Deltd,
+    u_,
+    fh0,
+    fBWpreload: disableBW ? 0 : fh0 + nonlinForceBw(delt0),
+    solverMs,
+    crossing,
+    activation,
+    reached: !!crossing,
+    maxT,
+    tDrop,
+    freeT,
   };
 }
 
@@ -232,7 +307,10 @@ self.onmessage = (e) => {
     const res = runMinAccel(params);
     self.postMessage({ id, ok: true, res });
   } catch (err) {
-    self.postMessage({ id, ok: false, error: String(err && err.message || err) });
+    self.postMessage({
+      id,
+      ok: false,
+      error: String((err && err.message) || err),
+    });
   }
 };
-})();
