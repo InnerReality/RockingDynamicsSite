@@ -89,106 +89,58 @@
           </p>
           <div class="chapter-scrolly">
             <div class="scrolly-prose">
-              <section class="scrolly-step is-active" data-state="geometry">
+              <section class="scrolly-step scrolly-step--sim" data-state="threshold">
                 <span class="step-number">01</span>
-                <div class="section-label">The threshold</div>
+                <div class="section-label">The threshold · Mini-sim</div>
                 <h2>Mass cancels from the moment balance</h2>
                 <p>
-                  Before rocking, both corners can share the load. Increase the
-                  horizontal base acceleration and the effective gravity vector
-                  tilts until it passes through the active corner.
+                  Before rocking, the reaction force passes through the center of the base. Increasing the
+                  horizontal base acceleration shifts the reaction (or contact point)
+                  until it passes through the active corner.
                 </p>
                 <p>
-                  Because both moments contain the same mass, the critical
-                  acceleration is governed by the center-of-mass geometry, not
+                  In absence of external force P, the vertical forces are equal to W and opposite. Hence the critical
+                  acceleration (obtained by moment equilibrium) is governed by the center-of-mass geometry, not
                   by the body’s weight.
                 </p>
-              </section>
-              <section
-                class="scrolly-step scrolly-step--sim"
-                data-state="threshold"
-              >
-                <span class="step-number">02</span>
-                <div class="section-label">Mini-sim · guided ramp</div>
-                <h2>Find lift-off by experiment</h2>
                 <p>
                   Ramp the acceleration slowly. The first value at which the
                   reaction reaches zero is the dynamic version of the geometric
-                  threshold.
+                  threshold. The calculation below updates live with the sliders
+                  in the figure.
                 </p>
-                <div class="mini-sim" data-mini-sim="threshold">
-                  <canvas
-                    aria-label="Mini acceleration threshold simulation"
-                  ></canvas>
-                  <div class="mini-sim-controls">
-                    <label for="accel-level"
-                      >Base acceleration
-                      <input
-                        id="accel-level"
-                        type="range"
-                        min="0"
-                        max="2.5"
-                        step="0.1"
-                        value="1.4" /><span data-value></span></label
-                    ><button type="button">Animate</button>
-                  </div>
-                  <p class="mini-sim-result">
-                    The orange marker indicates the center of mass. Compare its
-                    line of action with the pivot corner.
-                  </p>
+                <div class="mini-sim-theory" data-min-accel-theory>
+                  <div class="section-label">Calculation</div>
+                  <div class="equation" data-theory-eq></div>
+                  <p data-theory-defs></p>
                 </div>
               </section>
               <section class="scrolly-step" data-state="response">
-                <span class="step-number">03</span>
+                <span class="step-number">02</span>
                 <div class="section-label">Interpret the result</div>
                 <h2>Geometry predicts the first move</h2>
-                <div class="notice-box">
-                  <h4>Guided experiment</h4>
-                  <ol>
-                    <li>
-                      Keep the body dimensions fixed and ramp the acceleration.
-                    </li>
-                    <li>Record the first lift-off value.</li>
-                    <li>Change the aspect ratio and repeat.</li>
-                  </ol>
-                </div>
                 <p>
                   Changing weight changes the reaction forces but not the
                   acceleration at onset. This threshold is the bridge from
-                  static geometry to the transient free response.
+                  statics to the transient free response.
                 </p>
-                <div class="notice-box">
-                  <h4>Free vibration</h4>
+              </section>
+              <section class="scrolly-step" data-state="damping">
+                <span class="step-number">03</span>
+                <div class="section-label">Damping envelope</div>
+                <h2>Free vibration</h2>
                   <p>
-                    Once the base stops, the body moves around its active corner
+                    Once the base acceleration stops, the body moves around its active corner
                     under gravity. It slows as it climbs, then speeds up as it
                     falls toward the opposite corner. At each corner switch,
                     impact removes energy from the motion.
                   </p>
                   <p>
-                    Use the restitution control to see how the impact law
-                    changes the angular envelope.
+                    Damping acts only while the body is in contact with the base.
+                    In the figure, the envelope C₀(1 − sgn(θ)²) is nonzero for
+                    |θ| &lt; θ₀ and vanishes once the body is rocking.
                   </p>
-                </div>
-                <div class="mini-sim" data-mini-sim="response">
-                  <canvas aria-label="Mini free response simulation"></canvas>
-                  <div class="mini-sim-controls">
-                    <label for="restitution-ch2"
-                      >Restitution
-                      <input
-                        id="restitution-ch2"
-                        type="range"
-                        min="0.2"
-                        max="1"
-                        step="0.05"
-                        value="0.75" /><span data-value></span></label
-                    ><button type="button">Animate</button>
-                  </div>
-                  <p class="mini-sim-result">
-                    Lower restitution produces fewer visible cycles and a faster
-                    return to rest.
-                  </p>
-                </div>
+
                 <div class="handoff-card">
                   <div class="handoff-preview">
                     <img
@@ -214,17 +166,134 @@
                 </div>
               </section>
             </div>
-            <aside class="scrolly-figure">
-              <canvas data-figure-canvas></canvas>
-              <p class="figure-caption">
-                <span class="figure-state is-visible" data-state="geometry"
-                  >The effective gravity line is still inside the base.</span
-                ><span class="figure-state" data-state="threshold"
-                  >At lift-off, one contact reaction vanishes.</span
-                ><span class="figure-state" data-state="response"
-                  >The threshold hands the body to a dynamic response.</span
+            <aside class="scrolly-figure" aria-label="Chapter plots">
+              <div class="figure-plot is-visible" data-state="geometry">
+                <h3>Geometry of the block</h3>
+                <canvas data-figure-canvas></canvas>
+                <p class="mini-sim-result">
+                  The block is 2r₀ wide and 2h tall. The orange marker is the
+                  center of mass; the dashed line is the effective gravity
+                  line, still inside the base.
+                </p>
+              </div>
+              <div class="figure-plot" data-state="threshold">
+                <h3>Find lift-off by experiment</h3>
+                <div
+                  class="mini-sim mini-sim--figure"
+                  data-mini-sim="min-accel"
                 >
-              </p>
+                  <canvas
+                    aria-label="Minimum acceleration mini simulation"
+                  ></canvas>
+                  <div class="mini-sim-controls">
+                    <label
+                      class="mini-sim-toggle"
+                      for="ma2-force"
+                      title="Add the Belleville-washer preload — the onset then becomes a = g·(1 + 12P/W)·r₀/h"
+                      ><input id="ma2-force" type="checkbox" />
+                      Belleville-washer force</label
+                    ><label for="ma2-a"
+                      >Base acceleration a
+                      <input
+                        id="ma2-a"
+                        data-role="a"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.001"
+                        value="0.15" /><span data-value data-role="a"></span
+                    ></label
+                    ><label for="ma2-h"
+                      >CM height h
+                      <input
+                        id="ma2-h"
+                        data-role="h"
+                        type="range"
+                        min="2.4"
+                        max="60"
+                        step="0.5"
+                        value="40" /><span data-value data-role="h"></span
+                    ></label
+                    ><label for="ma2-p"
+                      >Preload P
+                      <input
+                        id="ma2-p"
+                        data-role="p"
+                        type="range"
+                        min="0"
+                        max="600"
+                        step="10"
+                        value="306" /><span data-value data-role="p"></span
+                    ></label>
+                  </div>
+                  <p class="mini-sim-result" data-min-accel-status>
+                    The orange marker indicates the center of mass. Compare its
+                    line of action with the pivot corner.
+                  </p>
+                </div>
+              </div>
+              <div class="figure-plot" data-state="response">
+                <h3>At the tipping threshold</h3>
+                <div
+                  class="mini-sim mini-sim--figure"
+                  data-mini-sim="min-accel"
+                >
+                  <canvas
+                    aria-label="Static tipped block at 1.01 times the minimum acceleration"
+                  ></canvas>
+                  <p class="mini-sim-result" data-min-accel-status>
+                    At a = 1.01·a_min the effective gravity line has just left
+                    the base — the block tips about its corner.
+                  </p>
+                </div>
+              </div>
+              <div class="figure-plot" data-state="damping">
+                <h3>Damping envelope</h3>
+                <div
+                  class="mini-sim mini-sim--figure"
+                  data-mini-sim="damping"
+                >
+                  <canvas
+                    aria-label="Plot of the smooth sign function"
+                  ></canvas>
+                  <canvas
+                    aria-label="Plot of the damping envelope c₀(1 - sgn(theta)^2)"
+                  ></canvas>
+                  <div class="mini-sim-controls">
+                    <label for="damp-theta0"
+                      >Transition angle θ₀
+                      <input
+                        id="damp-theta0"
+                        data-role="theta0"
+                        type="range"
+                        min="0.0192"
+                        max="1.2"
+                        step="0.005"
+                        value="0.6" /><span data-value data-role="theta0"></span
+                    ></label
+                    ><label for="damp-theta"
+                      >Angle θ
+                      <input
+                        id="damp-theta"
+                        data-role="theta"
+                        type="range"
+                        min="-1.2"
+                        max="1.2"
+                        step="0.005"
+                        value="0.3" /><span data-value data-role="theta"></span
+                    ></label>
+                  </div>
+                  <div class="plot-legend">
+                    <span class="legend-line legend-line--smooth">sgn(θ)</span
+                    ><span class="legend-line legend-line--deriv"
+                      >c₀(1 − sgn(θ)²)</span
+                    ><span class="legend-marker">θ</span>
+                  </div>
+                  <p class="mini-sim-result" data-damping-status>
+                    Damping acts only while the body is in contact with the base.
+                  </p>
+                </div>
+              </div>
             </aside>
           </div>
           <nav class="chapter-nav-bar">

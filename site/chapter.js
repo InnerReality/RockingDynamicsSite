@@ -4,10 +4,8 @@
   const bar = document.querySelector(".chapter-progress-bar");
   const steps = [...document.querySelectorAll(".scrolly-step")];
   const states = [...document.querySelectorAll(".figure-state")];
-  const plots = [...document.querySelectorAll(".figure-plot")];
-  const canvas = document.querySelector("[data-figure-canvas]");
-  const ctx = canvas?.getContext("2d");
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const plots = [...document.querySelectorAll('.figure-plot')];
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const redraws = [];
   new MutationObserver(() => redraws.forEach((fn) => fn())).observe(
     document.documentElement,
@@ -21,9 +19,15 @@
     plots.forEach((plot) =>
       plot.classList.toggle("is-visible", plot.dataset.state === id),
     );
-    if (ctx) drawFigure(id);
+    drawFigure(id);
   }
   function drawFigure(id) {
+    const plot = document.querySelector(`.figure-plot[data-state="${id}"]`);
+    const canvas = plot
+      ? plot.querySelector("canvas[data-figure-canvas]")
+      : document.querySelector("[data-figure-canvas]");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
     const w = (canvas.width = 760),
       h = (canvas.height = 500);
     ctx.clearRect(0, 0, w, h);
@@ -69,12 +73,27 @@
     ctx.beginPath();
     ctx.arc(0, -88, 10, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "#c2410c";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, -88);
-    ctx.lineTo(0, 20);
-    ctx.stroke();
+    if (id === "geometry") {
+      ctx.setLineDash([7, 5]);
+      ctx.strokeStyle = "#c2410c";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -88);
+      ctx.lineTo(62, 20);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#c2410c";
+      ctx.beginPath();
+      ctx.arc(62, 20, 7, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = "#c2410c";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -88);
+      ctx.lineTo(0, 20);
+      ctx.stroke();
+    }
     ctx.restore();
     ctx.fillStyle = ctx.strokeStyle = "#65716e";
     ctx.font = "700 22px system-ui";
@@ -677,6 +696,513 @@
     redraws.push(draw);
   }
 
+  const minAccelDraws = [];
+  function drawMinAccelSim(sim) {
+    const canvas = sim.querySelector("canvas");
+    const c = canvas.getContext("2d");
+    const forceToggle = sim.querySelector("input[type=checkbox]");
+    const pSlider = sim.querySelector('input[data-role="p"]');
+    const aSlider = sim.querySelector('input[data-role="a"]');
+    const hSlider = sim.querySelector('input[data-role="h"]');
+    const pVal = sim.querySelector('[data-value][data-role="p"]');
+    const aVal = sim.querySelector('[data-value][data-role="a"]');
+    const hVal = sim.querySelector('[data-value][data-role="h"]');
+    const status = sim.querySelector("[data-min-accel-status]");
+    const r0 = 12; // in — assumed pivot radius (half the base width)
+    const W = 1000; // lb — fixed body weight
+    const delimiters = [
+      { left: "\\[", right: "\\]", display: true },
+      { left: "\\(", right: "\\)", display: false },
+    ];
+    const interactive = Boolean(forceToggle && pSlider && aSlider && hSlider);
+
+    if (hSlider) {
+      hSlider.min = String(0.2 * r0);
+      hSlider.max = String(5 * r0);
+    }
+
+    function minAccel(force, P, h) {
+      return (1 + (force ? (12 * P) / W : 0)) * (r0 / h);
+    }
+
+    function renderTheory(force, P, h, aMin) {
+      const theory = document.querySelector("[data-min-accel-theory]");
+      if (!theory) return;
+      const eq = theory.querySelector("[data-theory-eq]");
+      const defs = theory.querySelector("[data-theory-defs]");
+      eq.innerHTML = force
+        ? "\\[a = g\\,\\frac{(1 + 12\\,P/W)\\,r_0}{h} = " +
+          aMin.toFixed(2) +
+          "\\,g\\]"
+        : "\\[a = g\\,\\frac{r_0}{h} = " + aMin.toFixed(2) + "\\,g\\]";
+      defs.innerHTML = force
+        ? "where \\(P = " +
+          P.toFixed(0) +
+          "\\) lb is the Belleville-washer preload per stack, \\(W = " +
+          W.toFixed(0) +
+          "\\) lb is the body weight, \\(r_0 = " +
+          r0.toFixed(1) +
+          "\\) in is the pivot radius, and \\(h = h_{CM} = " +
+          h.toFixed(1) +
+          "\\) in is the center-of-mass height. With the current body parameters the rocking onset is at \\(a = " +
+          aMin.toFixed(2) +
+          "\\,g\\). When the BW force is disabled, the preload term drops out (\\(P = 0\\)) and the equation reduces to \\(a = g\\,r_0/h\\)."
+        : "where \\(W = " +
+          W.toFixed(0) +
+          "\\) lb is the body weight, \\(r_0 = " +
+          r0.toFixed(1) +
+          "\\) in is the pivot radius, and \\(h = h_{CM} = " +
+          h.toFixed(1) +
+          "\\) in is the center-of-mass height. With the current body parameters the rocking onset is at \\(a = " +
+          aMin.toFixed(2) +
+          "\\,g\\).";
+      if (window.renderMathInElement) {
+        renderMathInElement(eq, { delimiters });
+        renderMathInElement(defs, { delimiters });
+      }
+    }
+
+    function readState() {
+      if (interactive) {
+        const force = forceToggle.checked;
+        return {
+          force,
+          P: force ? Number(pSlider.value) : 0,
+          h: Number(hSlider.value),
+          a: Number(aSlider.value),
+        };
+      }
+      // Static copy: mirror the interactive sim's controls, but fix the
+      // acceleration at 1.01·a_min so the block is shown just past onset.
+      const master = [
+        ...document.querySelectorAll('[data-mini-sim="min-accel"]'),
+      ].find((el) => el !== sim && el.querySelector("input[type=checkbox]"));
+      const force = master
+        ? master.querySelector("input[type=checkbox]").checked
+        : false;
+      const P = force
+        ? Number(master.querySelector('input[data-role="p"]').value)
+        : 0;
+      const h = master
+        ? Number(master.querySelector('input[data-role="h"]').value)
+        : 40;
+      return { force, P, h, a: 1.01 * minAccel(force, P, h) };
+    }
+
+    function draw() {
+      const { force, P, h, a } = readState();
+      const aMin = minAccel(force, P, h);
+      const aMax = 1.01 * aMin;
+      if (aSlider) {
+        aSlider.max = aMax.toFixed(4);
+        if (Number(aSlider.value) > aMax) aSlider.value = aMax.toFixed(4);
+      }
+      if (pSlider) pSlider.disabled = !force;
+      if (pVal) pVal.textContent = P.toFixed(0) + " lb";
+      if (aVal) aVal.textContent = a.toFixed(2) + " g";
+      if (hVal) hVal.textContent = h.toFixed(1) + " in";
+      if (forceToggle) renderTheory(force, P, h, aMin);
+
+      const w = (canvas.width = 700),
+        hh = (canvas.height = 700);
+      c.clearRect(0, 0, w, hh);
+      const colors = themeColors();
+      c.fillStyle = colors.panel;
+      c.fillRect(0, 0, w, hh);
+
+      const tipped = a >= aMin;
+      const contactX = tipped ? r0 : r0 * (a / aMin);
+      const tilt = tipped ? Math.min(0.45, (a / aMin - 1) * 45) : 0;
+      const cos = Math.cos(tilt),
+        sin = Math.sin(tilt);
+      const corners = [
+        [-r0, 0],
+        [r0, 0],
+        [r0, 2 * h],
+        [-r0, 2 * h],
+      ].map(([dx, dy]) => ({
+        x: r0 + (dx - r0) * cos + dy * sin,
+        y: -(dx - r0) * sin + dy * cos,
+      }));
+      const cm = { x: r0 - r0 * cos + h * sin, y: r0 * sin + h * cos };
+      const baseC = { x: r0 - r0 * cos, y: r0 * sin };
+      const contact = { x: contactX, y: 0 };
+
+      const wLen = Math.min(r0, h / 2);
+      const wLen2 = Math.max(r0,h/2);
+      const pLen = wLen2 * (P / W);
+      const wpLen = r0 * (1 + P / W);
+      const arrowLen = r0 * (a / aMin);
+      const headX = cm.x + arrowLen; // acceleration arrow points right
+
+      const xs = [
+        0,
+        contactX,
+        cm.x,
+        headX,
+        baseC.x,
+        ...corners.map((p) => p.x),
+      ];
+      const ys = [
+        0,
+        2 * h,
+        cm.y,
+        cm.y + wLen,
+        baseC.y + pLen,
+        wpLen,
+        ...corners.map((p) => p.y),
+      ];
+      let xMin = Math.min(...xs),
+        xMax = Math.max(...xs);
+      const yMax = Math.max(...ys);
+      const padX = Math.max(1, (xMax - xMin) * 0.08);
+      const padY = Math.max(1, yMax * 0.12);
+      xMin -= padX;
+      xMax += padX;
+
+      // Origin (ground) stays anchored at the bottom of the plot.
+      const pad = { left: 46, right: 18, top: 34, bottom: 44 };
+      const availW = w - pad.left - pad.right;
+      const availH = hh - pad.top - pad.bottom;
+      const scale = Math.min(availW / (xMax - xMin), availH / (yMax + padY));
+      const x0 = (xMin + xMax) / 2 - availW / scale / 2;
+      const sx = (x) => pad.left + (x - x0) * scale;
+      const sy = (y) => hh - pad.bottom - y * scale;
+
+      function arrow(x1, y1, x2, y2, color, lw) {
+        const sx1 = sx(x1), sy1 = sy(y1);
+        const sx2 = sx(x2), sy2 = sy(y2);
+
+        const dx = sx2 - sx1, dy = sy2 - sy1;
+        const len = Math.hypot(dx, dy);
+        if (len < 1e-6) return;
+        const ux = dx / len, uy = dy / len;
+
+        const ah = 14;
+        c.strokeStyle = color;
+        c.lineWidth = lw;
+        c.beginPath();
+        c.moveTo(sx1, sy1);
+        c.lineTo(sx2, sy2);
+        c.stroke();
+
+        const px = -uy * ah * 0.6, py = ux * ah * 0.6;
+        c.fillStyle = color;
+        c.beginPath();
+        c.moveTo(sx2, sy2);
+        c.lineTo(sx2 - ux * ah - px, sy2 - uy * ah - py);
+        c.lineTo(sx2 - ux * ah + px, sy2 - uy * ah + py);
+        c.closePath();
+        c.fill();
+      }
+
+      c.strokeStyle = colors.border;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(pad.left, sy(0));
+      c.lineTo(w - pad.right, sy(0));
+      c.stroke();
+
+      c.setLineDash([2, 5]);
+      c.strokeStyle = colors.orange;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(sx(cm.x), sy(cm.y));
+      c.lineTo(sx(cm.x), sy(0));
+      c.stroke();
+      c.setLineDash([]);
+
+      c.beginPath();
+      corners.forEach((p, i) =>
+        i ? c.lineTo(sx(p.x), sy(p.y)) : c.moveTo(sx(p.x), sy(p.y)),
+      );
+      c.closePath();
+      c.fillStyle = colors.accent;
+      c.globalAlpha = 0.16;
+      c.fill();
+      c.globalAlpha = 1;
+      c.strokeStyle = colors.accent;
+      c.lineWidth = 3;
+      c.stroke();
+
+      const orange = colors.orange;
+      // W: downward, tail at the CM (0, h when upright)
+      arrow(cm.x,cm.y , cm.x, cm.y - wLen , orange, 3);
+      // P: downward, head at the base centre (0, 0 when upright)
+      if (pLen > 0.4)
+        arrow(baseC.x, baseC.y + pLen, baseC.x, baseC.y, orange, 3);
+      // W + P: upward, tail at the contact point
+      arrow(contact.x, contact.y, contact.x, contact.y + wpLen, colors.accent, 3);
+      // Acceleration: horizontal, tail at the CM, head pointing right
+      if (arrowLen > 0.4) arrow(cm.x, cm.y, cm.x + arrowLen, cm.y, orange, 3);
+
+      c.font = "800 26px system-ui";
+      c.textAlign = "center";
+      c.fillStyle = orange;
+      c.fillText("W", sx(cm.x)- 26, sy(cm.y - wLen) + 26);
+      if (pLen > 0.4) {
+        c.fillStyle = orange;
+        c.fillText("P", sx(baseC.x), sy(baseC.y) + 26);
+      }
+      c.fillStyle = colors.accent;
+      c.fillText("W + P", sx(contact.x)+52, sy(contact.y + wpLen) - 12);
+      if (arrowLen > 0.4) {
+        c.fillStyle = orange;
+        c.fillText(
+          "a = " + a.toFixed(2) + " g",
+          sx(cm.x + arrowLen / 2),
+          sy(cm.y) - 22,
+        );
+      }
+
+      c.fillStyle = orange;
+      c.beginPath();
+      c.arc(sx(cm.x), sy(cm.y), 6, 0, Math.PI * 2);
+      c.fill();
+      c.beginPath();
+      c.arc(sx(contact.x), sy(contact.y), 6, 0, Math.PI * 2);
+      c.fill();
+
+      c.fillStyle = colors.muted;
+      c.font = "700 14px system-ui";
+      c.textAlign = "left";
+      c.fillText(
+        "a = " + a.toFixed(2) + " g · a_min = " + aMin.toFixed(2) + " g",
+        pad.left + 4,
+        18,
+      );
+      c.textAlign = "right";
+      c.fillText(
+        "block 2r₀ × 2h = " +
+          (2 * r0).toFixed(1) +
+          " × " +
+          (2 * h).toFixed(1) +
+          " in",
+        w - pad.right - 4,
+        18,
+      );
+      if (tipped) {
+        c.fillStyle = orange;
+        c.font = "900 24px system-ui";
+        c.textAlign = "center";
+        c.fillText("Tipped!", w / 2, 26);
+      }
+
+      if (status) {
+        status.textContent = tipped
+          ? "Tipped! The effective gravity line has left the base — onset was at a = " +
+            aMin.toFixed(2) +
+            " g."
+          : "Contact point at x = " +
+            contactX.toFixed(1) +
+            " in of r₀ = " +
+            r0.toFixed(1) +
+            " in · onset at a = " +
+            aMin.toFixed(2) +
+            " g.";
+      }
+    }
+
+    minAccelDraws.push(draw);
+    if (interactive) {
+      [forceToggle, pSlider, aSlider, hSlider].forEach((el) =>
+        el?.addEventListener("input", () => minAccelDraws.forEach((fn) => fn())),
+      );
+      forceToggle?.addEventListener("change", () =>
+        minAccelDraws.forEach((fn) => fn()),
+      );
+    }
+    draw();
+    redraws.push(draw);
+  }
+
+  function drawDampingSim(sim) {
+    const canvases = [...sim.querySelectorAll("canvas")];
+    const theta0Slider = sim.querySelector('input[data-role="theta0"]');
+    const thetaSlider = sim.querySelector('input[data-role="theta"]');
+    const theta0Val = sim.querySelector('[data-value][data-role="theta0"]');
+    const thetaVal = sim.querySelector('[data-value][data-role="theta"]');
+    const status = sim.querySelector("[data-damping-status]");
+    const c0 = 1; // normalized damping coefficient
+    function draw() {
+      const theta0 = Number(theta0Slider.value);
+      const theta = Number(thetaSlider.value);
+      const m = 1.5 / theta0;
+      const xMin = -1.45,
+        xMax = 1.45;
+      const pad = { left: 54, right: 18, top: 18, bottom: 42 };
+      const colors = themeColors();
+      if (theta0Val)
+        theta0Val.textContent = ((theta0 * 180) / Math.PI).toFixed(1) + "°";
+      if (thetaVal)
+        thetaVal.textContent = ((theta * 180) / Math.PI).toFixed(1) + "°";
+
+      if (status)
+        status.textContent =
+          "damping occurs only when |θ| < θ₀ = " +
+          ((theta0 * 180) / Math.PI).toFixed(1) +
+          "° — the body is in contact with the base.";
+
+      const c1 = canvases[0].getContext("2d");
+      const w1 = (canvases[0].width = 700),
+        h1 = (canvases[0].height = 350);
+
+      const yMin1 = -1.2,
+        yMax1 = 1.2;
+      const sx1 = (x) =>
+        pad.left + ((x - xMin) / (xMax - xMin)) * (w1 - pad.left - pad.right);
+      const sy1 = (y) =>
+        h1 -
+        pad.bottom -
+        ((y - yMin1) / (yMax1 - yMin1)) * (h1 - pad.top - pad.bottom);
+      plotFrame(
+        c1,
+        w1,
+        h1,
+        sx1,
+        sy1,
+        xMin,
+        xMax,
+        yMin1,
+        yMax1,
+        colors,
+        "θ",
+        "sgn(θ)",
+      );
+      if (Math.abs(theta) < theta0) {
+        c1.fillStyle = colors.orange;
+        c1.font = "900 24px system-ui";
+        c1.textAlign = "center";
+        c1.fillText("Damping occurs", w1 / 2, 26);
+      } else {
+        c1.fillStyle = colors.muted;
+        c1.font = "900 24px system-ui";
+        c1.textAlign = "center";
+        c1.fillText("Damping does not occur", w1 / 2, 26);
+      }
+      c1.save();
+      c1.strokeStyle = colors.muted;
+      c1.lineWidth = 1;
+      c1.setLineDash([2, 4]);
+      c1.beginPath();
+      c1.moveTo(sx1(xMin), sy1(1));
+      c1.lineTo(sx1(xMax), sy1(1));
+      c1.moveTo(sx1(xMin), sy1(-1));
+      c1.lineTo(sx1(xMax), sy1(-1));
+      c1.stroke();
+      c1.restore();
+      c1.save();
+      c1.strokeStyle = colors.orange;
+      c1.lineWidth = 1.5;
+      c1.setLineDash([5, 4]);
+      c1.beginPath();
+      c1.moveTo(sx1(xMin), sy1(m * xMin));
+      c1.lineTo(sx1(xMax), sy1(m * xMax));
+      c1.stroke();
+      c1.restore();
+      c1.save();
+      c1.strokeStyle = colors.accent;
+      c1.lineWidth = 1;
+      c1.setLineDash([4, 4]);
+      [-theta0, theta0].forEach((x) => {
+        c1.beginPath();
+        c1.moveTo(sx1(x), sy1(yMin1));
+        c1.lineTo(sx1(x), sy1(yMax1));
+        c1.stroke();
+      });
+      c1.restore();
+      c1.save();
+      c1.strokeStyle = colors.accent;
+      c1.lineWidth = 2.5;
+      c1.beginPath();
+      for (let i = 0; i <= 1000; i += 1) {
+        const x = xMin + ((xMax - xMin) * i) / 1000;
+        const y = smoothSign(x, theta0, m);
+        if (i === 0) c1.moveTo(sx1(x), sy1(y));
+        else c1.lineTo(sx1(x), sy1(y));
+      }
+      c1.stroke();
+      c1.restore();
+      c1.save();
+      c1.strokeStyle = colors.orange;
+      c1.lineWidth = 2;
+      c1.beginPath();
+      c1.moveTo(sx1(theta), sy1(yMin1));
+      c1.lineTo(sx1(theta), sy1(yMax1));
+      c1.stroke();
+      c1.restore();
+
+      const c2 = canvases[1].getContext("2d");
+      const w2 = (canvases[1].width = 700),
+        h2 = (canvases[1].height = 350);
+      const yMin2 = -0.05 * c0,
+        yMax2 = 1.1 * c0;
+      const sx2 = (x) =>
+        pad.left + ((x - xMin) / (xMax - xMin)) * (w2 - pad.left - pad.right);
+      const sy2 = (y) =>
+        h2 -
+        pad.bottom -
+        ((y - yMin2) / (yMax2 - yMin2)) * (h2 - pad.top - pad.bottom);
+      plotFrame(
+        c2,
+        w2,
+        h2,
+        sx2,
+        sy2,
+        xMin,
+        xMax,
+        yMin2,
+        yMax2,
+        colors,
+        "θ",
+        "c₀(1 − sgn(θ)²)",
+      );
+      c2.save();
+      c2.strokeStyle = colors.accent;
+      c2.lineWidth = 1;
+      c2.setLineDash([4, 4]);
+      [-theta0, theta0].forEach((x) => {
+        c2.beginPath();
+        c2.moveTo(sx2(x), sy2(yMin2));
+        c2.lineTo(sx2(x), sy2(yMax2));
+        c2.stroke();
+      });
+      c2.restore();
+      c2.save();
+      c2.strokeStyle = colors.orange;
+      c2.lineWidth = 2.5;
+      c2.beginPath();
+      for (let i = 0; i <= 1000; i += 1) {
+        const x = xMin + ((xMax - xMin) * i) / 1000;
+        const s = smoothSign(x, theta0, m);
+        const y = c0 * (1 - s * s);
+        if (i === 0) c2.moveTo(sx2(x), sy2(y));
+        else c2.lineTo(sx2(x), sy2(y));
+      }
+      c2.stroke();
+      c2.restore();
+      c2.save();
+      c2.strokeStyle = colors.orange;
+      c2.lineWidth = 2;
+      c2.beginPath();
+      c2.moveTo(sx2(theta), sy2(yMin2));
+      c2.lineTo(sx2(theta), sy2(yMax2));
+      c2.stroke();
+      c2.restore();
+    }
+    [theta0Slider, thetaSlider].forEach((el) =>
+      el?.addEventListener("input", draw),
+    );
+    draw();
+    redraws.push(draw);
+  }
+
+  document
+    .querySelectorAll('[data-mini-sim="min-accel"]')
+    .forEach(drawMinAccelSim);
+  document
+    .querySelectorAll('[data-mini-sim="damping"]')
+    .forEach(drawDampingSim);
   document
     .querySelectorAll(
       '[data-mini-sim="potential-basic"], [data-mini-sim="potential-enhanced"]',
@@ -690,7 +1216,7 @@
     .forEach(drawGeometrySim);
   document
     .querySelectorAll(
-      '[data-mini-sim]:not([data-mini-sim="potential-basic"]):not([data-mini-sim="potential-enhanced"]):not([data-mini-sim="smooth-sign"]):not([data-mini-sim="geometry-path"])',
+      '[data-mini-sim]:not([data-mini-sim="potential-basic"]):not([data-mini-sim="potential-enhanced"]):not([data-mini-sim="smooth-sign"]):not([data-mini-sim="geometry-path"]):not([data-mini-sim="min-accel"]):not([data-mini-sim="damping"])',
     )
     .forEach((sim) => {
       const mini = sim.querySelector("canvas");
