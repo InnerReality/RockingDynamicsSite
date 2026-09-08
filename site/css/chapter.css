@@ -174,7 +174,7 @@ a {
 }
 .chapter-dek {
   max-width: 700px;
-  margin: 0 0 4rem;
+  margin: 0 0 2rem;
   color: var(--muted);
   font-size: 1.18rem;
 }
@@ -548,6 +548,16 @@ strong {
   font: 700 0.88rem var(--sans);
 }
 .chapter-nav-bar a {
+  text-decoration: none;
+}
+.chapter-nav-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 2rem;
+  font: 700 0.88rem var(--sans);
+}
+.chapter-nav-top a {
   text-decoration: none;
 }
 @media (max-width: 860px) {

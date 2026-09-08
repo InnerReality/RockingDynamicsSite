@@ -23,8 +23,8 @@ $$
 Starting from the upright position, the height is obtained by integrating through the full contact-angle range up to 90 degrees:
 
 $$
-y\!\left(\frac{\pi}{2}\right)
-= \int_0^{\pi/2}
+y\!\left(\theta\right)
+= \int_0^{\theta}
  r_0\,\operatorname{sgn}'(u)\tan(u)\,du.
 $$
 
