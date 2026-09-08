@@ -287,6 +287,9 @@ strong {
 .mini-sim--figure[data-mini-sim="min-accel"] canvas {
   aspect-ratio: 1;
 }
+.mini-sim--figure[data-mini-sim="ramp"] canvas {
+  aspect-ratio: 700 / 620;
+}
 .mini-sim--figure[data-mini-sim="damping"] canvas {
   aspect-ratio: 2;
 }
@@ -696,11 +699,17 @@ strong {
   .figure-plot[data-state="response"] {
     order: 12;
   }
-  .scrolly-step[data-state="damping"] {
+  .scrolly-step[data-state="ramp"] {
     order: 13;
   }
-  .figure-plot[data-state="damping"] {
+  .figure-plot[data-state="ramp"] {
     order: 14;
+  }
+  .scrolly-step[data-state="damping"] {
+    order: 15;
+  }
+  .figure-plot[data-state="damping"] {
+    order: 16;
   }
   .scrolly-step {
     min-height: auto;

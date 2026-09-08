@@ -722,7 +722,7 @@
 
     if (hSlider) {
       hSlider.min = String(0.2 * r0);
-      hSlider.max = String(5 * r0);
+      hSlider.max = String(4.5 * r0);
     }
 
     function minAccel(force, P, h) {
@@ -790,13 +790,13 @@
       const h = master
         ? Number(master.querySelector('input[data-role="h"]').value)
         : 40;
-      return { force, P, h, a: 1.01 * minAccel(force, P, h) };
+      return { force, P, h, a: 1.0025 * minAccel(force, P, h) };
     }
 
     function draw() {
       const { force, P, h, a } = readState();
       const aMin = minAccel(force, P, h);
-      const aMax = 1.01 * aMin;
+      const aMax = 1.003 * aMin;
       if (aSlider) {
         aSlider.max = aMax.toFixed(4);
         if (Number(aSlider.value) > aMax) aSlider.value = aMax.toFixed(4);
@@ -1020,6 +1020,423 @@
     redraws.push(draw);
   }
 
+  function drawRampSim(sim) {
+    const canvas = sim.querySelector("canvas");
+    const c = canvas.getContext("2d");
+    const forceToggle = sim.querySelector("input[type=checkbox]");
+    const hSlider = sim.querySelector('input[data-role="h"]');
+    const pSlider = sim.querySelector('input[data-role="p"]');
+    const timeSlider = sim.querySelector('input[data-role="time"]');
+    const playButton = sim.querySelector('button[data-role="play"]');
+    const hVal = sim.querySelector('[data-value][data-role="h"]');
+    const pVal = sim.querySelector('[data-value][data-role="p"]');
+    const timeVal = sim.querySelector('[data-value][data-role="time"]');
+    const status = sim.querySelector("[data-ramp-status]");
+
+    const grav = 386.4; // in/s²
+    const W = 1000; // lb — fixed body weight
+    const mass = W / grav;
+    const II = 4000; // lb·in·s² — centroidal moment of inertia
+    const r0 = 12; // in — pivot radius (half the base width)
+    const tStop = 5; // analysis for 5 sec
+    //const rate = 1; // g/s — ramp rate
+    const stopMult = 1.05; // stop the ramp when it reaches 1.05·a_min
+    const plotMult = 1.05; // the θ(t) trace shows only up to 1.05·a_min
+    const cdamp = 1e7; // lb·in·s — rocking damping (no BW)
+    const dt = 1e-3; // s
+    const thetaGain = 100; // visual magnification of θ
+    const visualClamp = Math.PI / 2; // animation never rotates past ±90°
+
+    let playing = false;
+    let cached = null;
+
+    function smoothstep(x, m, w, c = 1) {
+      const x0 = c / m - w / 2;
+      const x1 = x0 + w;
+      const alpha = (m * w) / 2;
+      const beta = c - (m * w) / 2;
+      const ax = Math.abs(x);
+      if (ax >= x1) return Math.sign(x) * c;
+      if (ax < x0) return m * x;
+      const t = (ax - x0) / w;
+      const g = 2 * t - 5 * t ** 4 + 6 * t ** 5 - 2 * t ** 6;
+      return Math.sign(x) * (alpha * g + beta);
+    }
+    function smoothstepDerivative(x, m, w, c = 1) {
+      const x0 = c / m - w / 2;
+      const x1 = x0 + w;
+      const ax = Math.abs(x);
+      if (ax >= x1) return 0;
+      if (ax < x0) return m;
+      const t = (ax - x0) / w;
+      const gp = 2 - 20 * t ** 3 + 30 * t ** 4 - 12 * t ** 5;
+      return (m / 2) * gp;
+    }
+
+    function runSim() {
+      const force = forceToggle.checked;
+      const P = force ? Number(pSlider.value) : 0;
+      const h = Number(hSlider.value);
+      if (cached && cached.force === force && cached.P === P && cached.h === h)
+        return cached;
+      const aMin = (1 + (force ? (12 * P) / W : 0)) * (r0 / h);
+      const rate = (stopMult * aMin) / tStop;
+      const Itt = II + mass * r0 * r0;
+      const restCoef = mass * grav * r0 + (force ? 12 * P * r0 : 0);
+      let theta = 0,
+        thetad = 0,
+        t = 0;
+      const tArr = [0],
+        thArr = [0],
+        aArr = [0];
+      while (t < tStop) {
+        const ax = rate * t * grav;
+        const s = smoothstep(theta, 1e5, 1e-5);
+        const sp = smoothstepDerivative(theta, 1e5, 1e-5);
+        const thdd =
+          (-mass * r0 * r0 * s * sp * thetad * thetad -
+            cdamp * (1 - s * s) * thetad -
+            restCoef * s +
+            mass * h * ax) /
+          Itt;
+        const hStep = Math.min(dt, tStop - t);
+        thetad += thdd * hStep;
+        theta += thetad * hStep;
+        t += hStep;
+        tArr.push(t);
+        thArr.push(theta);
+        aArr.push(ax / grav);
+      }
+      cached = { t: tArr, theta: thArr, a: aArr, aMin, tStop, force, P, h };
+      return cached;
+    }
+
+    function draw() {
+      const data = runSim();
+      const { force, P, h, aMin } = data;
+      // The ramp rate is derived so the ramp reaches 1.5·a_min exactly at
+      // tStop; recompute it here (it depends on aMin, which depends on h/P).
+      const rate = (stopMult * aMin) / tStop;
+
+      const tMax = data.t[data.t.length - 1];
+      timeSlider.max = tMax.toFixed(3);
+      let t = Number(timeSlider.value);
+      if (t > tMax) t = tMax;
+      timeSlider.value = t.toFixed(3);
+      let idx = 0;
+      while (idx < data.t.length - 1 && data.t[idx + 1] <= t) idx++;
+      const theta = data.theta[idx];
+      const a = data.a[idx];
+
+      if (hVal) hVal.textContent = h.toFixed(1) + " in";
+      if (pVal) pVal.textContent = P.toFixed(0) + " lb";
+      if (timeVal) timeVal.textContent = t.toFixed(2) + " s";
+      if (pSlider) pSlider.disabled = !force;
+
+      if (status) {
+        const tOnset = aMin / rate;
+        const thetaEnd = data.theta[data.theta.length - 1] * (180 / Math.PI);
+        status.textContent =
+          "Ramp a(t) = " +
+          rate.toFixed(2) +
+          "·t g · onset a_min = " +
+          aMin.toFixed(2) +
+          " g (t = " +
+          tOnset.toFixed(2) +
+          " s) · ramp stops at a = " +
+          (stopMult * aMin).toFixed(2) +
+          " g (t = " +
+          data.t[data.t.length - 1].toFixed(2) +
+          " s) · θ = " +
+          (thetaEnd < 0.001
+            ? thetaEnd.toExponential(1)
+            : thetaEnd.toFixed(3)) +
+          "°";
+      }
+
+      const w = (canvas.width = 700),
+        hh = (canvas.height = 620);
+      c.clearRect(0, 0, w, hh);
+      const colors = themeColors();
+      c.fillStyle = colors.panel;
+      c.fillRect(0, 0, w, hh);
+
+      // ---- block animation (top) ----
+      const animH = Math.round(hh * 0.58);
+      const visual = Math.max(
+        -visualClamp,
+        Math.min(visualClamp, theta * thetaGain),
+      );
+      const pivot = theta >= 0 ? r0 : -r0;
+      const cos = Math.cos(visual),
+        sin = Math.sin(visual);
+      const corners = [
+        [-r0, 0],
+        [r0, 0],
+        [r0, 2 * h],
+        [-r0, 2 * h],
+      ].map(([dx, dy]) => ({
+        x: pivot + (dx - pivot) * cos + dy * sin,
+        y: -(dx - pivot) * sin + dy * cos,
+      }));
+      const cm = {
+        x: pivot + (0 - pivot) * cos + h * sin,
+        y: -(0 - pivot) * sin + h * cos,
+      };
+      const arrowLen = r0 * (a / aMin);
+      // Fixed plot: the extent is computed once per run from the maximum
+      // visual angle actually reached (clamped at ±90°), so the pivot
+      // corner and ground stay put while the block rotates.
+      const maxVisual = Math.min(
+        visualClamp,
+        Math.max(...data.theta.map((v) => Math.abs(v) * thetaGain)),
+      );
+      let bxMin = Infinity,
+        bxMax = -Infinity,
+        byMax = -Infinity;
+      const consider = (pivot, vis) => {
+        const co = Math.cos(vis),
+          si = Math.sin(vis);
+        for (const [dx, dy] of [
+          [-r0, 0],
+          [r0, 0],
+          [r0, 2 * h],
+          [-r0, 2 * h],
+        ]) {
+          const x = pivot + (dx - pivot) * co + dy * si;
+          const y = -(dx - pivot) * si + dy * co;
+          bxMin = Math.min(bxMin, x);
+          bxMax = Math.max(bxMax, x);
+          byMax = Math.max(byMax, y);
+        }
+      };
+      [r0, -r0].forEach((pivot) => {
+        consider(pivot, maxVisual);
+        consider(pivot, -maxVisual);
+      });
+      const padX = Math.max(1, (bxMax - bxMin) * 0.08);
+      const padY = Math.max(1, byMax * 0.1);
+      const xMin = bxMin - padX,
+        xMax = bxMax + padX + arrowLen * 1.1;
+      const yMin = 0,
+        yMax = byMax + padY;
+
+      const pad = { left: 46, right: 18, top: 34, bottom: 44 };
+      const availW = w - pad.left - pad.right;
+      const availH = animH - pad.top - pad.bottom;
+      const scale = Math.min(availW / (xMax - xMin), availH / (yMax - yMin));
+      const sx = (x) => pad.left + (x - xMin) * scale;
+      const sy = (y) => animH - pad.bottom - y * scale;
+
+      function arrow(x1, y1, x2, y2, color, lw) {
+        const sx1 = sx(x1),
+          sy1 = sy(y1);
+        const sx2 = sx(x2),
+          sy2 = sy(y2);
+        const dx = sx2 - sx1,
+          dy = sy2 - sy1;
+        const len = Math.hypot(dx, dy);
+        if (len < 1e-6) return;
+        const ux = dx / len,
+          uy = dy / len;
+        const ah = 14;
+        c.strokeStyle = color;
+        c.lineWidth = lw;
+        c.beginPath();
+        c.moveTo(sx1, sy1);
+        c.lineTo(sx2, sy2);
+        c.stroke();
+        const px = -uy * ah * 0.6,
+          py = ux * ah * 0.6;
+        c.fillStyle = color;
+        c.beginPath();
+        c.moveTo(sx2, sy2);
+        c.lineTo(sx2 - ux * ah - px, sy2 - uy * ah - py);
+        c.lineTo(sx2 - ux * ah + px, sy2 - uy * ah + py);
+        c.closePath();
+        c.fill();
+      }
+
+      // ground
+      c.strokeStyle = colors.border;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(pad.left, sy(0));
+      c.lineTo(w - pad.right, sy(0));
+      c.stroke();
+
+      // block
+      c.beginPath();
+      corners.forEach((p, i) =>
+        i ? c.lineTo(sx(p.x), sy(p.y)) : c.moveTo(sx(p.x), sy(p.y)),
+      );
+      c.closePath();
+      c.fillStyle = colors.accent;
+      c.globalAlpha = 0.16;
+      c.fill();
+      c.globalAlpha = 1;
+      c.strokeStyle = colors.accent;
+      c.lineWidth = 3;
+      c.stroke();
+
+      // acceleration arrow
+      if (arrowLen > 0.4)
+        arrow(cm.x, cm.y, cm.x + arrowLen, cm.y, colors.orange, 3);
+
+      // CM and pivot markers
+      c.fillStyle = colors.orange;
+      c.beginPath();
+      c.arc(sx(cm.x), sy(cm.y), 6, 0, Math.PI * 2);
+      c.fill();
+      c.beginPath();
+      c.arc(sx(pivot), sy(0), 5, 0, Math.PI * 2);
+      c.fill();
+
+      // labels
+      c.font = "800 26px system-ui";
+      c.textAlign = "center";
+      c.fillStyle = colors.orange;
+      if (arrowLen > 0.4)
+        c.fillText(
+          "a = " + a.toFixed(2) + " g",
+          sx(cm.x + arrowLen / 2),
+          sy(cm.y) - 22,
+        );
+
+      c.fillStyle = colors.muted;
+      c.font = "700 14px system-ui";
+      c.textAlign = "left";
+      c.fillText(
+        "Ramp a(t) = " +
+          rate.toFixed(2) +
+          "·t g · a_min = " +
+          aMin.toFixed(2) +
+          " g",
+        pad.left + 4,
+        18,
+      );
+      c.textAlign = "right";
+      c.fillText(
+        "θ × " +
+          thetaGain.toFixed(0) +
+          " · block 2r₀ × 2h = " +
+          (2 * r0).toFixed(1) +
+          " × " +
+          (2 * h).toFixed(1) +
+          " in",
+        w - pad.right - 4,
+        18,
+      );
+
+      // ---- θ(t) trace (bottom) ----
+      const traceTop = animH + 8;
+      const traceH = hh - traceTop - 10;
+      const tpad = { left: 46, right: 14, top: 8, bottom: 30 };
+      const tw = w - tpad.left - tpad.right;
+      const th = traceH - tpad.top - tpad.bottom;
+      const DEG = 180 / Math.PI;
+      const tPlotMax = plotMult * aMin / rate;
+      const plotted = [];
+      for (let i = 0; i < data.t.length && data.t[i] <= tPlotMax + 1e-9; i++)
+        plotted.push(data.theta[i] * DEG);
+      const thMin = Math.min(0, ...plotted);
+      const thMax = Math.max(...plotted);
+      const thSpan = thMax - thMin;
+      const traceYMin = thMin - 0.12 * thSpan;
+      const traceYMax = thMax + 0.12 * thSpan;
+      const tsx = (tt) => tpad.left + (tt / tPlotMax) * tw;
+      const tsy = (thv) =>
+        tpad.top + traceTop + th * (1 - (thv - traceYMin) / (traceYMax - traceYMin));
+
+      // axes
+      c.strokeStyle = colors.border;
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(tsx(0), traceTop + tpad.top);
+      c.lineTo(tsx(0), traceTop + tpad.top + th);
+      c.moveTo(tpad.left, tsy(0));
+      c.lineTo(tpad.left + tw, tsy(0));
+      c.stroke();
+
+      // onset line (a = a_min)
+      const tOnset = aMin / rate;
+      c.setLineDash([2, 4]);
+      c.strokeStyle = colors.accent;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(tsx(tOnset), traceTop + tpad.top);
+      c.lineTo(tsx(tOnset), traceTop + tpad.top + th);
+      c.stroke();
+      c.setLineDash([]);
+
+      // plot-end line (a = 1.05·a_min): the trace stops here even though
+      // the ramp continues to 1.5·a_min
+      c.setLineDash([4, 4]);
+      c.strokeStyle = colors.orange;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(tsx(tPlotMax), traceTop + tpad.top);
+      c.lineTo(tsx(tPlotMax), traceTop + tpad.top + th);
+      c.stroke();
+      c.setLineDash([]);
+
+      // trace
+      c.strokeStyle = colors.accent;
+      c.lineWidth = 2.5;
+      c.beginPath();
+      for (let i = 0; i < data.t.length; i++) {
+        if (data.t[i] > tPlotMax + 1e-9) break;
+        const px = tsx(data.t[i]),
+          py = tsy(data.theta[i] * DEG);
+        i ? c.lineTo(px, py) : c.moveTo(px, py);
+      }
+      c.stroke();
+
+      // current-time marker (clamped to the plotted range)
+      const mt = Math.min(t, tPlotMax);
+      let idxPlot = 0;
+      while (idxPlot < data.t.length - 1 && data.t[idxPlot + 1] <= mt) idxPlot++;
+      c.fillStyle = colors.orange;
+      c.beginPath();
+      c.arc(tsx(mt), tsy(data.theta[idxPlot] * DEG), 5, 0, Math.PI * 2);
+      c.fill();
+
+      // trace labels
+      c.fillStyle = colors.muted;
+      c.font = "15px system-ui";
+      c.textAlign = "center";
+      c.fillText("t (s)", tpad.left + tw / 2, traceTop + tpad.top + th + 20);
+      c.textAlign = "left";
+      c.fillText("θ (deg)", 8, traceTop + tpad.top + 14);
+      c.textAlign = "right";
+      c.fillText("1.05·a_min", tpad.left + tw, traceTop + tpad.top + 14);
+      c.textAlign = "left";
+      c.fillText("a_min", tsx(tOnset) + 4, traceTop + tpad.top + th - 8);
+    }
+
+    playButton?.addEventListener("click", () => {
+      playing = !playing;
+      playButton.textContent = playing ? "Pause" : "Play";
+      if (playing && !reduced) {
+        const tick = () => {
+          if (!playing) return;
+          const tMax = Number(timeSlider.max);
+          const t = Number(timeSlider.value) + 0.02;
+          timeSlider.value = String(t > tMax ? 0 : t);
+          draw();
+          requestAnimationFrame(tick);
+        };
+        tick();
+      }
+    });
+    [forceToggle, hSlider, pSlider, timeSlider].forEach((el) =>
+      el?.addEventListener("input", draw),
+    );
+    forceToggle?.addEventListener("change", draw);
+    draw();
+    redraws.push(draw);
+  }
+
   function drawDampingSim(sim) {
     const canvases = [...sim.querySelectorAll("canvas")];
     const theta0Slider = sim.querySelector('input[data-role="theta0"]');
@@ -1204,6 +1621,7 @@
   document
     .querySelectorAll('[data-mini-sim="min-accel"]')
     .forEach(drawMinAccelSim);
+  document.querySelectorAll('[data-mini-sim="ramp"]').forEach(drawRampSim);
   document
     .querySelectorAll('[data-mini-sim="damping"]')
     .forEach(drawDampingSim);
@@ -1220,7 +1638,7 @@
     .forEach(drawGeometrySim);
   document
     .querySelectorAll(
-      '[data-mini-sim]:not([data-mini-sim="potential-basic"]):not([data-mini-sim="potential-enhanced"]):not([data-mini-sim="smooth-sign"]):not([data-mini-sim="geometry-path"]):not([data-mini-sim="min-accel"]):not([data-mini-sim="damping"])',
+      '[data-mini-sim]:not([data-mini-sim="potential-basic"]):not([data-mini-sim="potential-enhanced"]):not([data-mini-sim="smooth-sign"]):not([data-mini-sim="geometry-path"]):not([data-mini-sim="min-accel"]):not([data-mini-sim="ramp"]):not([data-mini-sim="damping"])',
     )
     .forEach((sim) => {
       const mini = sim.querySelector("canvas");

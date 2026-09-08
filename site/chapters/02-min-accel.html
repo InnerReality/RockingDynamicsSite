@@ -148,8 +148,26 @@
                   statics to the transient free response.
                 </p>
               </section>
-              <section class="scrolly-step" data-state="damping">
+              <section class="scrolly-step" data-state="ramp">
                 <span class="step-number">03</span>
+                <div class="section-label">Ramp response</div>
+                <h2>The smooth sign follows the minimum-acceleration rule</h2>
+                <p>
+                  Drive the base with a steadily increasing ramp a(t) = rate·t
+                  and watch when the block first leaves the base. The
+                  smooth-sign dynamics lift off at the same a_min the statics
+                  predicted: before onset the block creeps imperceptibly, and
+                  once the effective gravity line leaves the base the angle
+                  takes off.
+                </p>
+                <p>
+                    The animation magnifies θ by 100×
+                  so the first rock is visible; the dashed line marks the
+                  predicted onset a_min.
+                </p>
+              </section>
+              <section class="scrolly-step" data-state="damping">
+                <span class="step-number">04</span>
                 <div class="section-label">Damping envelope</div>
                 <h2>Free vibration</h2>
                   <p>
@@ -267,6 +285,65 @@
                   <p class="mini-sim-result" data-min-accel-status>
                     At a = 1.01·a_min the effective gravity line has just left
                     the base — the block tips about its corner.
+                  </p>
+                </div>
+              </div>
+              <div class="figure-plot" data-state="ramp">
+                <h3>Ramp loading: lift-off at a_min</h3>
+                <div
+                  class="mini-sim mini-sim--figure"
+                  data-mini-sim="ramp"
+                >
+                  <canvas
+                    aria-label="Ramp loading rocking simulation"
+                  ></canvas>
+                  <div class="mini-sim-controls">
+                    <label
+                      class="mini-sim-toggle"
+                      for="ma3-force"
+                      title="Add the Belleville-washer preload — the onset then becomes a = g·(1 + 12P/W)·r₀/h"
+                      ><input id="ma3-force" type="checkbox" />
+                      Belleville-washer force</label
+                    ><label for="ma3-h"
+                      >CM height h
+                      <input
+                        id="ma3-h"
+                        data-role="h"
+                        type="range"
+                        min="2.4"
+                        max="60"
+                        step="0.5"
+                        value="40" /><span data-value data-role="h"></span
+                    ></label
+                    ><label for="ma3-p"
+                      >Preload P
+                      <input
+                        id="ma3-p"
+                        data-role="p"
+                        type="range"
+                        min="0"
+                        max="600"
+                        step="10"
+                        value="306" /><span data-value data-role="p"></span
+                    ></label>
+                  </div>
+                  <div class="mini-sim-controls">
+                    <label for="ma3-time"
+                      >Time t
+                      <input
+                        id="ma3-time"
+                        data-role="time"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.001"
+                        value="0" /><span data-value data-role="time"></span
+                    ></label>
+                    <button type="button" data-role="play">Play</button>
+                  </div>
+                  <p class="mini-sim-result" data-ramp-status>
+                    The ramp stops at 1.o5·a_min. The block stays pinned until
+                    the ramp passes a_min, then takes off.
                   </p>
                 </div>
               </div>
