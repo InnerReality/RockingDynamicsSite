@@ -213,6 +213,13 @@ if (existsSync(docsDir)) {
 // 3. Inject Markdown content into interactive pages.
 //    (minaccel.html embeds its markdown directly and renders it client-side,
 //    so it is not injected here.)
+const FOOTER_HTML = `<footer>
+  <div class="footer-inner">
+    <span>Rocking Dynamics · Computational mechanics in motion</span
+    ><a href="https://github.com/InnerReality/RockingDynamicsSite">GitHub</a
+    ><a href="../rss.xml">RSS</a>
+  </div>
+</footer>`;
 const MD_STYLE_INJECT = `<style>
 .md-content { max-width: 960px; margin: 24px auto; padding: 0 20px 40px; line-height: 1.6; }
 .md-content h2 { border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
@@ -241,7 +248,7 @@ if (existsSync(smoothstepMd)) {
     )
     .replace(
       "</body>",
-      `<section class="smoothstep-md">\n${contentHtml}\n</section>\n</body>`,
+      `<section class="smoothstep-md">\n${contentHtml}\n</section>\n${FOOTER_HTML}\n</body>`,
     );
   writeFileSync(resolve(out, "smoothstep.html"), injected);
 }
@@ -257,7 +264,7 @@ if (existsSync(contentMd)) {
     )
     .replace(
       "</body>",
-      `<section class="md-content">\n${contentHtml}\n</section>\n<script src="${MERMAID_JS}"></script>\n<script>mermaid.initialize({ startOnLoad: true });</script>\n</body>`,
+      `<section class="md-content">\n${contentHtml}\n</section>\n<script src="${MERMAID_JS}"></script>\n<script>mermaid.initialize({ startOnLoad: true });</script>\n${FOOTER_HTML}\n</body>`,
     );
   writeFileSync(resolve(out, "playground.html"), injected);
 }

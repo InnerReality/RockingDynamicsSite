@@ -815,3 +815,26 @@ strong {
     transition: none;
   }
 }
+
+/* Footer */
+footer {
+  padding: 1.6rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+  font-family: var(--sans);
+}
+.footer-inner {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+footer a:hover {
+  text-decoration: underline;
+}
