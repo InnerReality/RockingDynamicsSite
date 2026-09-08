@@ -115,9 +115,9 @@
           </nav>
           <div class="chapter-scrolly">
             <div class="scrolly-prose">
-              <section class="scrolly-step is-active" data-state="geometry">
+              <section class="scrolly-step scrolly-step--sim" data-state="chirp">
                 <span class="step-number">01</span>
-                <div class="section-label">Return to the forcing</div>
+                <div class="section-label">Chirp excitation · Mini-sim</div>
                 <h2>Free response becomes a driven response</h2>
                 <p>
                   Chapter 2 followed the body after the base stopped. Here the
@@ -128,8 +128,20 @@
                   The result depends on both the forcing amplitude and its
                   frequency relative to the body’s rocking time scale.
                 </p>
+                <p>
+                  Drive the base with a chirp — a sine whose frequency sweeps
+                  from f₁ to f₂ over the run — shaped by a sine envelope of
+                  amplitude A with period T = 10 s. The block rocks whenever
+                  the instantaneous input exceeds the onset a_min from
+                  Chapter 2.
+                </p>
+                <p>
+                  The input trace below shows the excitation in g: the dashed
+                  lines mark the envelope and the onset threshold, and the
+                  vertical cursor tracks the current time as the sim plays.
+                </p>
               </section>
-              <section class="scrolly-step" data-state="handoff">
+              <section class="scrolly-step" data-state="">
                 <span class="step-number">02</span>
                 <div class="section-label">Run the full experiment</div>
                 <h2>Explore forced and free motion together</h2>
@@ -161,20 +173,81 @@
                 </div>
               </section>
             </div>
-            <aside
-              class="scrolly-figure scrolly-figure--sticky"
-              aria-label="Animated chapter figure"
-            >
-              <canvas data-figure-canvas></canvas>
-              <p class="figure-caption">
-                <span class="figure-state is-visible" data-state="geometry"
-                  >The base supplies energy after lift-off.</span
-                ><span class="figure-state" data-state="forcing"
-                  >Frequency controls the timing of the impacts.</span
-                ><span class="figure-state" data-state="handoff"
-                  >The playground exposes the full driven response.</span
+            <aside class="scrolly-figure" aria-label="Chapter plots">
+              <div
+                class="figure-plot figure-plot--fade"
+                data-state="chirp"
+              >
+                <h3>Chirp excitation: sweep the base</h3>
+                <div
+                  class="mini-sim mini-sim--figure"
+                  data-mini-sim="chirp"
                 >
-              </p>
+                  <canvas
+                    aria-label="Chirp excitation rocking simulation"
+                  ></canvas>
+                  <div class="mini-sim-controls">
+                    <label for="fc-h"
+                      >CM height h
+                      <input
+                        id="fc-h"
+                        data-role="h"
+                        type="range"
+                        min="2.4"
+                        max="60"
+                        step="0.5"
+                        value="40" /><span data-value data-role="h"></span
+                    ></label>
+                  </div>
+                  <div class="mini-sim-controls">
+                    <label for="fc-a"
+                      > Amplitude A
+                      <input
+                        id="fc-a"
+                        data-role="a"
+                        type="range"
+                        min="0"
+                        max="5.6"
+                        step="0.05"
+                        value="1.5" /><span data-value data-role="a"></span
+                    ></label
+                    ><label class="mini-sim-freq" for="fc-f1"
+                      >Start f₁
+                      <input
+                        id="fc-f1"
+                        data-role="f1"
+                        type="text"
+                        inputmode="decimal"
+                        value="0.2"
+                      />Hz</label
+                    ><label class="mini-sim-freq" for="fc-f2"
+                      >End f₂
+                      <input
+                        id="fc-f2"
+                        data-role="f2"
+                        type="text"
+                        inputmode="decimal"
+                        value="10"
+                      />Hz</label
+                    >
+                  </div>
+                  <div class="mini-sim-controls">
+                    <label for="fc-time"
+                      >Time t
+                      <input
+                        id="fc-time"
+                        data-role="time"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.001"
+                        value="0" /><span data-value data-role="time"></span
+                    ></label>
+                    <button type="button" data-role="play">Play</button>
+                  </div>
+                </div>
+              </div>
+
             </aside>
           </div>
           <nav class="chapter-nav-bar">

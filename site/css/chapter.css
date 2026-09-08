@@ -241,11 +241,6 @@ strong {
 .scrolly-figure {
   position: sticky;
   top: 5rem;
-  min-height: 440px;
-  padding: 1rem;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
 }
 .scrolly-figure > canvas {
   display: block;
@@ -266,6 +261,46 @@ strong {
 }
 .figure-plot.is-visible {
   display: block;
+}
+@media (min-width: 861px) {
+  /* The panel box belongs to the visible figure, not the empty aside, so
+     no white box shows while a step without a figure is active. */
+  .figure-plot.is-visible {
+    padding: 1rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+}
+/* Opt-in cross-fade: add class="figure-plot--fade" to a figure-plot to fade
+   it in/out with its scrolly step instead of switching instantly. Opt-in
+   only, so figures without the class (chapters 1–2) keep the instant
+   behavior above. Desktop only: on mobile every figure stays visible. */
+@media (min-width: 861px) {
+.figure-plot--fade {
+    display: block;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+.figure-plot--fade.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.35s ease, visibility 0s linear 0s;
+}
+  /* Multiple fading plots in one aside overlap the visible one instead of
+     stacking (which would stretch the aside); a lone plot stays in flow so
+     the aside keeps its height while the figure is hidden. */
+  .figure-plot--fade:not(:only-child) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+  .figure-plot--fade:not(:only-child).is-visible {
+    position: static;
+  }
 }
 .figure-plot h3 {
   margin: 0 0 0.7rem;
@@ -288,6 +323,9 @@ strong {
   aspect-ratio: 1;
 }
 .mini-sim--figure[data-mini-sim="ramp"] canvas {
+  aspect-ratio: 700 / 620;
+}
+.mini-sim--figure[data-mini-sim="chirp"] canvas {
   aspect-ratio: 700 / 620;
 }
 .mini-sim--figure[data-mini-sim="damping"] canvas {
@@ -367,6 +405,19 @@ strong {
 .mini-sim-controls input[type="range"] {
   flex: 1;
   accent-color: var(--accent);
+}
+.mini-sim-controls input[type="text"] {
+  width: 4.6em;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--text);
+  font: 700 0.82rem var(--sans);
+}
+.mini-sim-controls label.mini-sim-freq {
+  flex: 0 1 auto;
+  min-width: 0;
 }
 .mini-sim-controls span {
   min-width: 4.2em;
@@ -679,6 +730,21 @@ strong {
   .figure-plot[data-state="geometry"] {
     order: 2;
   }
+  .scrolly-step[data-state="chirp"] {
+    order: 3;
+  }
+  .figure-plot[data-state="chirp"] {
+    order: 4;
+  }
+  .scrolly-step[data-state=""] {
+    /* Prose-only step: keep it after the chirp figure on mobile. */
+    order: 5;
+  }
+  .scrolly-prose > .handoff-card {
+    /* Handoff card lives outside the last step (ch. 1–2) so the final
+       minisim figure (order 16) can sit above it on mobile. */
+    order: 17;
+  }
   .scrolly-step[data-state="smooth"] {
     order: 3;
   }
@@ -737,14 +803,15 @@ strong {
     height: 150px;
   }
   .chapter-nav-bar {
-    flex-direction: column;
+    flex-wrap: wrap;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  .scrolly-step {
+  .scrolly-step,
+  .figure-plot--fade {
     transition: none;
   }
 }

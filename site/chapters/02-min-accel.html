@@ -174,42 +174,41 @@
                 <span class="step-number">04</span>
                 <div class="section-label">Damping envelope</div>
                 <h2>Free vibration</h2>
+                <p>
+                  Once the base acceleration stops, the body moves around its
+                  active corner under gravity. It slows as it climbs, then
+                  speeds up as it falls toward the opposite corner. At each
+                  corner switch, impact removes energy from the motion.
+                </p>
+                <p>
+                  Damping acts only while the body is in contact with the base.
+                  In the figure, the envelope C₀(1 − sgn(θ)²) is nonzero for
+                  |θ| &lt; θ₀ and vanishes once the body is rocking.
+                </p>
+              </section>
+              <div class="handoff-card">
+                <div class="handoff-preview">
+                  <img
+                    src="../assets/minaccel-default-4x.gif"
+                    alt="Preview of minimum acceleration experiment"
+                  />
+                </div>
+                <div class="handoff-body">
+                  <p class="handoff-label">Full experiment</p>
+                  <h3>Minimum Acceleration</h3>
                   <p>
-                    Once the base acceleration stops, the body moves around its active corner
-                    under gravity. It slows as it climbs, then speeds up as it
-                    falls toward the opposite corner. At each corner switch,
-                    impact removes energy from the motion.
+                    Ramp the base acceleration with the complete solver and
+                    compare measured lift-off with the prediction.
                   </p>
-                  <p>
-                    Damping acts only while the body is in contact with the base.
-                    In the figure, the envelope C₀(1 − sgn(θ)²) is nonzero for
-                    |θ| &lt; θ₀ and vanishes once the body is rocking.
-                  </p>
-
-                <div class="handoff-card">
-                  <div class="handoff-preview">
-                    <img
-                      src="../assets/minaccel-default-4x.gif"
-                      alt="Preview of minimum acceleration experiment"
-                    />
-                  </div>
-                  <div class="handoff-body">
-                    <p class="handoff-label">Full experiment</p>
-                    <h3>Minimum Acceleration</h3>
-                    <p>
-                      Ramp the base acceleration with the complete solver and
-                      compare measured lift-off with the prediction.
-                    </p>
-                    <div class="handoff-links">
-                      <a class="btn-primary" href="../validate/minaccel.html"
-                        >Run the experiment ↗</a
-                      ><a class="btn-secondary" href="./03-free-response.html"
-                        >Next chapter →</a
-                      >
-                    </div>
+                  <div class="handoff-links">
+                    <a class="btn-primary" href="../validate/minaccel.html"
+                      >Run the experiment ↗</a
+                    ><a class="btn-secondary" href="./03-free-response.html"
+                      >Next chapter →</a
+                    >
                   </div>
                 </div>
-              </section>
+              </div>
             </div>
             <aside class="scrolly-figure" aria-label="Chapter plots">
 
@@ -226,9 +225,9 @@
                     <label
                       class="mini-sim-toggle"
                       for="ma2-force"
-                      title="Add the Belleville-washer preload — the onset then becomes a = g·(1 + 12P/W)·r₀/h"
+                      title="Add the Preload — the onset then becomes a = g·(1 + P/W)·r₀/h"
                       ><input id="ma2-force" type="checkbox" />
-                      Belleville-washer force</label
+                      Preload</label
                     ><label for="ma2-a"
                       >Base acceleration a
                       <input
@@ -297,9 +296,9 @@
                     <label
                       class="mini-sim-toggle"
                       for="ma3-force"
-                      title="Add the Belleville-washer preload — the onset then becomes a = g·(1 + 12P/W)·r₀/h"
+                      title="Add the Preload — the onset then becomes a = g·(1 + P/W)·r₀/h"
                       ><input id="ma3-force" type="checkbox" />
-                      Belleville-washer force</label
+                      Preload</label
                     ><label for="ma3-h"
                       >CM height h
                       <input

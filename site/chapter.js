@@ -22,6 +22,9 @@
     drawFigure(id);
   }
   function drawFigure(id) {
+    // A step with a blank data-state (e.g. a prose-only step) has no
+    // figure-plot; don't fall back to the first generic canvas.
+    if (!id) return;
     const plot = document.querySelector(`.figure-plot[data-state="${id}"]`);
     const canvas = plot
       ? plot.querySelector("canvas[data-figure-canvas]")
@@ -192,6 +195,29 @@
     return (
       s0 + ((m * width * width) / 2) * gInt + width * (1 - (m * width) / 2) * t
     );
+  }
+
+  function smoothstep(x, m, w, c = 1) {
+    const x0 = c / m - w / 2;
+    const x1 = x0 + w;
+    const alpha = (m * w) / 2;
+    const beta = c - (m * w) / 2;
+    const ax = Math.abs(x);
+    if (ax >= x1) return Math.sign(x) * c;
+    if (ax < x0) return m * x;
+    const t = (ax - x0) / w;
+    const g = 2 * t - 5 * t ** 4 + 6 * t ** 5 - 2 * t ** 6;
+    return Math.sign(x) * (alpha * g + beta);
+  }
+  function smoothstepDerivative(x, m, w, c = 1) {
+    const x0 = c / m - w / 2;
+    const x1 = x0 + w;
+    const ax = Math.abs(x);
+    if (ax >= x1) return 0;
+    if (ax < x0) return m;
+    const t = (ax - x0) / w;
+    const gp = 2 - 20 * t ** 3 + 30 * t ** 4 - 12 * t ** 5;
+    return (m / 2) * gp;
   }
 
   function themeColors() {
@@ -726,7 +752,7 @@
     }
 
     function minAccel(force, P, h) {
-      return (1 + (force ? (12 * P) / W : 0)) * (r0 / h);
+      return (1 + (force ? P / W : 0)) * (r0 / h);
     }
 
     function renderTheory(force, P, h, aMin) {
@@ -735,7 +761,7 @@
       const eq = theory.querySelector("[data-theory-eq]");
       const defs = theory.querySelector("[data-theory-defs]");
       eq.innerHTML = force
-        ? "\\[a = g\\,\\frac{(1 + 12\\,P/W)\\,r_0}{h} = " +
+        ? "\\[a = g\\,\\frac{(1 + P/W)\\,r_0}{h} = " +
           aMin.toFixed(2) +
           "\\,g\\]"
         : "\\[a = g\\,\\frac{r_0}{h} = " + aMin.toFixed(2) + "\\,g\\]";
@@ -1050,39 +1076,16 @@
     let playing = false;
     let cached = null;
 
-    function smoothstep(x, m, w, c = 1) {
-      const x0 = c / m - w / 2;
-      const x1 = x0 + w;
-      const alpha = (m * w) / 2;
-      const beta = c - (m * w) / 2;
-      const ax = Math.abs(x);
-      if (ax >= x1) return Math.sign(x) * c;
-      if (ax < x0) return m * x;
-      const t = (ax - x0) / w;
-      const g = 2 * t - 5 * t ** 4 + 6 * t ** 5 - 2 * t ** 6;
-      return Math.sign(x) * (alpha * g + beta);
-    }
-    function smoothstepDerivative(x, m, w, c = 1) {
-      const x0 = c / m - w / 2;
-      const x1 = x0 + w;
-      const ax = Math.abs(x);
-      if (ax >= x1) return 0;
-      if (ax < x0) return m;
-      const t = (ax - x0) / w;
-      const gp = 2 - 20 * t ** 3 + 30 * t ** 4 - 12 * t ** 5;
-      return (m / 2) * gp;
-    }
-
     function runSim() {
       const force = forceToggle.checked;
       const P = force ? Number(pSlider.value) : 0;
       const h = Number(hSlider.value);
       if (cached && cached.force === force && cached.P === P && cached.h === h)
         return cached;
-      const aMin = (1 + (force ? (12 * P) / W : 0)) * (r0 / h);
+      const aMin = (1 + (force ? P / W : 0)) * (r0 / h);
       const rate = (stopMult * aMin) / tStop;
       const Itt = II + mass * r0 * r0;
-      const restCoef = mass * grav * r0 + (force ? 12 * P * r0 : 0);
+      const restCoef = mass * grav * r0 + (force ? P * r0 : 0);
       let theta = 0,
         thetad = 0,
         t = 0;
@@ -1441,6 +1444,411 @@
     redraws.push(draw);
   }
 
+  function drawChirpSim(sim) {
+    const canvas = sim.querySelector("canvas");
+    const c = canvas.getContext("2d");
+    const hSlider = sim.querySelector('input[data-role="h"]');
+    const aSlider = sim.querySelector('input[data-role="a"]');
+    const f1Input = sim.querySelector('input[data-role="f1"]');
+    const f2Input = sim.querySelector('input[data-role="f2"]');
+    const timeSlider = sim.querySelector('input[data-role="time"]');
+    const playButton = sim.querySelector('button[data-role="play"]');
+    const hVal = sim.querySelector('[data-value][data-role="h"]');
+    const aVal = sim.querySelector('[data-value][data-role="a"]');
+    const timeVal = sim.querySelector('[data-value][data-role="time"]');
+    const status = sim.querySelector("[data-chirp-status]");
+
+    const grav = 386.4; // in/s²
+    const W = 1000; // lb — fixed body weight
+    const mass = W / grav;
+    const II = 4000; // lb·in·s² — centroidal moment of inertia
+    const r0 = 12; // in — pivot radius (half the base width)
+    const T = 10; // s — envelope period and simulation time
+    const cdamp = 1e7; // lb·in·s — rocking damping (no BW)
+    const dt = 1e-3; // s
+    const thetaGain = 1; // visual magnification of θ
+    const visualClamp = Math.PI / 2; // animation never rotates past ±90°
+    const arrowCap = 3 * r0; // visual cap on the acceleration arrow
+
+    let playing = false;
+    let cached = null;
+
+    function parseFreq(input, fallback) {
+      const v = Number(input?.value);
+      return Number.isFinite(v) ? Math.min(10, Math.max(0.2, v)) : fallback;
+    }
+
+    // Linear chirp phase: the instantaneous frequency sweeps f1 → f2 over T s.
+    function chirpPhase(t, f1, f2) {
+      return f1 * t + ((f2 - f1) * t * t) / (2 * T);
+    }
+
+    // Input excitation in g: unit chirp × A·sin(2πt/T) envelope.
+    function excitation(t, A, f1, f2) {
+      return (
+        A *
+        Math.sin((2 * Math.PI * t) / T) *
+        Math.sin(2 * Math.PI * chirpPhase(t, f1, f2))
+      );
+    }
+
+    function runSim() {
+      const P = 0; // no Belleville-washer preload
+      const h = Number(hSlider.value);
+      const A = Number(aSlider.value);
+      const f1 = parseFreq(f1Input, 0.2);
+      const f2 = parseFreq(f2Input, 10);
+      if (
+        cached &&
+        cached.h === h &&
+        cached.A === A &&
+        cached.f1 === f1 &&
+        cached.f2 === f2
+      )
+        return cached;
+      const aMin = r0 / h;
+      const Itt = II + mass * r0 * r0;
+      const restCoef = mass * grav * r0;
+      let theta = 0,
+        thetad = 0,
+        t = 0;
+      const tArr = [0],
+        thArr = [0],
+        aArr = [0];
+      while (t < T) {
+        const ax = excitation(t, A, f1, f2) * grav;
+        const s = smoothstep(theta, 1e5, 1e-5);
+        const sp = smoothstepDerivative(theta, 1e5, 1e-5);
+        const thdd =
+          (-mass * r0 * r0 * s * sp * thetad * thetad -
+            cdamp * (1 - s * s) * thetad -
+            restCoef * s +
+            mass * h * ax) /
+          Itt;
+        const hStep = Math.min(dt, T - t);
+        thetad += thdd * hStep;
+        theta += thetad * hStep;
+        t += hStep;
+        tArr.push(t);
+        thArr.push(theta);
+        aArr.push(ax / grav);
+      }
+      cached = { t: tArr, theta: thArr, a: aArr, aMin, T, h, A, f1, f2 };
+      return cached;
+    }
+
+    function draw() {
+      const h = Number(hSlider.value);
+      const aMin = r0 / h;
+      // The amplitude slider tops out at 4× the onset acceleration.
+      const aMax = 4 * aMin;
+      if (aSlider) {
+        aSlider.max = aMax.toFixed(3);
+        if (Number(aSlider.value) > aMax) aSlider.value = aMax.toFixed(3);
+      }
+      const data = runSim();
+      const { A, f1, f2 } = data;
+
+      const tMax = data.t[data.t.length - 1];
+      timeSlider.max = tMax.toFixed(3);
+      let t = Number(timeSlider.value);
+      if (t > tMax) t = tMax;
+      timeSlider.value = t.toFixed(3);
+      let idx = 0;
+      while (idx < data.t.length - 1 && data.t[idx + 1] <= t) idx++;
+      const theta = data.theta[idx];
+      const a = data.a[idx];
+
+      if (hVal) hVal.textContent = h.toFixed(1) + " in";
+      if (aVal) aVal.textContent = A.toFixed(2) + " g";
+      if (timeVal) timeVal.textContent = t.toFixed(2) + " s";
+
+      if (status) {
+        const thetaEnd = data.theta[data.theta.length - 1] * (180 / Math.PI);
+        status.textContent =
+          "Chirp a(t) = A·sin(2πt/" +
+          T.toFixed(0) +
+          ")·sin(2πφ(t)) g · sweep " +
+          f1.toFixed(2) +
+          " → " +
+          f2.toFixed(2) +
+          " Hz · onset a_min = " +
+          aMin.toFixed(2) +
+          " g · θ = " +
+          (thetaEnd < 0.001
+            ? thetaEnd.toExponential(1)
+            : thetaEnd.toFixed(3)) +
+          "°";
+      }
+
+      const w = (canvas.width = 700),
+        hh = (canvas.height = 620);
+      c.clearRect(0, 0, w, hh);
+      const colors = themeColors();
+      c.fillStyle = colors.panel;
+      c.fillRect(0, 0, w, hh);
+
+      // ---- block animation (top) ----
+      const animH = Math.round(hh * 0.58);
+      const visual = Math.max(
+        -visualClamp,
+        Math.min(visualClamp, theta * thetaGain),
+      );
+      const pivot = theta >= 0 ? r0 : -r0;
+      const cos = Math.cos(visual),
+        sin = Math.sin(visual);
+      const corners = [
+        [-r0, 0],
+        [r0, 0],
+        [r0, 2 * h],
+        [-r0, 2 * h],
+      ].map(([dx, dy]) => ({
+        x: pivot + (dx - pivot) * cos + dy * sin,
+        y: -(dx - pivot) * sin + dy * cos,
+      }));
+      const cm = {
+        x: pivot + (0 - pivot) * cos + h * sin,
+        y: -(0 - pivot) * sin + h * cos,
+      };
+      const arrowLen = Math.max(
+        -arrowCap,
+        Math.min(arrowCap, r0 * (a / aMin)),
+      );
+      // Fixed plot: the extent is computed once per run from the maximum
+      // visual angle actually reached (clamped at ±90°) and the maximum
+      // arrow length, so the pivot corner, ground, and block size stay put
+      // while the block rotates and the arrow grows.
+      const maxVisual = Math.min(
+        visualClamp,
+        Math.max(...data.theta.map((v) => Math.abs(v) * thetaGain)),
+      );
+      let bxMin = Infinity,
+        bxMax = -Infinity,
+        byMax = -Infinity;
+      const consider = (pivot, vis) => {
+        const co = Math.cos(vis),
+          si = Math.sin(vis);
+        for (const [dx, dy] of [
+          [-r0, 0],
+          [r0, 0],
+          [r0, 2 * h],
+          [-r0, 2 * h],
+        ]) {
+          const x = pivot + (dx - pivot) * co + dy * si;
+          const y = -(dx - pivot) * si + dy * co;
+          bxMin = Math.min(bxMin, x);
+          bxMax = Math.max(bxMax, x);
+          byMax = Math.max(byMax, y);
+        }
+      };
+      [r0, -r0].forEach((pivot) => {
+        consider(pivot, maxVisual);
+        consider(pivot, -maxVisual);
+      });
+      const padX = Math.max(1, (bxMax - bxMin) * 0.08);
+      const padY = Math.max(1, byMax * 0.1);
+      const maxArrowLen = Math.min(r0 * (A / aMin), arrowCap);
+      const xMin = bxMin - padX - maxArrowLen * 1.1,
+        xMax = bxMax + padX + maxArrowLen * 1.1;
+      const yMin = 0,
+        yMax = byMax + padY;
+
+      const pad = { left: 46, right: 18, top: 34, bottom: 44 };
+      const availW = w - pad.left - pad.right;
+      const availH = animH - pad.top - pad.bottom;
+      const scale = Math.min(availW / (xMax - xMin), availH / (yMax - yMin));
+      const sx = (x) => pad.left + (x - xMin) * scale;
+      const sy = (y) => animH - pad.bottom - y * scale;
+
+      function arrow(x1, y1, x2, y2, color, lw) {
+        const sx1 = sx(x1),
+          sy1 = sy(y1);
+        const sx2 = sx(x2),
+          sy2 = sy(y2);
+        const dx = sx2 - sx1,
+          dy = sy2 - sy1;
+        const len = Math.hypot(dx, dy);
+        if (len < 1e-6) return;
+        const ux = dx / len,
+          uy = dy / len;
+        const ah = 14;
+        c.strokeStyle = color;
+        c.lineWidth = lw;
+        c.beginPath();
+        c.moveTo(sx1, sy1);
+        c.lineTo(sx2, sy2);
+        c.stroke();
+        const px = -uy * ah * 0.6,
+          py = ux * ah * 0.6;
+        c.fillStyle = color;
+        c.beginPath();
+        c.moveTo(sx2, sy2);
+        c.lineTo(sx2 - ux * ah - px, sy2 - uy * ah - py);
+        c.lineTo(sx2 - ux * ah + px, sy2 - uy * ah + py);
+        c.closePath();
+        c.fill();
+      }
+
+      // ground
+      c.strokeStyle = colors.border;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(pad.left, sy(0));
+      c.lineTo(w - pad.right, sy(0));
+      c.stroke();
+
+      // block
+      c.beginPath();
+      corners.forEach((p, i) =>
+        i ? c.lineTo(sx(p.x), sy(p.y)) : c.moveTo(sx(p.x), sy(p.y)),
+      );
+      c.closePath();
+      c.fillStyle = colors.accent;
+      c.globalAlpha = 0.16;
+      c.fill();
+      c.globalAlpha = 1;
+      c.strokeStyle = colors.accent;
+      c.lineWidth = 3;
+      c.stroke();
+
+      // acceleration arrow (points left when a < 0)
+      if (Math.abs(arrowLen) > 0.4)
+        arrow(cm.x, cm.y, cm.x + arrowLen, cm.y, colors.orange, 3);
+
+      // CM and pivot markers
+      c.fillStyle = colors.orange;
+      c.beginPath();
+      c.arc(sx(cm.x), sy(cm.y), 6, 0, Math.PI * 2);
+      c.fill();
+      c.beginPath();
+      c.arc(sx(pivot), sy(0), 5, 0, Math.PI * 2);
+      c.fill();
+
+      // labels
+      c.font = "800 26px system-ui";
+      c.textAlign = "center";
+      c.fillStyle = colors.orange;
+      if (Math.abs(arrowLen) > 0.4)
+        c.fillText(
+          "a = " + a.toFixed(2) + " g",
+          sx(cm.x + arrowLen / 2),
+          sy(cm.y) - 22,
+        );
+
+      // ---- input excitation trace (bottom) ----
+      const traceTop = animH + 8;
+      const traceH = hh - traceTop - 10;
+      const tpad = { left: 46, right: 14, top: 8, bottom: 30 };
+      const tw = w - tpad.left - tpad.right;
+      const th = traceH - tpad.top - tpad.bottom;
+      const aSpan = Math.max(0.5, A, aMin) * 1.15;
+      const tsx = (tt) => tpad.left + (tt / T) * tw;
+      const tsy = (av) =>
+        traceTop + tpad.top + th * (1 - (av + aSpan) / (2 * aSpan));
+
+      // axes
+      c.strokeStyle = colors.border;
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(tsx(0), traceTop + tpad.top);
+      c.lineTo(tsx(0), traceTop + tpad.top + th);
+      c.moveTo(tpad.left, tsy(0));
+      c.lineTo(tpad.left + tw, tsy(0));
+      c.stroke();
+
+      // envelope ±A·sin(2πt/T)
+      c.save();
+      c.strokeStyle = colors.muted;
+      c.lineWidth = 1.5;
+      c.setLineDash([3, 4]);
+      for (const sign of [1, -1]) {
+        c.beginPath();
+        for (let i = 0; i <= 500; i++) {
+          const tt = (T * i) / 500;
+          const env = sign * A * Math.sin((2 * Math.PI * tt) / T);
+          const px = tsx(tt);
+          i ? c.lineTo(px, tsy(env)) : c.moveTo(px, tsy(env));
+        }
+        c.stroke();
+      }
+      c.restore();
+
+      // onset lines ±a_min
+      c.save();
+      c.strokeStyle = colors.orange;
+      c.lineWidth = 1.5;
+      c.setLineDash([4, 4]);
+      [-aMin, aMin].forEach((av) => {
+        c.beginPath();
+        c.moveTo(tpad.left, tsy(av));
+        c.lineTo(tpad.left + tw, tsy(av));
+        c.stroke();
+      });
+      c.restore();
+
+      // trace
+      c.strokeStyle = colors.accent;
+      c.lineWidth = 2.5;
+      c.beginPath();
+      for (let i = 0; i < data.t.length; i++) {
+        const px = tsx(data.t[i]),
+          py = tsy(data.a[i]);
+        i ? c.lineTo(px, py) : c.moveTo(px, py);
+      }
+      c.stroke();
+
+      // current-time cursor (vertical line + marker)
+      c.strokeStyle = colors.orange;
+      c.lineWidth = 2;
+      c.beginPath();
+      c.moveTo(tsx(t), traceTop + tpad.top);
+      c.lineTo(tsx(t), traceTop + tpad.top + th);
+      c.stroke();
+      c.fillStyle = colors.orange;
+      c.beginPath();
+      c.arc(tsx(t), tsy(a), 5, 0, Math.PI * 2);
+      c.fill();
+
+      // trace labels
+      c.fillStyle = colors.muted;
+      c.font = "15px system-ui";
+      c.textAlign = "center";
+      c.fillText("t (s)", tpad.left + tw / 2, traceTop + tpad.top + th + 20);
+      c.textAlign = "left";
+      c.fillText("a (g)", 8, traceTop + tpad.top + 14);
+      c.textAlign = "right";
+      c.fillText("a_min", tpad.left + tw, tsy(aMin) - 4);
+    }
+
+    playButton?.addEventListener("click", () => {
+      playing = !playing;
+      playButton.textContent = playing ? "Pause" : "Play";
+      if (playing && !reduced) {
+        const tick = () => {
+          if (!playing) return;
+          const tMax = Number(timeSlider.max);
+          const t = Number(timeSlider.value) + 0.02;
+          timeSlider.value = String(t > tMax ? 0 : t);
+          draw();
+          requestAnimationFrame(tick);
+        };
+        tick();
+      }
+    });
+    [hSlider, aSlider, timeSlider].forEach((el) =>
+      el?.addEventListener("input", draw),
+    );
+    [f1Input, f2Input].forEach((el) =>
+      el?.addEventListener("change", () => {
+        const fallback = el === f1Input ? 0.2 : 10;
+        el.value = String(parseFreq(el, fallback));
+        draw();
+      }),
+    );
+    draw();
+    redraws.push(draw);
+  }
+
   function drawDampingSim(sim) {
     const canvases = [...sim.querySelectorAll("canvas")];
     const theta0Slider = sim.querySelector('input[data-role="theta0"]');
@@ -1626,6 +2034,7 @@
     .querySelectorAll('[data-mini-sim="min-accel"]')
     .forEach(drawMinAccelSim);
   document.querySelectorAll('[data-mini-sim="ramp"]').forEach(drawRampSim);
+  document.querySelectorAll('[data-mini-sim="chirp"]').forEach(drawChirpSim);
   document
     .querySelectorAll('[data-mini-sim="damping"]')
     .forEach(drawDampingSim);
@@ -1642,7 +2051,7 @@
     .forEach(drawGeometrySim);
   document
     .querySelectorAll(
-      '[data-mini-sim]:not([data-mini-sim="potential-basic"]):not([data-mini-sim="potential-enhanced"]):not([data-mini-sim="smooth-sign"]):not([data-mini-sim="geometry-path"]):not([data-mini-sim="min-accel"]):not([data-mini-sim="ramp"]):not([data-mini-sim="damping"])',
+      '[data-mini-sim]:not([data-mini-sim="potential-basic"]):not([data-mini-sim="potential-enhanced"]):not([data-mini-sim="smooth-sign"]):not([data-mini-sim="geometry-path"]):not([data-mini-sim="min-accel"]):not([data-mini-sim="ramp"]):not([data-mini-sim="chirp"]):not([data-mini-sim="damping"])',
     )
     .forEach((sim) => {
       const mini = sim.querySelector("canvas");
