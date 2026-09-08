@@ -768,7 +768,7 @@
       defs.innerHTML = force
         ? "where \\(P = " +
           P.toFixed(0) +
-          "\\) lb is the Belleville-washer preload per stack, \\(W = " +
+          "\\) lb is the preload applied, \\(W = " +
           W.toFixed(0) +
           "\\) lb is the body weight, \\(r_0 = " +
           r0.toFixed(1) +
@@ -776,7 +776,7 @@
           h.toFixed(1) +
           "\\) in is the center-of-mass height. With the current body parameters the rocking onset is at \\(a = " +
           aMin.toFixed(2) +
-          "\\,g\\). When the BW force is disabled, the preload term drops out (\\(P = 0\\)) and the equation reduces to \\(a = g\\,r_0/h\\)."
+          "\\,g\\). When the preload is disabled, \\(P = 0\\) and the equation reduces to \\(a = g\\,r_0/h\\)."
         : "where \\(W = " +
           W.toFixed(0) +
           "\\) lb is the body weight, \\(r_0 = " +
@@ -1165,7 +1165,7 @@
       c.fillRect(0, 0, w, hh);
 
       // ---- block animation (top) ----
-      const animH = Math.round(hh * 0.58);
+      const animH = Math.round(hh * 0.66);
       const visual = Math.max(
         -visualClamp,
         Math.min(visualClamp, theta * thetaGain),
@@ -1466,6 +1466,13 @@
     const T = 10; // s — envelope period and simulation time
     const cdamp = 1e7; // lb·in·s — rocking damping (no BW)
     const dt = 1e-3; // s
+    // The smoothstep contact/impact transition is confined to |θ| < band.
+    // A step that crosses it must be subdivided, or RK4 samples the huge
+    // impact term at a spurious point and injects energy (the block
+    // suddenly spins up).
+    const band = 1e-4; // rad — region around θ = 0 needing fine steps
+    const dtFine = 1e-6; // s — fine step inside the band
+    const vMin = 0.05; // rad/s — only subdivide when moving through it
     const thetaGain = 1; // visual magnification of θ
     const visualClamp = Math.PI / 2; // animation never rotates past ±90°
     const arrowCap = 3 * r0; // visual cap on the acceleration arrow
@@ -1515,23 +1522,46 @@
       const tArr = [0],
         thArr = [0],
         aArr = [0];
-      while (t < T) {
-        const ax = excitation(t, A, f1, f2) * grav;
-        const s = smoothstep(theta, 1e5, 1e-5);
-        const sp = smoothstepDerivative(theta, 1e5, 1e-5);
-        const thdd =
-          (-mass * r0 * r0 * s * sp * thetad * thetad -
-            cdamp * (1 - s * s) * thetad -
+
+      // Angular acceleration: θ'' = f(θ, θ', t).
+      const thdd = (th, thd, tt) => {
+        const ax = excitation(tt, A, f1, f2) * grav;
+        const s = smoothstep(th, 1e5, 1e-5);
+        const sp = smoothstepDerivative(th, 1e5, 1e-5);
+        return (
+          -mass * r0 * r0 * s * sp * thd * thd -
+            cdamp * (1 - s * s) * thd -
             restCoef * s +
-            mass * h * ax) /
-          Itt;
-        const hStep = Math.min(dt, T - t);
-        thetad += thdd * hStep;
-        theta += thetad * hStep;
+            mass * h * ax
+        ) / Itt;
+      };
+
+      // RK4 integration of the 2nd-order ODE as a phase-space system.
+      // Steps that would cross the smoothstep band near θ = 0 are
+      // subdivided so the impact term is resolved instead of sampled
+      // at a spurious point.
+      while (t < T) {
+        let hStep = Math.min(dt, T - t);
+        const thetaNext = theta + thetad * hStep;
+        const lo = Math.min(theta, thetaNext),
+          hi = Math.max(theta, thetaNext);
+        if (lo < band && hi > -band && Math.abs(thetad) > vMin)
+          hStep = Math.min(dtFine, T - t);
+        const hh = hStep / 2;
+        const k1v = thdd(theta, thetad, t);
+        const k1w = thetad;
+        const k2v = thdd(theta + hh * k1w, thetad + hh * k1v, t + hh);
+        const k2w = thetad + hh * k1v;
+        const k3v = thdd(theta + hh * k2w, thetad + hh * k2v, t + hh);
+        const k3w = thetad + hh * k2v;
+        const k4v = thdd(theta + hStep * k3w, thetad + hStep * k3v, t + hStep);
+        const k4w = thetad + hStep * k3v;
+        theta += (hStep / 6) * (k1w + 2 * k2w + 2 * k3w + k4w);
+        thetad += (hStep / 6) * (k1v + 2 * k2v + 2 * k3v + k4v);
         t += hStep;
         tArr.push(t);
         thArr.push(theta);
-        aArr.push(ax / grav);
+        aArr.push(excitation(t, A, f1, f2));
       }
       cached = { t: tArr, theta: thArr, a: aArr, aMin, T, h, A, f1, f2 };
       return cached;
@@ -1589,7 +1619,7 @@
       c.fillRect(0, 0, w, hh);
 
       // ---- block animation (top) ----
-      const animH = Math.round(hh * 0.58);
+      const animH = Math.round(hh * 0.7);
       const visual = Math.max(
         -visualClamp,
         Math.min(visualClamp, theta * thetaGain),
@@ -1597,31 +1627,30 @@
       const pivot = theta >= 0 ? r0 : -r0;
       const cos = Math.cos(visual),
         sin = Math.sin(visual);
+      const bw = 1 * r0; // visual half-width of the block
+      const bh = 1 * h; // visual half-height of the block
       const corners = [
-        [-r0, 0],
-        [r0, 0],
-        [r0, 2 * h],
-        [-r0, 2 * h],
+        [-bw, 0],
+        [bw, 0],
+        [bw, 2 * bh],
+        [-bw, 2 * bh],
       ].map(([dx, dy]) => ({
         x: pivot + (dx - pivot) * cos + dy * sin,
         y: -(dx - pivot) * sin + dy * cos,
       }));
       const cm = {
-        x: pivot + (0 - pivot) * cos + h * sin,
-        y: -(0 - pivot) * sin + h * cos,
+        x: pivot + (0 - pivot) * cos + bh * sin,
+        y: -(0 - pivot) * sin + bh * cos,
       };
       const arrowLen = Math.max(
         -arrowCap,
         Math.min(arrowCap, r0 * (a / aMin)),
       );
-      // Fixed plot: the extent is computed once per run from the maximum
-      // visual angle actually reached (clamped at ±90°) and the maximum
-      // arrow length, so the pivot corner, ground, and block size stay put
-      // while the block rotates and the arrow grows.
-      const maxVisual = Math.min(
-        visualClamp,
-        Math.max(...data.theta.map((v) => Math.abs(v) * thetaGain)),
-      );
+      // Fixed plot: the extent is computed from the worst-case visual angle
+      // (±90°) and the worst-case arrow length (the cap), so the pivot
+      // corner, ground, and block size stay put while the block rotates and
+      // the arrow grows — and the block stays centered as A changes.
+      const maxVisual = visualClamp;
       let bxMin = Infinity,
         bxMax = -Infinity,
         byMax = -Infinity;
@@ -1629,10 +1658,10 @@
         const co = Math.cos(vis),
           si = Math.sin(vis);
         for (const [dx, dy] of [
-          [-r0, 0],
-          [r0, 0],
-          [r0, 2 * h],
-          [-r0, 2 * h],
+          [-bw, 0],
+          [bw, 0],
+          [bw, 2 * bh],
+          [-bw, 2 * bh],
         ]) {
           const x = pivot + (dx - pivot) * co + dy * si;
           const y = -(dx - pivot) * si + dy * co;
@@ -1645,15 +1674,15 @@
         consider(pivot, maxVisual);
         consider(pivot, -maxVisual);
       });
-      const padX = Math.max(1, (bxMax - bxMin) * 0.08);
-      const padY = Math.max(1, byMax * 0.1);
-      const maxArrowLen = Math.min(r0 * (A / aMin), arrowCap);
-      const xMin = bxMin - padX - maxArrowLen * 1.1,
-        xMax = bxMax + padX + maxArrowLen * 1.1;
+      const padX = Math.max(1, (bxMax - bxMin) * 0.04);
+      const padY = Math.max(0.5, byMax * 0.05);
+      const maxArrowLen = arrowCap;
+      const xMin = bxMin - padX - maxArrowLen * 0.5,
+        xMax = bxMax + padX + maxArrowLen * 0.5;
       const yMin = 0,
         yMax = byMax + padY;
 
-      const pad = { left: 46, right: 18, top: 34, bottom: 44 };
+      const pad = { left: 18, right: 18, top: 20, bottom: 60 };
       const availW = w - pad.left - pad.right;
       const availH = animH - pad.top - pad.bottom;
       const scale = Math.min(availW / (xMax - xMin), availH / (yMax - yMin));
