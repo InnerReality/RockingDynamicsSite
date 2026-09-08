@@ -1214,10 +1214,14 @@
         consider(pivot, maxVisual);
         consider(pivot, -maxVisual);
       });
-      const padX = Math.max(1, (bxMax - bxMin) * 0.08);
+      const padX = Math.max(1, (bxMax - bxMin) * 0.01);
       const padY = Math.max(1, byMax * 0.1);
+      // The arrow length grows with a; reserve space for its maximum
+      // (reached at the ramp stop, a = stopMult·a_min) so the block
+      // doesn't rescale as the arrow grows.
+      const maxArrowLen = r0 * stopMult;
       const xMin = bxMin - padX,
-        xMax = bxMax + padX + arrowLen * 1.1;
+        xMax = bxMax + padX + maxArrowLen * 0.1;
       const yMin = 0,
         yMax = byMax + padY;
 
