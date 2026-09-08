@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://innerreality.github.io/RockingDynamicsSite/sitemap.xml
+Feed: https://innerreality.github.io/RockingDynamicsSite/rss.xml

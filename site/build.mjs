@@ -116,6 +116,7 @@ cpSync(resolve(root, "assets"), resolve(dist, "assets"), { recursive: true });
 cpSync(resolve(root, "robots.txt"), resolve(dist, "robots.txt"));
 cpSync(resolve(root, "sitemap.xml"), resolve(dist, "sitemap.xml"));
 cpSync(resolve(root, "favicon.svg"), resolve(dist, "favicon.svg"));
+cpSync(resolve(root, "rss.xml"), resolve(dist, "rss.xml"));
 cpSync(resolve(root, "css"), resolve(dist, "css"), { recursive: true });
 cpSync(resolve(root, "chapters"), resolve(dist, "chapters"), {
   recursive: true,

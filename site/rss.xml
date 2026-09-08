@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rocking Dynamics</title>
+    <link>https://innerreality.github.io/RockingDynamicsSite/</link>
+    <description>Interactive mechanics in motion — theory, equations, and browser simulations of rigid-body rocking dynamics.</description>
+    <language>en</language>
+    <lastBuildDate>Mon, 08 Sep 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://innerreality.github.io/RockingDynamicsSite/rss.xml" rel="self" type="application/rss+xml" />
+
+    <item>
+      <title>Rocking Dynamics — Interactive Mechanics</title>
+      <link>https://innerreality.github.io/RockingDynamicsSite/</link>
+      <description>Explore rigid-body rocking with theory, equations, and browser simulations you can run instantly.</description>
+      <pubDate>Mon, 08 Sep 2026 00:00:00 +0000</pubDate>
+      <guid>https://innerreality.github.io/RockingDynamicsSite/</guid>
+    </item>
+
+    <item>
+      <title>Chapter 1 — Geometry &amp; Smoothstep</title>
+      <link>https://innerreality.github.io/RockingDynamicsSite/chapters/01-geometry.html</link>
+      <description>Explore the geometry and smoothstep regularization behind rocking dynamics.</description>
+      <pubDate>Mon, 08 Sep 2026 00:00:00 +0000</pubDate>
+      <guid>https://innerreality.github.io/RockingDynamicsSite/chapters/01-geometry.html</guid>
+    </item>
+
+    <item>
+      <title>Chapter 2 — Minimum Acceleration</title>
+      <link>https://innerreality.github.io/RockingDynamicsSite/chapters/02-min-accel.html</link>
+      <description>Discover the minimum acceleration required to start a rigid body rocking.</description>
+      <pubDate>Mon, 08 Sep 2026 00:00:00 +0000</pubDate>
+      <guid>https://innerreality.github.io/RockingDynamicsSite/chapters/02-min-accel.html</guid>
+    </item>
+
+    <item>
+      <title>Chapter 3 — Forced Excitation</title>
+      <link>https://innerreality.github.io/RockingDynamicsSite/chapters/03-free-response.html</link>
+      <description>Explore forced vibration and sustained excitation in a rocking rigid body.</description>
+      <pubDate>Mon, 08 Sep 2026 00:00:00 +0000</pubDate>
+      <guid>https://innerreality.github.io/RockingDynamicsSite/chapters/03-free-response.html</guid>
+    </item>
+
+    <item>
+      <title>Rocking Dynamics Playground</title>
+      <link>https://innerreality.github.io/RockingDynamicsSite/validate/playground.html</link>
+      <description>Explore rocking dynamics with forced excitation, free response, and impact dissipation in an interactive browser simulator.</description>
+      <pubDate>Mon, 08 Sep 2026 00:00:00 +0000</pubDate>
+      <guid>https://innerreality.github.io/RockingDynamicsSite/validate/playground.html</guid>
+    </item>
+
+    <item>
+      <title>MinAccel Simulator</title>
+      <link>https://innerreality.github.io/RockingDynamicsSite/validate/minaccel.html</link>
+      <description>Ramp the base acceleration and measure the minimum threshold required to start a rigid body rocking.</description>
+      <pubDate>Mon, 08 Sep 2026 00:00:00 +0000</pubDate>
+      <guid>https://innerreality.github.io/RockingDynamicsSite/validate/minaccel.html</guid>
+    </item>
+
+    <item>
+      <title>Smoothstep Simulator</title>
+      <link>https://innerreality.github.io/RockingDynamicsSite/validate/smoothstep.html</link>
+      <description>Inspect the smoothstep regularization of the sign function and its effect on the rocking pivot transition.</description>
+      <pubDate>Mon, 08 Sep 2026 00:00:00 +0000</pubDate>
+      <guid>https://innerreality.github.io/RockingDynamicsSite/validate/smoothstep.html</guid>
+    </item>
+  </channel>
+</rss>
