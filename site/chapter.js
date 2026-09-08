@@ -123,8 +123,10 @@
   }
   function updateActiveOnScroll() {
     const figRect = figure?.getBoundingClientRect();
-    if (!figRect) return;
-    const top = figRect.top;
+    // On mobile the figure wrapper is display:contents (no box), so fall
+    // back to the viewport top as the tracking edge.
+    const top =
+      figRect && (figRect.width > 0 || figRect.height > 0) ? figRect.top : 0;
     let closest = steps[0];
     let distance = Infinity;
     steps.forEach((step) => {
@@ -460,11 +462,10 @@
 
   function drawGeometrySim(sim) {
     const canvas = sim.querySelector("canvas");
-    const slider = sim.querySelector("input[type=range]");
-    const output = sim.querySelector("[data-value]");
+    const sliders = [...sim.querySelectorAll("input[type=range]")];
+    const outputs = [...sim.querySelectorAll("[data-value]")];
     const R0 = 3,
-      hcm = 3,
-      contact = 0;
+      hcm = 3;
     function smoothstep(x, m, width) {
       const x0 = 1 / m - width / 2;
       const x1 = x0 + width;
@@ -534,7 +535,8 @@
       return Math.sign(theta) * total;
     }
     function draw() {
-      const theta0 = Number(slider.value);
+      const theta0 = Number(sliders[0].value);
+      const contact = Number(sliders[1].value);
       const m = 1.5 / theta0;
       const width = 2 * (theta0 - 1 / m);
       const data = geometryData(theta0, m, width);
@@ -588,7 +590,7 @@
       const yMin = -0.1 * extent;
       const yMax = yMin + yRange;
       const w = (canvas.width = 700),
-        h = (canvas.height = 700);
+        h = (canvas.height = 600);
       const c = canvas.getContext("2d");
       const colors = themeColors();
       const pad = { left: 48, right: 18, top: 18, bottom: 36 };
@@ -688,10 +690,12 @@
         sx(contactX) + 8,
         sy(0) - 8,
       );
-      if (output)
-        output.textContent = `${((theta0 * 180) / Math.PI).toFixed(1)}° · m = ${m.toFixed(2)}`;
+      if (outputs[0])
+        outputs[0].textContent = `${((theta0 * 180) / Math.PI).toFixed(1)}° · m = ${m.toFixed(2)}`;
+      if (outputs[1])
+        outputs[1].textContent = `${((contact * 180) / Math.PI).toFixed(1)}°`;
     }
-    slider.addEventListener("input", draw);
+    sliders.forEach((s) => s.addEventListener("input", draw));
     draw();
     redraws.push(draw);
   }
@@ -1292,4 +1296,25 @@
       draw();
       redraws.push(draw);
     });
+
+  // Mobile: the chapter nav becomes an off-canvas drawer opened from the
+  // sticky top bar. The toggle only exists on chapter pages.
+  const navToggle = document.querySelector(".chapter-options-toggle");
+  const navDrawer = document.querySelector(".chapter-nav");
+  const navBackdrop = document.querySelector(".chapter-backdrop");
+  function setNavOpen(open) {
+    navDrawer?.classList.toggle("open", open);
+    navBackdrop?.classList.toggle("show", open);
+    navToggle?.setAttribute("aria-expanded", String(open));
+  }
+  navToggle?.addEventListener("click", () =>
+    setNavOpen(!navDrawer?.classList.contains("open")),
+  );
+  navBackdrop?.addEventListener("click", () => setNavOpen(false));
+  addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setNavOpen(false);
+  });
+  navDrawer?.querySelectorAll("a").forEach((link) =>
+    link.addEventListener("click", () => setNavOpen(false)),
+  );
 })();

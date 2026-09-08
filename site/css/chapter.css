@@ -89,6 +89,11 @@ a {
   gap: 0.55rem;
   margin: -1.5rem 0 1.5rem;
 }
+.chapter-topbar,
+.chapter-backdrop,
+.chapter-drawer-title {
+  display: none;
+}
 .github-link,
 .theme-toggle {
   display: inline-flex;
@@ -277,7 +282,7 @@ strong {
   aspect-ratio: 2;
 }
 .mini-sim--figure[data-mini-sim="geometry-path"] canvas {
-  aspect-ratio: 1;
+  aspect-ratio: 7 / 6;
 }
 .mini-sim--figure[data-mini-sim="min-accel"] canvas {
   aspect-ratio: 1;
@@ -546,54 +551,156 @@ strong {
   .page-layout {
     display: block;
   }
-  .chapter-nav {
-    position: static;
-    width: 100%;
-    height: auto;
-    padding: 1rem 1.25rem;
-    border-right: 0;
+  .chapter-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    position: sticky;
+    top: 4px;
+    z-index: 30;
+    padding: 0.7rem 1.25rem;
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
   }
-  .chapter-brand {
-    margin-bottom: 1rem;
+  .chapter-topbar .chapter-brand {
+    margin-bottom: 0;
+  }
+  .chapter-options-toggle {
+    margin-left: auto;
+    padding: 0.45rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--text);
+    font: 700 0.82rem var(--sans);
+    cursor: pointer;
+  }
+  .chapter-options-toggle:hover,
+  .chapter-options-toggle:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .chapter-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(320px, 85vw);
+    padding: 2rem 1.35rem;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    z-index: 100;
+    overflow-y: auto;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.18);
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+  }
+  .chapter-nav.open {
+    transform: translateX(0);
+  }
+  .chapter-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 90;
+  }
+  .chapter-backdrop.show {
+    display: block;
+  }
+  .chapter-drawer-title {
+    display: block;
+    margin: 0 0 1.25rem;
+    color: var(--muted);
+    font: 700 0.72rem/1.4 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
   .chapter-tools {
-    position: absolute;
-    top: 1rem;
-    right: 1.25rem;
-    margin: 0;
-  }
-  .chapter-nav ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem 1rem;
-  }
-  .chapter-nav li {
-    margin: 0;
+    margin: 0 0 1.5rem;
   }
   .nav-divider {
     margin: 0.9rem 0;
   }
   .chapter-progress {
     left: 0;
+    z-index: 40;
   }
   .chapter-content {
-    padding-top: 2.8rem;
+    padding-top: 1.5rem;
   }
   .chapter-scrolly {
-    display: block;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
   }
-  .scrolly-figure {
+  .scrolly-prose,
+  .scrolly-figure:not(.scrolly-figure--sticky) {
+    display: contents;
+  }
+  .scrolly-figure--sticky {
     position: sticky;
     z-index: 5;
-    top: 0;
+    top: 3.5rem;
     min-height: 0;
     margin: 0 -1.4rem 1rem;
     padding: 0.65rem 1.4rem;
   }
+  .figure-plot {
+    /* Keep every minisim visible on mobile: hiding inactive ones changes the
+       document height above the viewport mid-scroll, and scroll anchoring
+       yanks the position back up (the “can't scroll past section 2” bug). */
+    display: block;
+    margin: 1.5rem 0 0;
+    padding: 0.65rem 1.4rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
   .scrolly-figure > canvas,
   .figure-plot > canvas[data-figure-canvas] {
     max-height: 260px;
+  }
+  .scrolly-step[data-state="geometry"] {
+    order: 1;
+  }
+  .figure-plot[data-state="geometry"] {
+    order: 2;
+  }
+  .scrolly-step[data-state="smooth"] {
+    order: 3;
+  }
+  .figure-plot[data-state="smooth"] {
+    order: 4;
+  }
+  .scrolly-step[data-state="handoff"] {
+    order: 5;
+  }
+  .figure-plot[data-state="handoff"] {
+    order: 6;
+  }
+  .scrolly-step[data-state="derivation"] {
+    order: 7;
+  }
+  .figure-plot[data-state="derivation"] {
+    order: 8;
+  }
+  .scrolly-step[data-state="threshold"] {
+    order: 9;
+  }
+  .figure-plot[data-state="threshold"] {
+    order: 10;
+  }
+  .scrolly-step[data-state="response"] {
+    order: 11;
+  }
+  .figure-plot[data-state="response"] {
+    order: 12;
+  }
+  .scrolly-step[data-state="damping"] {
+    order: 13;
+  }
+  .figure-plot[data-state="damping"] {
+    order: 14;
   }
   .scrolly-step {
     min-height: auto;

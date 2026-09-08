@@ -36,7 +36,7 @@
       <span class="chapter-progress-bar"></span>
     </div>
     <div class="page-layout">
-      <nav class="chapter-nav">
+      <header class="chapter-topbar">
         <div class="chapter-brand">
           <a
             class="brand-home"
@@ -45,6 +45,28 @@
             ><span>Home</span></a
           ><a class="nav-site-title" href="../">Rocking Dynamics</a>
         </div>
+        <button
+          class="chapter-options-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="chapter-nav"
+          title="Options"
+        >
+          &#9776; Options
+        </button>
+      </header>
+      <nav class="chapter-nav" id="chapter-nav">
+        <div class="chapter-brand">
+          <a
+            class="brand-home"
+            href="../"
+            aria-label="Back to Rocking Dynamics home"
+            ><span>Home</span></a
+          ><a class="nav-site-title" href="../">Rocking Dynamics</a>
+        </div>
+        <p class="chapter-drawer-title">
+          Chapter 3 · Forced vibration
+        </p>
         <div class="chapter-tools">
           <a
             class="github-link"
@@ -77,6 +99,7 @@
         <div class="nav-divider"></div>
         <a href="../validate/playground.html">Standalone playground ↗</a>
       </nav>
+      <div class="chapter-backdrop"></div>
       <main class="chapter-content">
         <div class="chapter-inner">
           <div class="chapter-meta">Chapter 3 · Forced vibration</div>
@@ -134,7 +157,10 @@
                 </div>
               </section>
             </div>
-            <aside class="scrolly-figure" aria-label="Animated chapter figure">
+            <aside
+              class="scrolly-figure scrolly-figure--sticky"
+              aria-label="Animated chapter figure"
+            >
               <canvas data-figure-canvas></canvas>
               <p class="figure-caption">
                 <span class="figure-state is-visible" data-state="geometry"

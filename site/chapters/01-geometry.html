@@ -36,7 +36,7 @@
       <span class="chapter-progress-bar"></span>
     </div>
     <div class="page-layout">
-      <nav class="chapter-nav">
+      <header class="chapter-topbar">
         <div class="chapter-brand">
           <a
             class="brand-home"
@@ -45,6 +45,28 @@
             ><span>Home</span></a
           ><a class="nav-site-title" href="../">Rocking Dynamics</a>
         </div>
+        <button
+          class="chapter-options-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="chapter-nav"
+          title="Options"
+        >
+          &#9776; Options
+        </button>
+      </header>
+      <nav class="chapter-nav" id="chapter-nav">
+        <div class="chapter-brand">
+          <a
+            class="brand-home"
+            href="../"
+            aria-label="Back to Rocking Dynamics home"
+            ><span>Home</span></a
+          ><a class="nav-site-title" href="../">Rocking Dynamics</a>
+        </div>
+        <p class="chapter-drawer-title">
+          Chapter 1 · Geometry &amp; regularization
+        </p>
         <div class="chapter-tools">
           <a
             class="github-link"
@@ -77,6 +99,7 @@
         <div class="nav-divider"></div>
         <a href="../validate/smoothstep.html">Standalone geometry lab ↗</a>
       </nav>
+      <div class="chapter-backdrop"></div>
       <main class="chapter-content">
         <div class="chapter-inner">
           <div class="chapter-meta">
@@ -456,6 +479,16 @@
                         max="1.2"
                         step="0.005"
                         value="0.6" /><span data-value></span
+                    ></label>
+                    <label for="geometry-contact"
+                      >Contact angle θ
+                      <input
+                        id="geometry-contact"
+                        type="range"
+                        min="-0.0873"
+                        max="0.0873"
+                        step="0.001"
+                        value="0" /><span data-value></span
                     ></label>
                   </div>
                   <div class="plot-legend">
