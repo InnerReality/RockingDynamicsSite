@@ -5,10 +5,12 @@
   --bg-card: #fffefa;
   --bg-figure: #fafafa;
   --text: #1c2524;
+  --text-accent: #e8f1ed;
   --text-muted: #65716e;
   --accent: #0f766e;
   --accent-hover: #0b5f59;
   --accent-soft: #d8eeea;
+  --accent-guided: #2a5caa;
   --border: #d5d8ce;
   --font-serif: "Vollkorn", Georgia, "Times New Roman", serif;
   --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -20,10 +22,12 @@
   --bg-card: #172626;
   --bg-figure: #122020;
   --text: #e8f1ed;
+  --text-accent: #1c2524;
   --text-muted: #a6b8b2;
   --accent: #48c7b7;
   --accent-hover: #75ded0;
   --accent-soft: #183b38;
+  --accent-guided: #78B2FA;
   --border: #304846;
 }
 
@@ -199,7 +203,7 @@ a {
   text-transform: uppercase;
 }
 .btn-primary {
-  color: #fff;
+  color:var(--text-accent);
   background: var(--accent);
 }
 .btn-primary:hover {
@@ -343,7 +347,7 @@ a {
   display: inline-block;
   margin-bottom: 0.5rem;
   padding: 2px 7px;
-  color: #fff;
+  color:var(--text-accent);
   background: var(--accent);
   font-size: 0.66rem;
   font-weight: 800;
@@ -351,7 +355,7 @@ a {
   text-transform: uppercase;
 }
 .badge.guided {
-  background: #2a5caa;
+  background:var(--accent-guided);
 }
 .sim-card h3 {
   margin: 0 0 0.35rem;
